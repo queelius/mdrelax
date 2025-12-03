@@ -53,8 +53,8 @@ kl_divergence_bernoulli <- function(p, q)
 #' @export
 informative_masking_by_rank <- function(ts, alpha, beta)
 {
-    stopifnot(alpha0 >= 0)
-    stopifnot(beta0 >= 0 && beta0 <= 1)
+    stopifnot(alpha >= 0)
+    stopifnot(beta >= 0 && beta <= 1)
 
     m <- length(ts)
     stopifnot(m > 0)

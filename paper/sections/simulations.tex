@@ -1,0 +1,326 @@
+%% ============================================================================
+\section{Simulation Studies}
+\label{sec:simulations}
+%% ============================================================================
+
+We present simulation studies to (1) validate MLE performance under the
+C1-C2-C3 Bernoulli masking model, (2) quantify the bias from incorrectly
+assuming C2 when masking is informative, and (3) investigate identifiability
+issues arising from correlated candidate sets.
+
+\subsection{Experimental Design}
+\label{sec:sim-design}
+
+\subsubsection{System Configuration}
+
+We consider exponential series systems with $m = 3$ components and true rate
+parameters:
+\begin{equation}
+    \vlambda^* = (\lambda_1^*, \lambda_2^*, \lambda_3^*) = (1.0, 1.5, 2.0).
+\end{equation}
+These values represent a system where component 3 has the highest failure rate
+(and thus contributes most to system failures), while component 1 is most
+reliable.
+
+\subsubsection{Data Generation}
+
+For each simulation replicate:
+\begin{enumerate}
+    \item Generate component failure times $T_{ij} \sim \text{Exp}(\lambda_j^*)$
+        for $i = 1, \ldots, n$ and $j = 1, \ldots, m$.
+    \item Compute system failure times $T_i = \min_j T_{ij}$ and identify
+        failed components $K_i = \arg\min_j T_{ij}$.
+    \item Apply right-censoring at time $\tau$ (chosen to achieve approximately
+        20\% censoring) to obtain observed lifetimes $S_i = \min(T_i, \tau)$
+        and indicators $\delta_i$.
+    \item Generate candidate sets using the specified masking model.
+\end{enumerate}
+
+\subsubsection{Masking Models}
+
+We examine three masking scenarios:
+\begin{enumerate}
+    \item \textbf{C1-C2-C3 (Baseline):} Bernoulli model with $p = 0.3$ for
+        all non-failed components.
+    \item \textbf{Informative masking (Rank-based):} Masking probabilities
+        depend on component failure time ranks, parameterized by
+        informativeness parameter $\alpha \in \{0, 1, 2, 5, 10\}$.
+    \item \textbf{Correlated candidate sets:} Candidate set indicators have
+        correlation $\rho \in \{0, 0.1, 0.3, 0.5, 0.6, 0.8, 0.9\}$.
+\end{enumerate}
+
+\subsubsection{Performance Metrics}
+
+We evaluate:
+\begin{itemize}
+    \item \textbf{Bias:} $\text{Bias}(\hat{\lambda}_j) =
+        \E[\hat{\lambda}_j] - \lambda_j^*$
+    \item \textbf{Root mean squared error (RMSE):}
+        $\text{RMSE}(\hat{\lambda}_j) = \sqrt{\E[(\hat{\lambda}_j - \lambda_j^*)^2]}$
+    \item \textbf{Coverage probability:} Proportion of 95\% confidence
+        intervals containing $\lambda_j^*$
+    \item \textbf{RMSE ratio:} $\text{RMSE}_{\text{misspec}} /
+        \text{RMSE}_{\text{correct}}$
+\end{itemize}
+
+\subsection{Study 1: MLE Performance Under Bernoulli Masking}
+\label{sec:sim-kl}
+
+We first validate MLE performance under the correctly specified C1-C2-C3
+Bernoulli masking model across sample sizes $n \in \{50, 100, 200\}$ with
+$B = 200$ Monte Carlo replicates.
+
+\subsubsection{Results}
+
+Table~\ref{tab:mle_performance} presents the estimation results.
+
+\begin{table}[htbp]
+\centering
+\caption{Maximum Likelihood Estimation Performance by Sample Size}
+\label{tab:mle_performance}
+\begin{tabular}{cccccc}
+\toprule
+$n$ & Parameter & Bias & RMSE & Coverage & Mean CI Width \\
+\midrule
+50 & $\lambda_1$ & 0.017 & 0.477 & 0.920 & 1.727 \\
+ & $\lambda_2$ & 0.007 & 0.511 & 0.935 & 1.952 \\
+ & $\lambda_3$ & 0.085 & 0.557 & 0.945 & 2.197 \\
+\midrule
+100 & $\lambda_1$ & 0.016 & 0.318 & 0.935 & 1.175 \\
+ & $\lambda_2$ & 0.055 & 0.390 & 0.935 & 1.385 \\
+ & $\lambda_3$ & $-0.037$ & 0.366 & 0.950 & 1.519 \\
+\midrule
+200 & $\lambda_1$ & $-0.005$ & 0.201 & 0.935 & 0.825 \\
+ & $\lambda_2$ & 0.008 & 0.262 & 0.965 & 0.965 \\
+ & $\lambda_3$ & $-0.033$ & 0.258 & 0.955 & 1.066 \\
+\bottomrule
+\end{tabular}
+
+\vspace{2pt}
+\begin{minipage}{\textwidth}
+\footnotesize
+\textit{Notes.} Results based on 200 Monte Carlo replications. True parameters:
+$\lambda_1 = 1.0$, $\lambda_2 = 1.5$, $\lambda_3 = 2.0$.
+Bernoulli masking with $p = 0.3$, censoring proportion $\approx 20\%$.
+\end{minipage}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.8\textwidth]{fig1_rmse_by_sample_size.pdf}
+\caption{RMSE of MLE by sample size. All three component rate parameters show
+decreasing RMSE as sample size increases, consistent with $\sqrt{n}$-convergence.}
+\label{fig:rmse_sample_size}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.8\textwidth]{fig2_coverage_by_sample_size.pdf}
+\caption{95\% confidence interval coverage probability by sample size. Coverage
+is near the nominal 95\% level across all parameters and sample sizes, validating
+the asymptotic normal approximation.}
+\label{fig:coverage_sample_size}
+\end{figure}
+
+Key findings from Study 1:
+\begin{enumerate}
+    \item \textbf{Consistency:} Bias is small relative to RMSE at all sample
+        sizes, indicating approximate unbiasedness.
+    \item \textbf{Convergence:} RMSE decreases from approximately 0.5 at $n=50$
+        to 0.2--0.3 at $n=200$, consistent with $\sqrt{n}$-rate convergence.
+    \item \textbf{Coverage:} 95\% CI coverage ranges from 92.0\% to 96.5\%,
+        close to the nominal level, validating the Fisher information-based
+        standard errors.
+    \item \textbf{Component effects:} Components with higher true rates
+        ($\lambda_3 = 2.0$) have slightly larger absolute RMSE but similar
+        relative performance.
+\end{enumerate}
+
+\subsection{Study 2: Misspecification Bias Analysis}
+\label{sec:sim-bias}
+
+We quantify the bias from incorrectly assuming C1-C2-C3 when masking is
+actually informative. Data is generated with rank-based informative masking
+(informativeness parameter $\alpha$), then analyzed using both the correct
+model and the misspecified C2 model.
+
+\subsubsection{Results}
+
+Table~\ref{tab:misspecification_bias} compares bias under correct versus
+misspecified models.
+
+\begin{table}[htbp]
+\centering
+\caption{Bias Comparison: Correct vs Misspecified Model}
+\label{tab:misspecification_bias}
+\begin{tabular}{ccccc}
+\toprule
+$\alpha$ & Parameter & Bias (Correct) & Bias (Misspec.) & RMSE Ratio \\
+\midrule
+0 & $\lambda_1$ & $-0.129$ & $-0.001$ & 1.019 \\
+  & $\lambda_2$ & 0.027 & 0.024 & 1.090 \\
+  & $\lambda_3$ & 0.105 & $-0.020$ & 1.013 \\
+\midrule
+1 & $\lambda_1$ & $-0.136$ & $-0.095$ & 0.999 \\
+  & $\lambda_2$ & $-0.009$ & $-0.004$ & 1.031 \\
+  & $\lambda_3$ & 0.192 & 0.146 & 0.944 \\
+\midrule
+5 & $\lambda_1$ & $-0.129$ & $-0.127$ & 1.002 \\
+  & $\lambda_2$ & $-0.005$ & 0.010 & 1.031 \\
+  & $\lambda_3$ & 0.147 & 0.130 & 0.988 \\
+\midrule
+10 & $\lambda_1$ & $-0.153$ & $-0.152$ & 1.022 \\
+   & $\lambda_2$ & 0.000 & 0.002 & 0.993 \\
+   & $\lambda_3$ & 0.183 & 0.178 & 1.008 \\
+\bottomrule
+\end{tabular}
+
+\vspace{2pt}
+\begin{minipage}{\textwidth}
+\footnotesize
+\textit{Notes.} $\alpha = 0$ corresponds to non-informative masking (C2 satisfied).
+As $\alpha$ increases, masking becomes more informative.
+RMSE Ratio = RMSE(Misspecified) / RMSE(Correct); values $> 1$ indicate
+efficiency loss.
+\end{minipage}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\textwidth]{fig3_misspecification_bias.pdf}
+\caption{Bias comparison between correct and misspecified models as masking
+informativeness increases. The misspecified model (incorrectly assuming C2)
+shows similar bias patterns to the correct model for moderate informativeness.}
+\label{fig:misspec_bias}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.8\textwidth]{fig4_rmse_ratio.pdf}
+\caption{RMSE ratio (misspecified/correct) by informativeness parameter. Values
+near 1 indicate minimal efficiency loss from misspecification. The maximum
+ratio of 1.09 suggests the C2 assumption is reasonably robust.}
+\label{fig:rmse_ratio}
+\end{figure}
+
+Key findings from Study 2:
+\begin{enumerate}
+    \item \textbf{Moderate robustness:} The RMSE ratio stays between 0.94 and
+        1.09 across all informativeness levels, indicating that misspecifying
+        the masking model produces at most 9\% efficiency loss.
+    \item \textbf{Bias similarity:} Surprisingly, bias under the misspecified
+        model closely tracks bias under the correct model, suggesting the C2
+        assumption is more robust than theoretical arguments might suggest.
+    \item \textbf{Parameter-specific effects:} Component 3 ($\lambda_3$) shows
+        consistently positive bias under both models, likely due to its higher
+        failure rate making it more frequently the true cause of failure.
+\end{enumerate}
+
+\subsection{Study 3: Identifiability and Candidate Set Correlation}
+\label{sec:sim-ident}
+
+We investigate how correlation between candidate set indicators affects
+identifiability by examining the Fisher Information Matrix (FIM) eigenvalues.
+
+\subsubsection{Results}
+
+Table~\ref{tab:identifiability} presents FIM analysis by correlation level.
+
+\begin{table}[htbp]
+\centering
+\caption{Fisher Information Matrix Analysis by Candidate Set Correlation}
+\label{tab:identifiability}
+\begin{tabular}{ccc}
+\toprule
+$\rho$ & Smallest Eigenvalue & Condition Number \\
+\midrule
+0.0 & 12.23 & 2.18 \\
+0.1 & 12.93 & 2.12 \\
+0.3 & 14.17 & 2.01 \\
+0.5 & 15.00 & 1.97 \\
+0.6 & 15.12 & 1.91 \\
+0.8 & 14.33 & 2.01 \\
+0.9 & 13.88 & 2.04 \\
+\bottomrule
+\end{tabular}
+
+\vspace{2pt}
+\begin{minipage}{\textwidth}
+\footnotesize
+\textit{Notes.} $\rho$ measures correlation between candidate set indicators.
+As $\rho \to 1$, components always co-occur in candidate sets, theoretically
+leading to non-identifiability.
+\end{minipage}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.8\textwidth]{fig5_fim_eigenvalue.pdf}
+\caption{Smallest FIM eigenvalue versus candidate set correlation. The eigenvalue
+remains bounded away from zero even at $\rho = 0.9$, indicating identifiability
+is maintained in our simulation setup.}
+\label{fig:fim_eigenvalue}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.8\textwidth]{fig6_rmse_by_correlation.pdf}
+\caption{RMSE of MLE by candidate set correlation. Performance remains stable
+across correlation levels, consistent with the FIM eigenvalue analysis.}
+\label{fig:rmse_correlation}
+\end{figure}
+
+Key findings from Study 3:
+\begin{enumerate}
+    \item \textbf{Identifiability preserved:} The smallest FIM eigenvalue
+        remains substantially positive (12--15) across all correlation levels,
+        indicating parameters remain identifiable.
+    \item \textbf{Condition number stable:} The condition number stays below 2.2,
+        indicating a well-conditioned estimation problem.
+    \item \textbf{Nonmonotonic pattern:} Interestingly, the smallest eigenvalue
+        peaks around $\rho = 0.5$--$0.6$, suggesting moderate correlation may
+        actually improve information content.
+\end{enumerate}
+
+\subsection{Summary of Simulation Results}
+\label{sec:sim-summary}
+
+Our simulation studies lead to the following conclusions:
+
+\begin{enumerate}
+    \item \textbf{MLE performs well:} Under the correctly specified C1-C2-C3
+        Bernoulli masking model, the MLE achieves coverage near nominal levels
+        and RMSE consistent with asymptotic efficiency.
+
+    \item \textbf{C2 is robust:} Misspecifying C2 (assuming non-informative
+        masking when masking is informative) produces at most 9\% efficiency
+        loss and bias patterns similar to the correct model.
+
+    \item \textbf{Identifiability is robust:} Even with high correlation
+        ($\rho = 0.9$) between candidate set indicators, parameters remain
+        identifiable with stable FIM eigenvalues and condition numbers.
+
+    \item \textbf{Practical guidance:} For sample sizes $n \geq 100$ with
+        moderate masking ($p \approx 0.3$) and censoring ($\approx 20\%$),
+        the C1-C2-C3 Bernoulli model provides reliable inference. The
+        additional complexity of modeling informative masking may not be
+        justified unless there is strong evidence of systematic departures
+        from C2.
+\end{enumerate}
+
+\begin{table}[htbp]
+\centering
+\caption{Summary of key simulation findings.}
+\label{tab:sim-summary}
+\begin{tabular}{lccc}
+\toprule
+Metric & Study 1 & Study 2 & Study 3 \\
+\midrule
+RMSE range & 0.20--0.56 & 0.19--0.47 & 0.23--0.47 \\
+Coverage range & 92.0--96.5\% & --- & --- \\
+Max RMSE ratio & --- & 1.09 & --- \\
+Min FIM eigenvalue & --- & --- & 12.23 \\
+Max condition number & --- & --- & 2.18 \\
+\bottomrule
+\end{tabular}
+\end{table}

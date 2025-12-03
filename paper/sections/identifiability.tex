@@ -1,0 +1,349 @@
+%% ============================================================================
+\section{Identifiability and Fisher Information}
+\label{sec:identifiability}
+%% ============================================================================
+
+We now analyze identifiability conditions and derive the Fisher information
+matrix under relaxed conditions, focusing on exponential series systems for
+tractability.
+
+\subsection{Identifiability Under C1-C2-C3}
+\label{sec:ident-C123}
+
+\begin{definition}[Identifiability]
+\label{def:identifiability}
+A parameter $\vtheta$ is \emph{identifiable} if for any
+$\vtheta, \vtheta' \in \vOmega$ with $\vtheta \neq \vtheta'$, there exists
+some data configuration $D$ such that
+\begin{equation}
+    L(\vtheta; D) \neq L(\vtheta'; D).
+\end{equation}
+\end{definition}
+
+\begin{theorem}[Identifiability Under C1-C2-C3]
+\label{thm:ident-C123}
+Under C1, C2, and C3, the parameter $\vtheta$ is identifiable if and only if
+the following condition holds: For each pair of components $j \neq j'$, there
+exists at least one observed candidate set $c$ such that exactly one of
+$j \in c$ or $j' \in c$ holds (i.e., the components do not always co-occur
+in candidate sets).
+\end{theorem}
+
+\begin{proof}
+The log-likelihood contribution from an uncensored observation is:
+\begin{equation}
+    \ell_i(\vtheta) = \sum_{\ell=1}^m \log R_\ell(s_i; \vtheta_\ell) +
+    \log\left(\sum_{k \in c_i} h_k(s_i; \vtheta_k)\right).
+\end{equation}
+
+\emph{Sufficiency:} If components $j$ and $j'$ appear in different candidate
+sets, then information about $h_j$ can be obtained from observations where
+$j \in c_i$ but $j' \notin c_i$, and vice versa. Combined with the survival
+term (which depends on all parameters), this provides sufficient variation
+to identify individual parameters.
+
+\emph{Necessity:} If components $j$ and $j'$ always co-occur in every
+candidate set, the hazard sum always contains $h_j + h_{j'}$ as an
+inseparable unit. The survival term provides information only about
+$\sum_\ell \lambda_\ell$. Thus, any reparametrization preserving both
+$h_j + h_{j'}$ and $\sum_\ell h_\ell$ yields the same likelihood,
+demonstrating non-identifiability.
+\end{proof}
+
+\subsection{Block Non-Identifiability}
+\label{sec:block-nonident}
+
+A particularly important case arises when components form blocks that always
+appear together:
+
+\begin{theorem}[Block Non-Identifiability]
+\label{thm:block-nonident}
+Suppose components are partitioned into blocks $B_1, \ldots, B_r$ such that
+for every observed candidate set $c_i$:
+\begin{enumerate}
+    \item[(i)] For each block $B_\ell$: either $B_\ell \subseteq c_i$ or
+        $B_\ell \cap c_i = \emptyset$, and
+    \item[(ii)] If the failed component $k \in B_\ell$, then $B_\ell \subseteq c_i$.
+\end{enumerate}
+Then for exponential components with rates $(\lambda_1, \ldots, \lambda_m)$,
+only the block sums $\Lambda_\ell = \sum_{j \in B_\ell} \lambda_j$ are identifiable.
+\end{theorem}
+
+\begin{proof}
+Under the exponential model with constant hazards, the likelihood becomes:
+\begin{equation}
+    L(\vtheta) \propto \prod_{i: \delta_i = 1}
+    \exp\left(-s_i \sum_{j=1}^m \lambda_j\right)
+    \sum_{k \in c_i} \lambda_k.
+\end{equation}
+The survival term depends only on $\sum_{j=1}^m \lambda_j$. For the hazard
+sum, under the block structure, each candidate set $c_i$ is a union of
+complete blocks. Thus:
+\begin{equation}
+    \sum_{k \in c_i} \lambda_k = \sum_{\ell: B_\ell \subseteq c_i} \Lambda_\ell.
+\end{equation}
+Any reparametrization that preserves $(\Lambda_1, \ldots, \Lambda_r)$ yields
+the same likelihood, hence individual $\lambda_j$ within blocks are not
+identifiable.
+\end{proof}
+
+\begin{example}[Three-Component Block Model]
+\label{ex:block-m3}
+Consider a 3-component system where the diagnostic tool can only distinguish:
+\begin{itemize}
+    \item Components 1 and 2 share a circuit board (block $B_1 = \{1, 2\}$),
+    \item Component 3 is separate (block $B_2 = \{3\}$).
+\end{itemize}
+Candidate sets are either $\{1, 2\}$, $\{3\}$, or $\{1, 2, 3\}$. The MLE
+satisfies:
+\begin{align}
+    \hat{\lambda}_1 + \hat{\lambda}_2 &= \lambda_1 + \lambda_2, \\
+    \hat{\lambda}_3 &= \lambda_3,
+\end{align}
+but individual $\hat{\lambda}_1, \hat{\lambda}_2$ are not unique.
+\end{example}
+
+\subsection{Improved Identifiability with Informative Masking}
+\label{sec:ident-informative}
+
+Surprisingly, relaxing C2 can \emph{improve} identifiability:
+
+\begin{theorem}[Improved Identifiability with Informative Masking]
+\label{thm:ident-inform}
+Under C1 and C3 with known informative masking probabilities $\pi_{kc}(t)$,
+identifiability can be \emph{improved} relative to the C1-C2-C3 case.
+Specifically, if components $k$ and $k'$ always co-occur in candidate sets
+(violating the identifiability condition of \Cref{thm:ident-C123}), they
+become identifiable if there exists a candidate set $c$ with $k, k' \in c$
+such that $\pi_{kc}(t) \neq \pi_{k'c}(t)$ for some $t > 0$.
+\end{theorem}
+
+\begin{proof}
+Under C1-C2-C3 with non-informative masking, if components $k$ and $k'$ always
+co-occur, the hazard sum contains only the unweighted sum $h_k + h_{k'}$,
+making individual hazards non-identifiable.
+
+Under informative masking with known weights $\pi_{kc}$, the likelihood
+contribution becomes:
+\begin{equation}
+    L_i(\vtheta) = R(s_i; \vtheta)
+    \sum_{j \in c_i} h_j(s_i; \vtheta_j) \pi_{j,c_i}(s_i).
+\end{equation}
+The hazard sum now involves the weighted combination
+$h_k \pi_{kc} + h_{k'} \pi_{k'c}$. If $\pi_{kc} \neq \pi_{k'c}$, this provides
+one equation involving $h_k$ and $h_{k'}$ with unequal coefficients.
+
+Combined with the survival term (which contributes $h_k + h_{k'}$ through the
+system hazard), we have two linearly independent equations:
+\begin{align}
+    \pi_{kc} h_k + \pi_{k'c} h_{k'} &= A_1 \quad \text{(from hazard sum)}, \\
+    h_k + h_{k'} &= A_2 \quad \text{(from survival term)}.
+\end{align}
+When $\pi_{kc} \neq \pi_{k'c}$, this system has a unique solution, establishing
+identifiability of individual hazards.
+\end{proof}
+
+\begin{remark}
+Informative masking can paradoxically \emph{help} estimation when the masking
+structure is known, because it provides additional information about which
+component likely failed.
+\end{remark}
+
+\subsection{Fisher Information for Exponential Series Systems}
+\label{sec:fisher-exp}
+
+We now derive closed-form expressions for the Fisher information matrix,
+specializing to exponential components.
+
+\subsubsection{Exponential Series Model}
+
+For exponential components with rates $\vlambda = (\lambda_1, \ldots, \lambda_m)$:
+\begin{align}
+    R_j(t; \lambda_j) &= e^{-\lambda_j t}, \\
+    h_j(t; \lambda_j) &= \lambda_j, \\
+    R_{T_i}(t; \vlambda) &= e^{-\Lambda t}, \quad \text{where }
+    \Lambda = \sum_{j=1}^m \lambda_j.
+\end{align}
+
+\subsubsection{Fisher Information Under C1-C2-C3}
+
+\begin{theorem}[FIM Under C1-C2-C3]
+\label{thm:fim-C123}
+For the exponential series system under C1, C2, C3, the observed Fisher
+information matrix has elements:
+\begin{equation}
+\label{eq:fim-C123}
+    \FIM_{jk}(\vlambda) = \sum_{i: \delta_i = 1}
+    \frac{\ind{j \in c_i} \ind{k \in c_i}}
+         {\left(\sum_{\ell \in c_i} \lambda_\ell\right)^2}.
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+The log-likelihood for an uncensored observation $i$ is:
+\begin{equation}
+    \ell_i(\vlambda) = -s_i \Lambda + \log\left(\sum_{k \in c_i} \lambda_k\right).
+\end{equation}
+The first derivatives (score) are:
+\begin{equation}
+    \frac{\partial \ell_i}{\partial \lambda_j} = -s_i +
+    \frac{\ind{j \in c_i}}{\sum_{k \in c_i} \lambda_k}.
+\end{equation}
+The second derivatives are:
+\begin{equation}
+    \frac{\partial^2 \ell_i}{\partial \lambda_j \partial \lambda_k} =
+    -\frac{\ind{j \in c_i} \ind{k \in c_i}}
+          {\left(\sum_{\ell \in c_i} \lambda_\ell\right)^2}.
+\end{equation}
+The observed FIM is the negative Hessian, giving the result.
+\end{proof}
+
+\begin{remark}
+The FIM depends on the candidate sets but not on the failure times (for
+exponential components). This reflects the memoryless property of the
+exponential distribution.
+\end{remark}
+
+\subsubsection{Fisher Information Under Relaxed C2}
+
+\begin{theorem}[FIM Under Informative Masking]
+\label{thm:fim-inform}
+Under C1, C3, and informative masking with known weights $\pi_{kc}$, the
+observed Fisher information matrix for exponential components is:
+\begin{equation}
+\label{eq:fim-inform}
+    \FIM_{jk}(\vlambda) = \sum_{i: \delta_i = 1}
+    \frac{\pi_{j,c_i} \pi_{k,c_i}}
+         {\left(\sum_{\ell \in c_i} \lambda_\ell \pi_{\ell,c_i}\right)^2}
+    \ind{j \in c_i} \ind{k \in c_i}.
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+The log-likelihood contribution is:
+\begin{equation}
+    \ell_i(\vlambda) = -s_i \Lambda +
+    \log\left(\sum_{k \in c_i} \lambda_k \pi_{k,c_i}\right).
+\end{equation}
+The score is:
+\begin{equation}
+    \frac{\partial \ell_i}{\partial \lambda_j} = -s_i +
+    \frac{\pi_{j,c_i} \ind{j \in c_i}}
+         {\sum_{k \in c_i} \lambda_k \pi_{k,c_i}}.
+\end{equation}
+The Hessian is:
+\begin{equation}
+    \frac{\partial^2 \ell_i}{\partial \lambda_j \partial \lambda_k} =
+    -\frac{\pi_{j,c_i} \pi_{k,c_i} \ind{j \in c_i} \ind{k \in c_i}}
+          {\left(\sum_{\ell \in c_i} \lambda_\ell \pi_{\ell,c_i}\right)^2}.
+          \qedhere
+\end{equation}
+\end{proof}
+
+\subsection{Efficiency Comparison}
+\label{sec:efficiency}
+
+\begin{theorem}[Relative Efficiency]
+\label{thm:efficiency}
+Let $\FIM^{(\text{C123})}$ and $\FIM^{(\text{C13})}$ denote the Fisher
+information matrices under C1-C2-C3 and C1-C3 (informative masking)
+respectively. Then:
+\begin{enumerate}
+    \item[(a)] If $\pi_{kc} = 1/|c|$ for all $k \in c$ (uniform weighting),
+        then $\FIM^{(\text{C13})} = \FIM^{(\text{C123})}$.
+    \item[(b)] If masking is highly informative (concentrating weight on one
+        component), $\FIM^{(\text{C13})}$ can exceed $\FIM^{(\text{C123})}$
+        for that component's parameter.
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}
+(a) Under C1-C2-C3 (non-informative masking), the FIM element is:
+\begin{equation}
+    \FIM_{jk}^{(\text{C123})} = \sum_{i: \delta_i = 1}
+    \frac{\ind{j \in c_i} \ind{k \in c_i}}
+         {\left(\sum_{\ell \in c_i} \lambda_\ell\right)^2}.
+\end{equation}
+Under C1-C3 with uniform weights $\pi_{\ell c} = 1/|c|$ for all $\ell \in c$:
+\begin{align}
+    \FIM_{jk}^{(\text{C13})} &= \sum_{i: \delta_i = 1}
+    \frac{(1/|c_i|)^2 \ind{j \in c_i} \ind{k \in c_i}}
+         {\left(\sum_{\ell \in c_i} \lambda_\ell (1/|c_i|)\right)^2} \\
+    &= \sum_{i: \delta_i = 1}
+    \frac{(1/|c_i|^2) \ind{j \in c_i} \ind{k \in c_i}}
+         {(1/|c_i|)^2 \left(\sum_{\ell \in c_i} \lambda_\ell\right)^2} \\
+    &= \sum_{i: \delta_i = 1}
+    \frac{\ind{j \in c_i} \ind{k \in c_i}}
+         {\left(\sum_{\ell \in c_i} \lambda_\ell\right)^2}
+    = \FIM_{jk}^{(\text{C123})}.
+\end{align}
+
+(b) Suppose $\pi_{kc} = 1$ for component $k$ and $\pi_{k'c} = 0$ for all
+$k' \neq k$ in $c$. Then:
+\begin{equation}
+    \FIM_{kk}^{(\text{C13})} = \sum_{i: \delta_i = 1, k \in c_i}
+    \frac{1}{\lambda_k^2}.
+\end{equation}
+This concentrates all information on $\lambda_k$, which can exceed
+$\FIM_{kk}^{(\text{C123})}$ when $|c_i| > 1$ since the denominator under
+C1-C2-C3 is $(\sum_{\ell \in c_i} \lambda_\ell)^2 > \lambda_k^2$.
+\end{proof}
+
+\begin{remark}[Practical Implications]
+Informative masking can either help or hurt estimation:
+\begin{itemize}
+    \item \textbf{Helps} when the masking structure is known and aligned with
+        what we want to estimate.
+    \item \textbf{Hurts} if masking is informative but we incorrectly assume
+        C2 (non-informative), leading to model misspecification bias.
+\end{itemize}
+\end{remark}
+
+\subsection{Estimation Under Model Misspecification}
+\label{sec:misspec}
+
+\begin{theorem}[Bias from C2 Misspecification]
+\label{thm:misspec-C2}
+Suppose the true model is C1-C3 with informative masking $\pi_{kc}(t)$, but
+estimation is performed assuming C1-C2-C3 (non-informative masking). The
+resulting MLE $\hat{\vtheta}$ is generally biased, with bias depending on the
+correlation between $\pi_{kc}$ and the hazard ratios
+$h_k(t; \vtheta_k)/\sum_{\ell \in c} h_\ell(t; \vtheta_\ell)$.
+\end{theorem}
+
+\begin{proof}
+The score under the assumed (wrong) C1-C2-C3 model is:
+\begin{equation}
+    \frac{\partial \ell_i^{\text{wrong}}}{\partial \lambda_j} = -s_i +
+    \frac{\ind{j \in c_i}}{\sum_{k \in c_i} \lambda_k}.
+\end{equation}
+The true score under C1-C3 (informative masking) is:
+\begin{equation}
+    \frac{\partial \ell_i^{\text{true}}}{\partial \lambda_j} = -s_i +
+    \frac{\pi_{j,c_i} \ind{j \in c_i}}
+         {\sum_{k \in c_i} \lambda_k \pi_{k,c_i}}.
+\end{equation}
+At the true parameter $\vtheta^*$, the true score has expectation zero:
+$\E[\partial \ell_i^{\text{true}}/\partial \lambda_j] = 0$.
+
+The misspecified score has expectation:
+\begin{align}
+    \E\left[\frac{\partial \ell_i^{\text{wrong}}}{\partial \lambda_j}\right]
+    &= -\E[s_i] + \E\left[\frac{\ind{j \in c_i}}{\sum_{k \in c_i} \lambda_k^*}\right].
+\end{align}
+This differs from zero when the masking weights $\pi_{kc}$ are correlated with
+the hazard ratios. Specifically, define the ``effective'' weight
+$w_j = \E[\ind{j \in c} / \sum_{k \in c} \lambda_k^*]$ under the true model.
+The MLE under the wrong model solves $\E[\partial \ell^{\text{wrong}}/\partial
+\lambda_j] = 0$, yielding $\hat{\lambda}_j$ that satisfies:
+\begin{equation}
+    \hat{\lambda}_j = \frac{\E[\ind{j \in c_i}]}
+    {\E[\sum_{k \in c_i} \lambda_k^* \cdot s_i / \sum_{k \in c_i} \lambda_k^*]}.
+\end{equation}
+When $\pi_{jc} > \pi_{kc}$ for components with larger $\lambda_j^*$,
+the misspecified model overestimates components that are more likely to be
+in candidate sets, producing systematic bias.
+\end{proof}
+
+This result motivates the simulation studies in \Cref{sec:simulations}, which
+quantify the bias under various misspecification scenarios.

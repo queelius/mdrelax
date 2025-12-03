@@ -1,0 +1,163 @@
+%% Relaxed Candidate Set Models for Masked Data in Series Systems
+%% Main document
+
+\documentclass[11pt,letterpaper]{article}
+
+%% ============================================================================
+%% Packages
+%% ============================================================================
+
+% Mathematics
+\usepackage{amsmath,amsthm,amssymb}
+\usepackage{bm}
+\usepackage{mathtools}
+
+% Graphics and figures
+\usepackage{graphicx}
+\graphicspath{{../inst/simulations/figures/}}
+\usepackage{float}
+\usepackage{subcaption}
+
+% Tables
+\usepackage{booktabs}
+\usepackage{multirow}
+
+% Typography and layout
+\usepackage[margin=1in]{geometry}
+\usepackage{setspace}
+\usepackage{microtype}
+
+% References and links
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{hyperref}
+\usepackage{cleveref}
+
+% Algorithms (if needed)
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+% Colors for comments (remove in final version)
+\usepackage{xcolor}
+\newcommand{\todo}[1]{\textcolor{red}{[TODO: #1]}}
+\newcommand{\placeholder}[1]{\textcolor{blue}{[PLACEHOLDER: #1]}}
+
+%% ============================================================================
+%% Theorem Environments
+%% ============================================================================
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{condition}{Condition}
+\newtheorem{assumption}{Assumption}
+
+\theoremstyle{remark}
+\newtheorem{remark}{Remark}[section]
+\newtheorem{example}{Example}[section]
+
+%% ============================================================================
+%% Notation Macros
+%% ============================================================================
+
+% Vectors and matrices
+\newcommand{\vtheta}{\bm{\theta}}
+\newcommand{\vlambda}{\bm{\lambda}}
+\newcommand{\vOmega}{\bm{\Omega}}
+\newcommand{\vbeta}{\bm{\beta}}
+
+% Calligraphic letters
+\newcommand{\calC}{\mathcal{C}}
+\newcommand{\calD}{\mathcal{D}}
+\newcommand{\calL}{\mathcal{L}}
+\newcommand{\calI}{\mathcal{I}}
+
+% Operators
+\newcommand{\Prob}{\mathrm{Pr}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\Cov}{\mathrm{Cov}}
+\newcommand{\KL}{\mathrm{KL}}
+
+% Fisher information
+\newcommand{\FIM}{\mathcal{I}}
+
+% Indicator function
+\newcommand{\ind}[1]{\mathbf{1}_{#1}}
+
+%% ============================================================================
+%% Document Information
+%% ============================================================================
+
+\title{Relaxed Candidate Set Models for Masked Data in Series Systems}
+
+\author{
+    Alex Towell\\
+    \texttt{lex@metafunctor.com}
+}
+
+\date{\today}
+
+%% ============================================================================
+%% Document
+%% ============================================================================
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+We develop likelihood-based inference methods for series systems with masked
+failure data when the traditional conditions governing candidate set formation
+are relaxed. While existing methods require that masking be non-informative
+(Condition C2) and parameter-independent (Condition C3), practical diagnostic
+systems often violate these assumptions. We derive the likelihood under
+various relaxation scenarios, establish identifiability conditions, and
+compare Fisher information under standard versus relaxed models. Our analysis
+reveals that informative masking, when properly modeled, can paradoxically
+improve estimation efficiency by providing additional information about the
+failed component. We implement these methods in an R package and provide
+simulation studies demonstrating the bias that arises from incorrectly
+assuming standard conditions when masking is informative.
+\end{abstract}
+
+\noindent\textbf{Keywords:}
+Series systems, masked data, reliability estimation, informative masking,
+candidate sets, Fisher information, maximum likelihood estimation
+
+%% ============================================================================
+%% Main Sections
+%% ============================================================================
+
+\input{sections/introduction}
+\input{sections/background}
+\input{sections/relaxed_models}
+\input{sections/identifiability}
+\input{sections/simulations}
+\input{sections/discussion}
+\input{sections/conclusion}
+
+%% ============================================================================
+%% Acknowledgments
+%% ============================================================================
+
+%% Acknowledgments will be added after peer review
+%\section*{Acknowledgments}
+%The author thanks ...
+
+%% ============================================================================
+%% References
+%% ============================================================================
+
+\bibliographystyle{plainnat}
+\bibliography{refs}
+
+%% ============================================================================
+%% Appendix
+%% ============================================================================
+
+\appendix
+\input{sections/appendix}
+
+\end{document}

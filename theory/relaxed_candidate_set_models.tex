@@ -1,0 +1,852 @@
+%% Theoretical Foundations for Relaxed Candidate Set Models
+%% in Masked Data Analysis of Series Systems
+%%
+%% This document derives the likelihood framework when conditions C2 and C3
+%% are relaxed while maintaining C1 (failed component in candidate set).
+
+\documentclass[11pt]{article}
+\usepackage{amsmath,amsthm,amssymb}
+\usepackage{bm}
+\usepackage{mathtools}
+\usepackage{hyperref}
+
+% Theorem environments
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{condition}{Condition}
+\newtheorem{remark}{Remark}[section]
+\newtheorem{example}{Example}[section]
+
+% Notation
+\newcommand{\vtheta}{\bm{\theta}}
+\newcommand{\vOmega}{\bm{\Omega}}
+\newcommand{\calC}{\mathcal{C}}
+\newcommand{\Prob}{\mathrm{Pr}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\Cov}{\mathrm{Cov}}
+\newcommand{\FIM}{\mathcal{I}}
+
+\title{Relaxed Candidate Set Models for Masked Data in Series Systems:\\
+A Theoretical Framework}
+\author{Theoretical Notes for Follow-up Paper}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We develop the theoretical foundations for likelihood-based inference in series
+systems with masked failure data when the traditional conditions C2 (non-informative
+masking) and C3 (masking independent of parameters) are relaxed. Starting from the
+general joint likelihood of system lifetime, component cause of failure, and candidate
+set, we derive the forms of the likelihood under various relaxation scenarios. We
+establish identifiability conditions and derive the Fisher information matrix for the
+exponential series case, comparing efficiency with the standard C1-C2-C3 model.
+\end{abstract}
+
+\tableofcontents
+
+%% ============================================================================
+\section{Notation and Preliminaries}
+\label{sec:notation}
+%% ============================================================================
+
+\subsection{Series System Model}
+
+Consider a series system with $m$ components. The lifetime of the $i$-th system
+is $T_i = \min\{T_{i1}, \ldots, T_{im}\}$, where $T_{ij}$ denotes the lifetime of
+the $j$-th component in the $i$-th system. Component lifetimes are assumed
+independent with parametric distributions indexed by $\vtheta_j$; the full
+parameter vector is $\vtheta = (\vtheta_1, \ldots, \vtheta_m) \in \vOmega$.
+
+\begin{definition}[Distribution Functions]
+For component $j$ with parameter $\vtheta_j$:
+\begin{itemize}
+    \item Reliability function: $R_j(t; \vtheta_j) = \Prob\{T_{ij} > t\}$
+    \item Probability density: $f_j(t; \vtheta_j) = -\frac{d}{dt}R_j(t; \vtheta_j)$
+    \item Hazard function: $h_j(t; \vtheta_j) = \frac{f_j(t; \vtheta_j)}{R_j(t; \vtheta_j)}$
+\end{itemize}
+For the series system:
+\begin{align}
+    R_{T_i}(t; \vtheta) &= \prod_{j=1}^m R_j(t; \vtheta_j), \\
+    h_{T_i}(t; \vtheta) &= \sum_{j=1}^m h_j(t; \vtheta_j), \\
+    f_{T_i}(t; \vtheta) &= h_{T_i}(t; \vtheta) \cdot R_{T_i}(t; \vtheta).
+\end{align}
+\end{definition}
+
+\subsection{Masked Data Structure}
+
+\begin{definition}[Observed Data]
+For each system $i$, we observe:
+\begin{itemize}
+    \item $S_i = \min\{T_i, \tau_i\}$: Right-censored system lifetime
+    \item $\delta_i = \mathbf{1}_{T_i < \tau_i}$: Event indicator ($1$ if failure observed)
+    \item $\calC_i \subseteq \{1, \ldots, m\}$: Candidate set (only when $\delta_i = 1$)
+\end{itemize}
+The latent (unobserved) variables are:
+\begin{itemize}
+    \item $K_i \in \{1, \ldots, m\}$: Index of failed component
+    \item $(T_{i1}, \ldots, T_{im})$: Component failure times
+\end{itemize}
+\end{definition}
+
+\subsection{Traditional Conditions}
+
+The original thesis establishes three conditions that permit a tractable likelihood:
+
+\begin{condition}[C1: Failed Component in Candidate Set]
+\label{cond:C1}
+The candidate set always contains the failed component:
+\[
+\Prob\{K_i \in \calC_i\} = 1.
+\]
+\end{condition}
+
+\begin{condition}[C2: Non-Informative Masking]
+\label{cond:C2}
+Given the failure time and candidate set, the conditional probability of the
+candidate set does not depend on which component in the candidate set failed:
+\[
+\Prob\{\calC_i = c | T_i = t, K_i = j\} = \Prob\{\calC_i = c | T_i = t, K_i = j'\}
+\]
+for all $j, j' \in c$.
+\end{condition}
+
+\begin{condition}[C3: Parameter-Independent Masking]
+\label{cond:C3}
+The masking probabilities do not depend on the system parameters:
+\[
+\Prob\{\calC_i = c | T_i = t, K_i = j\} = \beta_i(c, t, j),
+\]
+where $\beta_i$ does not depend on $\vtheta$.
+\end{condition}
+
+%% ============================================================================
+\section{General Likelihood Framework}
+\label{sec:general}
+%% ============================================================================
+
+We begin by establishing the most general form of the likelihood before
+imposing any conditions.
+
+\subsection{Joint Distribution of $(T_i, K_i, \calC_i)$}
+
+\begin{theorem}[General Joint Distribution]
+\label{thm:general-joint}
+The joint distribution of system lifetime $T_i$, component cause of failure
+$K_i$, and candidate set $\calC_i$ is:
+\begin{equation}
+\label{eq:general-joint}
+f_{T_i, K_i, \calC_i}(t, k, c; \vtheta) =
+    h_k(t; \vtheta_k) \prod_{\ell=1}^m R_\ell(t; \vtheta_\ell) \cdot
+    \Prob_{\vtheta}\{\calC_i = c | T_i = t, K_i = k\}.
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+By the chain rule of probability:
+\begin{align}
+f_{T_i, K_i, \calC_i}(t, k, c; \vtheta)
+    &= f_{T_i, K_i}(t, k; \vtheta) \cdot \Prob_{\vtheta}\{\calC_i = c | T_i = t, K_i = k\}.
+\end{align}
+From the original thesis (Theorem 4), the joint density of $(T_i, K_i)$ is:
+\[
+f_{T_i, K_i}(t, k; \vtheta) = h_k(t; \vtheta_k) \prod_{\ell=1}^m R_\ell(t; \vtheta_\ell),
+\]
+which gives the result.
+\end{proof}
+
+\begin{remark}
+The key observation is that the joint distribution factors into a
+$\vtheta$-dependent component (system reliability and component hazard) and
+the masking probability $\Prob_{\vtheta}\{\calC_i = c | T_i = t, K_i = k\}$,
+which may or may not depend on $\vtheta$.
+\end{remark}
+
+\subsection{Marginal Distribution of $(T_i, \calC_i)$}
+
+Since $K_i$ is latent, we marginalize:
+
+\begin{theorem}[Marginal Distribution]
+\label{thm:marginal}
+The joint distribution of $(T_i, \calC_i)$ is:
+\begin{equation}
+\label{eq:marginal}
+f_{T_i, \calC_i}(t, c; \vtheta) =
+    \prod_{\ell=1}^m R_\ell(t; \vtheta_\ell) \cdot
+    \sum_{k=1}^m h_k(t; \vtheta_k) \cdot
+    \Prob_{\vtheta}\{\calC_i = c | T_i = t, K_i = k\}.
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Sum over the support of $K_i$:
+\begin{align}
+f_{T_i, \calC_i}(t, c; \vtheta)
+    &= \sum_{k=1}^m f_{T_i, K_i, \calC_i}(t, k, c; \vtheta) \\
+    &= \sum_{k=1}^m h_k(t; \vtheta_k) \prod_{\ell=1}^m R_\ell(t; \vtheta_\ell)
+       \cdot \Prob_{\vtheta}\{\calC_i = c | T_i = t, K_i = k\} \\
+    &= \prod_{\ell=1}^m R_\ell(t; \vtheta_\ell) \cdot
+       \sum_{k=1}^m h_k(t; \vtheta_k) \Prob_{\vtheta}\{\calC_i = c | T_i = t, K_i = k\}.
+\end{align}
+\end{proof}
+
+%% ============================================================================
+\section{Likelihood Under C1 Only}
+\label{sec:C1-only}
+%% ============================================================================
+
+We now derive the likelihood when only C1 is enforced.
+
+\subsection{General Form Under C1}
+
+\begin{theorem}[Likelihood Under C1 Alone]
+\label{thm:like-C1}
+Under Condition~\ref{cond:C1} (C1) alone, the likelihood contribution from an
+uncensored observation $(s_i, c_i)$ is:
+\begin{equation}
+\label{eq:like-C1}
+L_i(\vtheta) = \prod_{\ell=1}^m R_\ell(s_i; \vtheta_\ell) \cdot
+    \sum_{k \in c_i} h_k(s_i; \vtheta_k) \cdot
+    \Prob_{\vtheta}\{\calC_i = c_i | T_i = s_i, K_i = k\}.
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Under C1, $\Prob_{\vtheta}\{\calC_i = c | T_i = t, K_i = k\} = 0$ when
+$k \notin c$, because the failed component must be in the candidate set.
+Therefore, the sum in Equation~\eqref{eq:marginal} reduces to:
+\[
+f_{T_i, \calC_i}(t, c; \vtheta) = \prod_{\ell=1}^m R_\ell(t; \vtheta_\ell)
+    \sum_{k \in c} h_k(t; \vtheta_k) \Prob_{\vtheta}\{\calC_i = c | T_i = t, K_i = k\}.
+\]
+Treating this as a function of $\vtheta$ with fixed data yields the likelihood.
+\end{proof}
+
+\begin{remark}[Comparison with C1-C2-C3 Case]
+Under all three conditions, C2 allows factoring out the masking probability
+(since it's constant over $k \in c$), and C3 allows dropping it (since it
+doesn't depend on $\vtheta$), yielding:
+\[
+L_i(\vtheta) \propto \prod_{\ell=1}^m R_\ell(s_i; \vtheta_\ell)
+    \sum_{k \in c_i} h_k(s_i; \vtheta_k).
+\]
+Under C1 alone, the masking probabilities remain inside the sum and may
+depend on both $k$ and $\vtheta$, fundamentally changing the inference problem.
+\end{remark}
+
+%% ============================================================================
+\section{Relaxing C2: Informative Masking}
+\label{sec:relax-C2}
+%% ============================================================================
+
+\subsection{General Form When C2 is Violated}
+
+When C2 is violated but C1 and C3 hold, the masking probability
+$\Prob\{\calC_i = c | T_i = t, K_i = k\}$ can vary with $k \in c$.
+
+\begin{definition}[Informative Masking Model]
+\label{def:informative}
+Let $\pi_{kc}(t) = \Prob\{\calC_i = c | T_i = t, K_i = k\}$ for $k \in c$.
+The masking is \emph{informative} if $\pi_{kc}(t)$ varies with $k$.
+\end{definition}
+
+\begin{theorem}[Likelihood Under C1 and C3 (Relaxed C2)]
+\label{thm:like-C1-C3}
+Under C1 and C3, the likelihood contribution is:
+\begin{equation}
+\label{eq:like-C1-C3}
+L_i(\vtheta) = \prod_{\ell=1}^m R_\ell(s_i; \vtheta_\ell) \cdot
+    \sum_{k \in c_i} h_k(s_i; \vtheta_k) \cdot \pi_{k,c_i}(s_i),
+\end{equation}
+where $\pi_{k,c}(t)$ does not depend on $\vtheta$ (by C3).
+\end{theorem}
+
+\begin{remark}
+When $\pi_{kc}(t)$ is known, the likelihood is tractable. The masking
+probabilities act as weights on the hazard contributions from each candidate.
+\end{remark}
+
+\subsection{Rank-Based Informative Masking}
+
+A practical model for informative masking assigns probabilities based on
+component failure ranks, not absolute times.
+
+\begin{definition}[Rank-Based Masking]
+\label{def:rank-based}
+Let $r_k(\mathbf{t}) \in \{1, \ldots, m\}$ denote the rank of component $k$'s
+failure time among $(t_1, \ldots, t_m)$, where rank 1 corresponds to the
+earliest failure (the actual failed component).
+
+The probability that component $j$ is in the candidate set is:
+\begin{equation}
+\label{eq:rank-prob}
+q_j = \begin{cases}
+    1 & \text{if } r_j = 1 \text{ (failed component)}, \\
+    \beta \exp(-\alpha (r_j - 2)) & \text{if } r_j \geq 2,
+\end{cases}
+\end{equation}
+where $\alpha \geq 0$ controls decay rate and $\beta \in [0,1]$ is the
+maximum inclusion probability for non-failed components.
+\end{definition}
+
+\begin{remark}[Limiting Behavior]
+\begin{itemize}
+    \item As $\alpha \to 0$: All non-failed components have probability $\beta$
+          (uninformative within non-failed set).
+    \item As $\alpha \to \infty$: Only the failed component and rank-2 component
+          have non-zero probabilities.
+\end{itemize}
+\end{remark}
+
+\begin{remark}[Connection to Implementation]
+This corresponds to the \texttt{informative\_masking\_by\_rank()} function in
+the package, which generates inclusion probabilities based on failure time ranks.
+\end{remark}
+
+\subsection{Bernoulli Candidate Set Model}
+
+\begin{definition}[Independent Bernoulli Model]
+\label{def:bernoulli}
+Each component $j$ is included in the candidate set independently with
+probability $q_j$, subject to C1 (failed component always included):
+\[
+\Prob\{j \in \calC_i | T_i = t, K_i = k\} = \begin{cases}
+    1 & \text{if } j = k, \\
+    q_j & \text{otherwise}.
+\end{cases}
+\]
+\end{definition}
+
+Under this model, the probability of observing candidate set $c$ given
+$(T_i = t, K_i = k)$ is:
+\begin{equation}
+\label{eq:bernoulli-prob}
+\Prob\{\calC_i = c | T_i = t, K_i = k\} =
+    \mathbf{1}_{k \in c} \prod_{j \in c \setminus \{k\}} q_j
+    \prod_{j \notin c} (1 - q_j).
+\end{equation}
+
+\begin{proposition}[Likelihood Under Bernoulli Model]
+\label{prop:bernoulli-like}
+Under the independent Bernoulli model with C1 and known probabilities
+$(q_1, \ldots, q_m)$, the likelihood contribution is:
+\begin{equation}
+\label{eq:bernoulli-like}
+L_i(\vtheta) = \prod_{\ell=1}^m R_\ell(s_i; \vtheta_\ell) \cdot
+    \sum_{k \in c_i} h_k(s_i; \vtheta_k) w_k(c_i),
+\end{equation}
+where
+\begin{equation}
+w_k(c) = \prod_{j \in c \setminus \{k\}} q_j \prod_{j \notin c} (1 - q_j)
+\end{equation}
+is the probability of observing $c$ given that $k$ failed (excluding the
+deterministic inclusion of $k$).
+\end{proposition}
+
+\begin{proof}
+Substitute Equation~\eqref{eq:bernoulli-prob} into
+Equation~\eqref{eq:like-C1-C3}.
+\end{proof}
+
+%% ============================================================================
+\section{Relaxing C3: Parameter-Dependent Masking}
+\label{sec:relax-C3}
+%% ============================================================================
+
+\subsection{When Masking Depends on \texorpdfstring{$\vtheta$}{theta}}
+
+When C3 is violated, the masking probability
+$\Prob_{\vtheta}\{\calC_i = c | T_i = t, K_i = k\}$ depends on $\vtheta$.
+
+\begin{theorem}[Likelihood Under C1 and C2 (Relaxed C3)]
+\label{thm:like-C1-C2}
+Under C1 and C2, the likelihood contribution is:
+\begin{equation}
+\label{eq:like-C1-C2}
+L_i(\vtheta) = \pi_{c_i}(s_i; \vtheta) \cdot
+    \prod_{\ell=1}^m R_\ell(s_i; \vtheta_\ell) \cdot
+    \sum_{k \in c_i} h_k(s_i; \vtheta_k),
+\end{equation}
+where $\pi_c(t; \vtheta) = \Prob_{\vtheta}\{\calC_i = c | T_i = t, K_i \in c\}$
+is the (common) masking probability for any $k \in c$, now depending on $\vtheta$.
+\end{theorem}
+
+\begin{proof}
+By C2, we can factor out the masking probability:
+\begin{align}
+f_{T_i, \calC_i}(t, c; \vtheta)
+    &= \prod_{\ell=1}^m R_\ell(t; \vtheta_\ell)
+       \sum_{k \in c} h_k(t; \vtheta_k) \Prob_{\vtheta}\{\calC_i = c | T_i = t, K_i = k\} \\
+    &= \pi_c(t; \vtheta) \prod_{\ell=1}^m R_\ell(t; \vtheta_\ell)
+       \sum_{k \in c} h_k(t; \vtheta_k).
+\end{align}
+\end{proof}
+
+\begin{remark}[Nuisance Parameters]
+When $\pi_c(t; \vtheta)$ has a known functional form, it contributes to the
+likelihood and affects the MLE. If the form is unknown, additional modeling
+assumptions or profile likelihood approaches may be needed.
+\end{remark}
+
+\subsection{Conditional Failure Probability Masking}
+
+A natural way for masking to depend on $\vtheta$ is through the conditional
+failure probabilities.
+
+\begin{definition}[Failure-Probability-Weighted Masking]
+The masking probability depends on the posterior probabilities that each
+component failed:
+\begin{equation}
+\label{eq:fp-masking}
+\Prob_{\vtheta}\{j \in \calC_i | T_i = t\} =
+    g\left(\frac{h_j(t; \vtheta_j)}{\sum_{\ell=1}^m h_\ell(t; \vtheta_\ell)}\right)
+\end{equation}
+for some function $g: [0,1] \to [0,1]$ with $g(x) \to 1$ as $x \to 1$.
+\end{definition}
+
+\begin{remark}
+This models diagnosticians who are more likely to include components that
+have higher failure probabilities given the observed failure time. The
+function $g$ controls the sensitivity of masking to these probabilities.
+\end{remark}
+
+%% ============================================================================
+\section{Identifiability Analysis}
+\label{sec:identifiability}
+%% ============================================================================
+
+\subsection{Identifiability Under C1, C2, C3}
+
+\begin{definition}[Identifiability]
+A parameter $\vtheta$ is \emph{identifiable} if for any $\vtheta, \vtheta' \in \vOmega$
+with $\vtheta \neq \vtheta'$, there exists some data configuration $D$ such that
+\[
+L(\vtheta; D) \neq L(\vtheta'; D).
+\]
+\end{definition}
+
+\begin{theorem}[Identifiability Under C1-C2-C3]
+\label{thm:ident-C123}
+Under C1, C2, and C3, the parameter $\vtheta$ is identifiable if and only if
+there exist observed candidate sets $c$ such that for each component $j$,
+there is at least one observation where $j$ appears as a \emph{singleton}
+candidate or where it can be distinguished from other candidates.
+\end{theorem}
+
+\begin{proof}[Proof Sketch]
+The log-likelihood contribution from observation $i$ with $\delta_i = 1$ is:
+\[
+\ell_i(\vtheta) = \sum_{j=1}^m \log R_j(s_i; \vtheta_j) +
+    \log\left(\sum_{k \in c_i} h_k(s_i; \vtheta_k)\right).
+\]
+If components $j$ and $j'$ \emph{always} appear together in every candidate
+set, the hazard sum $\sum_{k \in c_i} h_k$ always contains $h_j + h_{j'}$,
+making only their sum identifiable, not individual values.
+\end{proof}
+
+\subsection{Non-Identifiability from Block Structure}
+
+\begin{theorem}[Block Non-Identifiability]
+\label{thm:block-nonident}
+Suppose components are partitioned into blocks $B_1, \ldots, B_r$ such that
+for every observed candidate set $c_i$:
+\begin{enumerate}
+    \item[(i)] For each block $B_\ell$: either $B_\ell \subseteq c_i$ or
+        $B_\ell \cap c_i = \emptyset$, and
+    \item[(ii)] If the failed component $k \in B_\ell$, then $B_\ell \subseteq c_i$.
+\end{enumerate}
+Then for exponential components with rates $(\lambda_1, \ldots, \lambda_m)$,
+only the block sums $\Lambda_\ell = \sum_{j \in B_\ell} \lambda_j$ are identifiable.
+\end{theorem}
+
+\begin{proof}
+Under the exponential model with constant hazards, the likelihood becomes:
+\[
+L(\vtheta) \propto \prod_{i: \delta_i = 1} \exp\left(-s_i \sum_{j=1}^m \lambda_j\right)
+    \sum_{k \in c_i} \lambda_k.
+\]
+The survival term depends only on $\sum_{j=1}^m \lambda_j$. For the hazard
+sum, under the block structure, each candidate set $c_i$ is a union of
+complete blocks. Thus:
+\[
+\sum_{k \in c_i} \lambda_k = \sum_{\ell: B_\ell \subseteq c_i} \Lambda_\ell.
+\]
+Any reparametrization that preserves $(\Lambda_1, \ldots, \Lambda_r)$ yields
+the same likelihood, hence individual $\lambda_j$ within blocks are not
+identifiable.
+\end{proof}
+
+\begin{example}[Three-Component Block Model]
+Consider a 3-component system where the diagnostic tool can only distinguish:
+\begin{itemize}
+    \item Components 1 and 2 share a circuit board (block $B_1 = \{1, 2\}$)
+    \item Component 3 is separate (block $B_2 = \{3\}$)
+\end{itemize}
+Candidate sets are either $\{1, 2\}$, $\{3\}$, or $\{1, 2, 3\}$. The MLE
+satisfies:
+\begin{align}
+    \hat{\lambda}_1 + \hat{\lambda}_2 &= \lambda_1 + \lambda_2, \\
+    \hat{\lambda}_3 &= \lambda_3,
+\end{align}
+but individual $\hat{\lambda}_1, \hat{\lambda}_2$ are not unique.
+\end{example}
+
+\begin{remark}[Connection to Implementation]
+This corresponds to the \texttt{md\_block\_candidate\_m3()} function, which
+demonstrates this non-identifiability in the $m=3$ case.
+\end{remark}
+
+\subsection{Identifiability Under Relaxed C2}
+
+\begin{theorem}[Improved Identifiability with Informative Masking]
+\label{thm:ident-inform}
+Under C1 and C3 with known informative masking probabilities $\pi_{kc}(t)$,
+identifiability can be \emph{improved} relative to the C1-C2-C3 case if
+$\pi_{kc}(t) \neq \pi_{k'c}(t)$ for distinct $k, k' \in c$.
+\end{theorem}
+
+\begin{proof}
+The likelihood contribution under informative masking is:
+\[
+L_i(\vtheta) = R(s_i; \vtheta) \sum_{k \in c_i} h_k(s_i; \vtheta_k) \pi_{k,c_i}(s_i).
+\]
+Even when components $k, k'$ always appear together, if $\pi_{kc}(t) \neq \pi_{k'c}(t)$,
+the weighted sum $h_k \pi_{kc} + h_{k'} \pi_{k'c}$ provides information to
+distinguish $h_k$ from $h_{k'}$, breaking the symmetry that causes
+non-identifiability.
+\end{proof}
+
+\begin{remark}
+Informative masking can paradoxically \emph{help} estimation when the masking
+structure is known, because it provides additional information about which
+component likely failed.
+\end{remark}
+
+%% ============================================================================
+\section{Fisher Information for Exponential Series Systems}
+\label{sec:fisher}
+%% ============================================================================
+
+We now specialize to exponential components to derive closed-form expressions
+for the Fisher information matrix.
+
+\subsection{Exponential Series Model}
+
+For exponential components:
+\begin{align}
+    R_j(t; \lambda_j) &= e^{-\lambda_j t}, \\
+    h_j(t; \lambda_j) &= \lambda_j, \\
+    R_{T_i}(t; \vtheta) &= e^{-\Lambda t}, \quad \text{where } \Lambda = \sum_{j=1}^m \lambda_j.
+\end{align}
+
+\subsection{Fisher Information Under C1-C2-C3}
+
+\begin{theorem}[FIM Under C1-C2-C3]
+\label{thm:fim-C123}
+For the exponential series system under C1, C2, C3, the observed Fisher
+information matrix has elements:
+\begin{equation}
+\label{eq:fim-C123}
+\FIM_{jk}(\vtheta) = \sum_{i: \delta_i = 0}
+    \frac{\mathbf{1}_{j \in c_i} \mathbf{1}_{k \in c_i}}
+         {\left(\sum_{\ell \in c_i} \lambda_\ell\right)^2}.
+\end{equation}
+The survival contribution to the Hessian vanishes (second derivatives of
+linear terms are zero).
+\end{theorem}
+
+\begin{proof}
+The log-likelihood for observation $i$ with $\delta_i = 0$ (uncensored) is:
+\[
+\ell_i(\vtheta) = -s_i \Lambda + \log\left(\sum_{k \in c_i} \lambda_k\right).
+\]
+The first derivatives (score) are:
+\[
+\frac{\partial \ell_i}{\partial \lambda_j} = -s_i +
+    \frac{\mathbf{1}_{j \in c_i}}{\sum_{k \in c_i} \lambda_k}.
+\]
+The second derivatives are:
+\[
+\frac{\partial^2 \ell_i}{\partial \lambda_j \partial \lambda_k} =
+    -\frac{\mathbf{1}_{j \in c_i} \mathbf{1}_{k \in c_i}}
+          {\left(\sum_{\ell \in c_i} \lambda_\ell\right)^2}.
+\]
+The observed FIM is the negative Hessian, giving the result.
+\end{proof}
+
+\begin{remark}
+The FIM depends on the candidate sets but not on the failure times (for
+exponential components). This reflects the memoryless property of the
+exponential distribution.
+\end{remark}
+
+\subsection{Fisher Information Under Relaxed C2}
+
+\begin{theorem}[FIM Under Informative Masking]
+\label{thm:fim-inform}
+Under C1, C3, and informative masking with known weights $\pi_{kc}$, the
+observed Fisher information matrix for exponential components is:
+\begin{equation}
+\label{eq:fim-inform}
+\FIM_{jk}(\vtheta) = \sum_{i: \delta_i = 0}
+    \frac{\pi_{j,c_i} \pi_{k,c_i}}
+         {\left(\sum_{\ell \in c_i} \lambda_\ell \pi_{\ell,c_i}\right)^2}
+    \mathbf{1}_{j \in c_i} \mathbf{1}_{k \in c_i}.
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+The log-likelihood contribution is:
+\[
+\ell_i(\vtheta) = -s_i \Lambda + \log\left(\sum_{k \in c_i} \lambda_k \pi_{k,c_i}\right).
+\]
+The score is:
+\[
+\frac{\partial \ell_i}{\partial \lambda_j} = -s_i +
+    \frac{\pi_{j,c_i} \mathbf{1}_{j \in c_i}}
+         {\sum_{k \in c_i} \lambda_k \pi_{k,c_i}}.
+\]
+The Hessian is:
+\[
+\frac{\partial^2 \ell_i}{\partial \lambda_j \partial \lambda_k} =
+    -\frac{\pi_{j,c_i} \pi_{k,c_i} \mathbf{1}_{j \in c_i} \mathbf{1}_{k \in c_i}}
+          {\left(\sum_{\ell \in c_i} \lambda_\ell \pi_{\ell,c_i}\right)^2}.
+\]
+\end{proof}
+
+\subsection{Efficiency Comparison}
+
+\begin{theorem}[Relative Efficiency]
+\label{thm:efficiency}
+Let $\FIM^{(C123)}$ and $\FIM^{(C13)}$ denote the Fisher information matrices
+under C1-C2-C3 and C1-C3 (informative masking) respectively. Then:
+\begin{enumerate}
+    \item[(a)] If $\pi_{kc} = 1/|c|$ for all $k \in c$ (uniform weighting),
+        then $\FIM^{(C13)} = \FIM^{(C123)}$.
+    \item[(b)] If masking is highly informative (concentrating weight on one
+        component), $\FIM^{(C13)}$ can exceed $\FIM^{(C123)}$ for that
+        component's parameter.
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}[Proof Sketch]
+(a) With uniform weights, the weighted sums reduce to unweighted sums scaled
+by constants that cancel in the ratio.
+
+(b) When $\pi_{kc} \approx 1$ for some $k$ and $\pi_{k'c} \approx 0$ for
+$k' \neq k$, the information concentrates on estimating $\lambda_k$, as the
+candidate set effectively identifies the failed component.
+\end{proof}
+
+\begin{remark}[Practical Implications]
+Informative masking can either help or hurt estimation:
+\begin{itemize}
+    \item \textbf{Helps} when the masking structure is known and aligned with
+        what we want to estimate.
+    \item \textbf{Hurts} if masking is informative but we incorrectly assume
+        C2 (non-informative), leading to model misspecification bias.
+\end{itemize}
+\end{remark}
+
+%% ============================================================================
+\section{Expected Fisher Information}
+\label{sec:expected-fim}
+%% ============================================================================
+
+The expected FIM requires integrating over the distribution of candidate sets.
+
+\subsection{Expected FIM Under C1-C2-C3}
+
+\begin{theorem}[Expected FIM for Exponential Series]
+\label{thm:expected-fim}
+For the exponential series system under C1-C2-C3 with Bernoulli masking
+(each non-failed component in candidate set with probability $p$), the
+expected Fisher information per observation is:
+\begin{equation}
+\label{eq:expected-fim}
+\E[\FIM_{jk}] = \E\left[\frac{\mathbf{1}_{j \in \calC} \mathbf{1}_{k \in \calC}}
+    {\left(\sum_{\ell \in \calC} \lambda_\ell\right)^2}\right],
+\end{equation}
+where the expectation is over both $K$ (failed component) and $\calC$
+(candidate set).
+\end{theorem}
+
+\begin{proof}
+The expected FIM is:
+\begin{align}
+\E[\FIM_{jk}] &= \sum_{k_0=1}^m \Prob\{K = k_0\}
+    \E\left[\frac{\mathbf{1}_{j \in \calC} \mathbf{1}_{k \in \calC}}
+        {\left(\sum_{\ell \in \calC} \lambda_\ell\right)^2} \Bigg| K = k_0\right].
+\end{align}
+Under C1, the failed component $k_0$ is always in $\calC$. The expectation
+over candidate sets involves summing over all possible $\calC \ni k_0$
+weighted by their probabilities under the Bernoulli model.
+\end{proof}
+
+\begin{remark}
+Closed-form evaluation of this expectation is generally intractable due to
+the sum in the denominator. Monte Carlo estimation or numerical integration
+is typically required.
+\end{remark}
+
+%% ============================================================================
+\section{Estimation Under Model Misspecification}
+\label{sec:misspec}
+%% ============================================================================
+
+\subsection{Effect of Assuming C2 When It Fails}
+
+\begin{theorem}[Bias from C2 Misspecification]
+\label{thm:misspec-C2}
+Suppose the true model is C1-C3 with informative masking $\pi_{kc}(t)$, but
+estimation is performed assuming C1-C2-C3 (non-informative masking). The
+resulting MLE $\hat{\vtheta}$ is generally biased, with bias depending on the
+correlation between $\pi_{kc}$ and the hazard ratios
+$h_k(t; \vtheta_k)/\sum_{\ell \in c} h_\ell(t; \vtheta_\ell)$.
+\end{theorem}
+
+\begin{proof}[Proof Sketch]
+The score under the assumed (wrong) model is:
+\[
+\frac{\partial \ell_i^{\text{wrong}}}{\partial \lambda_j} = -s_i +
+    \frac{\mathbf{1}_{j \in c_i}}{\sum_{k \in c_i} \lambda_k}.
+\]
+The true score is:
+\[
+\frac{\partial \ell_i^{\text{true}}}{\partial \lambda_j} = -s_i +
+    \frac{\pi_{j,c_i} \mathbf{1}_{j \in c_i}}
+         {\sum_{k \in c_i} \lambda_k \pi_{k,c_i}}.
+\]
+At the true $\vtheta$, $\E[\text{true score}] = 0$ but
+$\E[\text{wrong score}] \neq 0$ in general, leading to bias.
+\end{proof}
+
+\subsection{Effect of Assuming C3 When It Fails}
+
+\begin{theorem}[Bias from C3 Misspecification]
+\label{thm:misspec-C3}
+Suppose masking depends on $\vtheta$ but estimation ignores this dependence.
+The MLE solves the wrong estimating equation and is biased unless the
+$\vtheta$-dependence in masking is orthogonal to the score from the
+reliability/hazard components.
+\end{theorem}
+
+%% ============================================================================
+\section{Practical Recommendations}
+\label{sec:recommendations}
+%% ============================================================================
+
+Based on the theoretical analysis, we offer the following recommendations:
+
+\begin{enumerate}
+    \item \textbf{Verify C2 and C3 when possible.} If the masking mechanism
+        is known (e.g., from diagnostic tool specifications), check whether
+        C2 and C3 are plausible.
+
+    \item \textbf{Use sensitivity analysis.} Fit models under both C1-C2-C3
+        and relaxed assumptions to assess robustness of conclusions.
+
+    \item \textbf{Exploit informative masking when known.} If masking
+        probabilities are known and informative, incorporate them into the
+        likelihood for more efficient estimation.
+
+    \item \textbf{Check for block structure.} Examine candidate set patterns
+        for evidence of blocks that would cause non-identifiability.
+
+    \item \textbf{Use simulation for validation.} When ground truth is
+        available (simulation studies), compare MLE bias and variance under
+        different masking assumptions.
+\end{enumerate}
+
+%% ============================================================================
+\section{Connection to Implementation}
+\label{sec:implementation}
+%% ============================================================================
+
+The theoretical framework developed here connects to the
+\texttt{md-series-systems-relaxed-candidate-set-models} R package as follows:
+
+\begin{itemize}
+    \item \textbf{Theorem~\ref{thm:like-C1-C3}} is implemented in
+        \texttt{md\_bernoulli\_cand\_C1\_kld()}, which generates candidate
+        sets with KL-divergence constraints from the C1-C2-C3 baseline.
+
+    \item \textbf{Definition~\ref{def:rank-based}} corresponds to
+        \texttt{informative\_masking\_by\_rank()}, with parameters $\alpha$
+        and $\beta$ controlling the decay rate and maximum weight.
+
+    \item \textbf{Theorem~\ref{thm:block-nonident}} is demonstrated by
+        \texttt{md\_block\_candidate\_m3()}, showing non-identifiability
+        when components 1 and 2 always appear together.
+
+    \item \textbf{Theorem~\ref{thm:fim-C123}} is implemented in
+        \texttt{md\_fim\_exp\_series\_C1\_C2\_C3()}.
+
+    \item The MLE under C1-C2-C3 (Theorem~\ref{thm:like-C1-C3} with uniform
+        weights) is computed by \texttt{md\_mle\_exp\_series\_C1\_C2\_C3()}.
+\end{itemize}
+
+%% ============================================================================
+\section{Future Directions}
+\label{sec:future}
+%% ============================================================================
+
+\begin{enumerate}
+    \item \textbf{Weibull extension.} Extend the FIM derivations to Weibull
+        components, where shape parameters introduce additional complexity.
+
+    \item \textbf{Semiparametric approaches.} Develop methods that estimate
+        masking probabilities nonparametrically while estimating lifetime
+        parameters parametrically.
+
+    \item \textbf{Model selection.} Develop tests to distinguish between
+        C1-C2-C3 and relaxed models based on observed data.
+
+    \item \textbf{Bayesian extensions.} Incorporate prior information about
+        masking mechanisms and component reliabilities.
+\end{enumerate}
+
+%% ============================================================================
+\appendix
+\section{Proof Details}
+\label{app:proofs}
+%% ============================================================================
+
+\subsection{Derivation of Score Function Under Informative Masking}
+
+For completeness, we provide the full derivation of the score function under
+the Bernoulli informative masking model.
+
+Let the log-likelihood contribution be:
+\[
+\ell_i(\vtheta) = -s_i \sum_{j=1}^m \lambda_j +
+    \log\left(\sum_{k \in c_i} \lambda_k \pi_{k,c_i}\right).
+\]
+
+The partial derivative with respect to $\lambda_j$ is:
+\begin{align}
+\frac{\partial \ell_i}{\partial \lambda_j}
+    &= -s_i + \frac{\partial}{\partial \lambda_j}
+       \log\left(\sum_{k \in c_i} \lambda_k \pi_{k,c_i}\right) \\
+    &= -s_i + \frac{\pi_{j,c_i} \mathbf{1}_{j \in c_i}}
+                   {\sum_{k \in c_i} \lambda_k \pi_{k,c_i}}.
+\end{align}
+
+The total score is:
+\[
+\frac{\partial \ell}{\partial \lambda_j} =
+    \sum_{i=1}^n \frac{\partial \ell_i}{\partial \lambda_j} =
+    -\sum_{i=1}^n s_i + \sum_{i: \delta_i = 0}
+    \frac{\pi_{j,c_i} \mathbf{1}_{j \in c_i}}
+         {\sum_{k \in c_i} \lambda_k \pi_{k,c_i}}.
+\]
+
+Setting this to zero and solving gives the MLE equations under informative
+masking.
+
+\end{document}

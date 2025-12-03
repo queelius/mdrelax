@@ -1,0 +1,255 @@
+%% ============================================================================
+\section{Relaxed Candidate Set Models}
+\label{sec:relaxed}
+%% ============================================================================
+
+We now develop the likelihood framework when conditions C2 and/or C3 are
+relaxed while maintaining C1. The key insight is that the general likelihood
+structure remains tractable---it simply requires modeling the masking
+mechanism explicitly rather than treating it as a nuisance.
+
+\subsection{General Likelihood Under C1}
+\label{sec:general-C1}
+
+\begin{theorem}[Likelihood Under C1 Alone]
+\label{thm:like-C1}
+Under Condition C1 alone, the likelihood contribution from an uncensored
+observation $(s_i, c_i)$ is:
+\begin{equation}
+\label{eq:like-C1}
+    L_i(\vtheta) = \prod_{\ell=1}^m R_\ell(s_i; \vtheta_\ell) \cdot
+    \sum_{k \in c_i} h_k(s_i; \vtheta_k) \cdot
+    \Prob_{\vtheta}\{C_i = c_i \mid T_i = s_i, K_i = k\}.
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Under C1, $\Prob_{\vtheta}\{C_i = c \mid T_i = t, K_i = k\} = 0$ when
+$k \notin c$. Therefore, summing over $K_i$:
+\begin{align}
+    f_{T_i, C_i}(t, c; \vtheta)
+    &= \sum_{k=1}^m h_k(t; \vtheta_k) \prod_{\ell=1}^m R_\ell(t; \vtheta_\ell)
+        \cdot \Prob_{\vtheta}\{C_i = c \mid T_i = t, K_i = k\} \\
+    &= \prod_{\ell=1}^m R_\ell(t; \vtheta_\ell) \cdot
+        \sum_{k \in c} h_k(t; \vtheta_k)
+        \Prob_{\vtheta}\{C_i = c \mid T_i = t, K_i = k\}. \qedhere
+\end{align}
+\end{proof}
+
+\begin{remark}[Comparison with C1-C2-C3]
+Under C2, the masking probability can be factored out of the sum since it
+is constant over $k \in c$. Under C3, it can be dropped since it does not
+depend on $\vtheta$. When either condition fails, the masking probabilities
+remain inside the sum and may depend on both $k$ and $\vtheta$, fundamentally
+changing the inference problem.
+\end{remark}
+
+\subsection{Relaxing C2: Informative Masking}
+\label{sec:relax-C2}
+
+When C2 is violated but C1 and C3 hold, the masking probability
+$\Prob\{C_i = c \mid T_i = t, K_i = k\}$ can vary with $k \in c$.
+
+\begin{definition}[Informative Masking]
+\label{def:informative}
+Let $\pi_{kc}(t) = \Prob\{C_i = c \mid T_i = t, K_i = k\}$ for $k \in c$.
+The masking is \emph{informative} if $\pi_{kc}(t)$ varies with $k$.
+\end{definition}
+
+\begin{theorem}[Likelihood Under C1 and C3 (Relaxed C2)]
+\label{thm:like-C1-C3}
+Under C1 and C3, the likelihood contribution is:
+\begin{equation}
+\label{eq:like-C1-C3}
+    L_i(\vtheta) = \prod_{\ell=1}^m R_\ell(s_i; \vtheta_\ell) \cdot
+    \sum_{k \in c_i} h_k(s_i; \vtheta_k) \cdot \pi_{k,c_i}(s_i),
+\end{equation}
+where $\pi_{k,c}(t)$ does not depend on $\vtheta$ (by C3).
+\end{theorem}
+
+When $\pi_{kc}(t)$ is known, the likelihood remains tractable. The masking
+probabilities act as weights on the hazard contributions from each candidate.
+
+\subsubsection{Rank-Based Informative Masking}
+
+A practical model for informative masking assigns inclusion probabilities
+based on component failure ranks rather than absolute times.
+
+\begin{definition}[Rank-Based Masking]
+\label{def:rank-based}
+Let $r_k(\mathbf{t}) \in \{1, \ldots, m\}$ denote the rank of component $k$'s
+failure time among $(t_1, \ldots, t_m)$, where rank 1 corresponds to the
+earliest failure (the actual failed component).
+
+The probability that component $j$ is in the candidate set is:
+\begin{equation}
+\label{eq:rank-prob}
+    q_j = \begin{cases}
+        1 & \text{if } r_j = 1 \text{ (failed component)}, \\
+        \beta \exp(-\alpha (r_j - 2)) & \text{if } r_j \geq 2,
+    \end{cases}
+\end{equation}
+where $\alpha \geq 0$ controls the decay rate and $\beta \in [0,1]$ is the
+maximum inclusion probability for non-failed components.
+\end{definition}
+
+\begin{remark}[Limiting Behavior]
+\begin{itemize}
+    \item As $\alpha \to 0$: All non-failed components have probability $\beta$
+        (uninformative within the non-failed set).
+    \item As $\alpha \to \infty$: Only the failed component and rank-2 component
+        have non-zero probabilities.
+\end{itemize}
+This model captures the intuition that components failing ``nearly at the same
+time'' as the actual failure are more likely to be included in the candidate
+set.
+\end{remark}
+
+\subsubsection{Independent Bernoulli Candidate Set Model}
+
+A flexible model assumes independent component inclusion:
+
+\begin{definition}[Independent Bernoulli Model]
+\label{def:bernoulli}
+Each component $j$ is included in the candidate set independently with
+probability $q_j$, subject to C1 (failed component always included):
+\begin{equation}
+    \Prob\{j \in C_i \mid T_i = t, K_i = k\} = \begin{cases}
+        1 & \text{if } j = k, \\
+        q_j & \text{otherwise}.
+    \end{cases}
+\end{equation}
+\end{definition}
+
+Under this model, the probability of observing candidate set $c$ given
+$(T_i = t, K_i = k)$ is:
+\begin{equation}
+\label{eq:bernoulli-prob}
+    \Prob\{C_i = c \mid T_i = t, K_i = k\} =
+    \ind{k \in c} \prod_{j \in c \setminus \{k\}} q_j
+    \prod_{j \notin c} (1 - q_j).
+\end{equation}
+
+\begin{proposition}[Likelihood Under Bernoulli Model]
+\label{prop:bernoulli-like}
+Under the independent Bernoulli model with C1 and known probabilities
+$(q_1, \ldots, q_m)$, the likelihood contribution is:
+\begin{equation}
+\label{eq:bernoulli-like}
+    L_i(\vtheta) = \prod_{\ell=1}^m R_\ell(s_i; \vtheta_\ell) \cdot
+    \sum_{k \in c_i} h_k(s_i; \vtheta_k) w_k(c_i),
+\end{equation}
+where
+\begin{equation}
+    w_k(c) = \prod_{j \in c \setminus \{k\}} q_j \prod_{j \notin c} (1 - q_j)
+\end{equation}
+is the probability of observing $c$ given that $k$ failed (excluding the
+deterministic inclusion of $k$).
+\end{proposition}
+
+\subsubsection{KL-Divergence Constrained Models}
+
+To systematically study deviations from the standard C1-C2-C3 model, we can
+parameterize informative masking by its distance from the baseline:
+
+\begin{definition}[KL-Divergence from Baseline]
+\label{def:kl-constraint}
+Let $P = (p, \ldots, p, 1, p, \ldots, p)$ denote the baseline Bernoulli model
+satisfying C1-C2-C3, where the failed component has probability 1 and all
+others have probability $p$.
+
+For a given target KL-divergence $d \geq 0$, we seek a masking probability
+vector $Q = (q_1, \ldots, q_m)$ satisfying:
+\begin{enumerate}
+    \item $q_k = 1$ for the failed component (C1),
+    \item $\KL(P \| Q) \approx d$,
+    \item $\sum_j q_j = \sum_j p_j$ (same expected candidate set size).
+\end{enumerate}
+\end{definition}
+
+When $d = 0$, we recover $Q = P$ (the C1-C2-C3 model). As $d$ increases, $Q$
+becomes more informative about which component failed. This provides a
+controlled framework for studying the effects of departures from C2.
+
+\subsection{Relaxing C3: Parameter-Dependent Masking}
+\label{sec:relax-C3}
+
+When C3 is violated, the masking probability
+$\Prob_{\vtheta}\{C_i = c \mid T_i = t, K_i = k\}$ depends on $\vtheta$.
+
+\begin{theorem}[Likelihood Under C1 and C2 (Relaxed C3)]
+\label{thm:like-C1-C2}
+Under C1 and C2, the likelihood contribution is:
+\begin{equation}
+\label{eq:like-C1-C2}
+    L_i(\vtheta) = \pi_{c_i}(s_i; \vtheta) \cdot
+    \prod_{\ell=1}^m R_\ell(s_i; \vtheta_\ell) \cdot
+    \sum_{k \in c_i} h_k(s_i; \vtheta_k),
+\end{equation}
+where $\pi_c(t; \vtheta) = \Prob_{\vtheta}\{C_i = c \mid T_i = t, K_i \in c\}$
+is the (common) masking probability for any $k \in c$, now depending on $\vtheta$.
+\end{theorem}
+
+\begin{proof}
+By C2, we can factor out the masking probability since it is constant over
+$k \in c$:
+\begin{align}
+    f_{T_i, C_i}(t, c; \vtheta)
+    &= \prod_{\ell=1}^m R_\ell(t; \vtheta_\ell)
+        \sum_{k \in c} h_k(t; \vtheta_k)
+        \Prob_{\vtheta}\{C_i = c \mid T_i = t, K_i = k\} \\
+    &= \pi_c(t; \vtheta) \prod_{\ell=1}^m R_\ell(t; \vtheta_\ell)
+        \sum_{k \in c} h_k(t; \vtheta_k). \qedhere
+\end{align}
+\end{proof}
+
+\begin{remark}[Nuisance Parameters]
+When $\pi_c(t; \vtheta)$ has a known functional form, it contributes to the
+likelihood and affects the MLE. If the form is unknown, additional modeling
+assumptions or profile likelihood approaches may be needed.
+\end{remark}
+
+\subsubsection{Failure-Probability-Weighted Masking}
+
+A natural way for masking to depend on $\vtheta$ is through the conditional
+failure probabilities:
+
+\begin{definition}[Failure-Probability-Weighted Masking]
+\label{def:fp-masking}
+The probability that component $j$ is in the candidate set depends on its
+posterior failure probability:
+\begin{equation}
+\label{eq:fp-masking}
+    \Prob_{\vtheta}\{j \in C_i \mid T_i = t\} =
+    g\left(\frac{h_j(t; \vtheta_j)}{\sum_{\ell=1}^m h_\ell(t; \vtheta_\ell)}\right)
+\end{equation}
+for some function $g: [0,1] \to [0,1]$ with $g(x) \to 1$ as $x \to 1$.
+\end{definition}
+
+This models diagnosticians who are more likely to include components with
+higher failure probabilities given the observed failure time. The function
+$g$ controls the sensitivity of masking to these probabilities.
+
+\subsection{The General Case: Both C2 and C3 Relaxed}
+\label{sec:relax-both}
+
+When both C2 and C3 are relaxed, the likelihood takes the fully general form
+from \Cref{thm:like-C1}:
+\begin{equation}
+    L_i(\vtheta) = \prod_{\ell=1}^m R_\ell(s_i; \vtheta_\ell) \cdot
+    \sum_{k \in c_i} h_k(s_i; \vtheta_k) \cdot
+    \pi_{k,c_i}(s_i; \vtheta).
+\end{equation}
+
+Estimation in this general case requires either:
+\begin{enumerate}
+    \item A fully specified parametric model for
+        $\pi_{k,c}(t; \vtheta)$, or
+    \item Sensitivity analysis over plausible masking mechanisms, or
+    \item Nonparametric or semiparametric approaches that avoid specifying
+        the masking mechanism.
+\end{enumerate}
+
+In practice, the most common scenario is relaxed C2 with C3 maintained
+(informative but parameter-independent masking), which we focus on in the
+simulation studies.

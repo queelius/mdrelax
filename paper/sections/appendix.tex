@@ -1,0 +1,167 @@
+%% ============================================================================
+\section{Proofs and Derivations}
+\label{app:proofs}
+%% ============================================================================
+
+\subsection{Score Function Under Informative Masking}
+\label{app:score-inform}
+
+For completeness, we provide the full derivation of the score function under
+the Bernoulli informative masking model for exponential series systems.
+
+Let the log-likelihood contribution from an uncensored observation be:
+\begin{equation}
+    \ell_i(\vlambda) = -s_i \sum_{j=1}^m \lambda_j +
+    \log\left(\sum_{k \in c_i} \lambda_k \pi_{k,c_i}\right).
+\end{equation}
+
+The partial derivative with respect to $\lambda_j$ is:
+\begin{align}
+    \frac{\partial \ell_i}{\partial \lambda_j}
+    &= -s_i + \frac{\partial}{\partial \lambda_j}
+        \log\left(\sum_{k \in c_i} \lambda_k \pi_{k,c_i}\right) \\
+    &= -s_i + \frac{\pi_{j,c_i} \ind{j \in c_i}}
+                   {\sum_{k \in c_i} \lambda_k \pi_{k,c_i}}.
+\end{align}
+
+The total score is:
+\begin{equation}
+    \frac{\partial \ell}{\partial \lambda_j} =
+    \sum_{i=1}^n \frac{\partial \ell_i}{\partial \lambda_j} =
+    -\sum_{i=1}^n s_i + \sum_{i: \delta_i = 1}
+    \frac{\pi_{j,c_i} \ind{j \in c_i}}
+         {\sum_{k \in c_i} \lambda_k \pi_{k,c_i}}.
+\end{equation}
+
+Setting this to zero and solving gives the MLE equations under informative
+masking.
+
+\subsection{Hessian Matrix Derivation}
+\label{app:hessian}
+
+The second partial derivatives are:
+\begin{align}
+    \frac{\partial^2 \ell_i}{\partial \lambda_j \partial \lambda_\ell}
+    &= \frac{\partial}{\partial \lambda_\ell} \left[
+        \frac{\pi_{j,c_i} \ind{j \in c_i}}
+             {\sum_{k \in c_i} \lambda_k \pi_{k,c_i}}
+    \right] \\
+    &= -\frac{\pi_{j,c_i} \pi_{\ell,c_i} \ind{j \in c_i} \ind{\ell \in c_i}}
+             {\left(\sum_{k \in c_i} \lambda_k \pi_{k,c_i}\right)^2}.
+\end{align}
+
+The observed Fisher information matrix is the negative Hessian:
+\begin{equation}
+    \FIM_{j\ell}(\vlambda) = -\frac{\partial^2 \ell}{\partial \lambda_j \partial \lambda_\ell}
+    = \sum_{i: \delta_i = 1}
+    \frac{\pi_{j,c_i} \pi_{\ell,c_i} \ind{j \in c_i} \ind{\ell \in c_i}}
+         {\left(\sum_{k \in c_i} \lambda_k \pi_{k,c_i}\right)^2}.
+\end{equation}
+
+\subsection{Expected Fisher Information}
+\label{app:expected-fim}
+
+The expected FIM requires integrating over the distribution of candidate sets.
+For the exponential series system under C1-C2-C3 with Bernoulli masking
+(each non-failed component in candidate set with probability $p$), the
+expected Fisher information per observation is:
+\begin{equation}
+    \E[\FIM_{jk}] = \E\left[\frac{\ind{j \in C} \ind{k \in C}}
+    {\left(\sum_{\ell \in C} \lambda_\ell\right)^2}\right],
+\end{equation}
+where the expectation is over both $K$ (failed component) and $C$
+(candidate set).
+
+This can be expanded as:
+\begin{align}
+    \E[\FIM_{jk}] &= \sum_{k_0=1}^m \Prob\{K = k_0\}
+    \E\left[\frac{\ind{j \in C} \ind{k \in C}}
+        {\left(\sum_{\ell \in C} \lambda_\ell\right)^2} \Bigg| K = k_0\right].
+\end{align}
+
+Under C1, the failed component $k_0$ is always in $C$. The expectation
+over candidate sets involves summing over all possible $C \ni k_0$
+weighted by their probabilities under the Bernoulli model:
+\begin{equation}
+    \Prob\{C = c \mid K = k_0\} = \prod_{j \in c \setminus \{k_0\}} p
+    \prod_{j \notin c} (1-p).
+\end{equation}
+
+Closed-form evaluation of this expectation is generally intractable due to
+the sum in the denominator. Monte Carlo estimation or numerical integration
+is typically required.
+
+%% ============================================================================
+\section{Implementation Details}
+\label{app:implementation}
+%% ============================================================================
+
+\subsection{R Package Functions}
+\label{app:functions}
+
+The theoretical framework developed in this paper is implemented in the
+\texttt{mdrelax} R package. Key
+functions include:
+
+\begin{itemize}
+    \item \texttt{md\_bernoulli\_cand\_C1\_C2\_C3()}: Generates candidate set
+        probabilities under the standard Bernoulli model satisfying C1-C2-C3.
+
+    \item \texttt{md\_bernoulli\_cand\_C1\_kld()}: Generates candidate set
+        probabilities with a specified KL-divergence from the baseline
+        C1-C2-C3 model.
+
+    \item \texttt{informative\_masking\_by\_rank()}: Computes inclusion
+        probabilities based on component failure time ranks.
+
+    \item \texttt{md\_cand\_sampler()}: Samples candidate sets from
+        probability vectors.
+
+    \item \texttt{md\_loglike\_exp\_series\_C1\_C2\_C3()}: Log-likelihood
+        function for exponential series systems under C1-C2-C3.
+
+    \item \texttt{md\_mle\_exp\_series\_C1\_C2\_C3()}: Maximum likelihood
+        estimation for exponential series systems.
+
+    \item \texttt{md\_fim\_exp\_series\_C1\_C2\_C3()}: Observed Fisher
+        information matrix for exponential series systems.
+
+    \item \texttt{md\_block\_candidate\_m3()}: Demonstrates block
+        non-identifiability in a 3-component system.
+\end{itemize}
+
+\subsection{Optimization Details}
+\label{app:optimization}
+
+MLE is computed using the L-BFGS-B algorithm \citep{byrd1995} with
+analytically computed gradients. The optimization is initialized using
+a method-of-moments estimator based on the total system hazard:
+\begin{equation}
+    \hat{\Lambda}_{\text{init}} = \frac{n_{\text{uncensored}}}{\sum_{i=1}^n s_i},
+    \quad
+    \hat{\lambda}_{j,\text{init}} = \frac{\hat{\Lambda}_{\text{init}}}{m}.
+\end{equation}
+
+For challenging optimization landscapes, simulated annealing can be used to
+find a good starting point before local optimization.
+
+%% ============================================================================
+\section{Additional Simulation Results}
+\label{app:sim-results}
+%% ============================================================================
+
+Additional simulation results supplement the findings in Section~\ref{sec:simulations}.
+The complete results are available in the R package's simulation directory.
+
+\begin{enumerate}
+    \item Full tables of bias, RMSE, and coverage for all parameter
+        configurations are provided in the package's \texttt{inst/simulations/results/}
+        directory.
+    \item The simulation scripts in \texttt{inst/simulations/} can be used to
+        reproduce all results and generate diagnostic plots.
+    \item Sensitivity analyses for misspecified masking parameters show
+        that the C2 assumption is robust up to moderate departures, with
+        RMSE ratios remaining below 1.10 across tested configurations.
+    \item The simulation framework supports arbitrary component configurations
+        and can be extended to Weibull series systems.
+\end{enumerate}

@@ -1,0 +1,197 @@
+%% ============================================================================
+\section{Background}
+\label{sec:background}
+%% ============================================================================
+
+\subsection{Series System Model}
+\label{sec:series-model}
+
+Consider a series system composed of $m$ components. The lifetime of the
+$i$-th system is
+\begin{equation}
+    T_i = \min\{T_{i1}, T_{i2}, \ldots, T_{im}\},
+\end{equation}
+where $T_{ij}$ denotes the lifetime of the $j$-th component in the $i$-th
+system. Component lifetimes are assumed independent with parametric
+distributions indexed by $\vtheta_j$; the full parameter vector is
+$\vtheta = (\vtheta_1, \ldots, \vtheta_m) \in \vOmega$.
+
+\begin{definition}[Component Distribution Functions]
+\label{def:component-dist}
+For component $j$ with parameter $\vtheta_j$:
+\begin{align}
+    R_j(t; \vtheta_j) &= \Prob\{T_{ij} > t\} && \text{(reliability function)}, \\
+    f_j(t; \vtheta_j) &= -\frac{d}{dt}R_j(t; \vtheta_j) && \text{(density function)}, \\
+    h_j(t; \vtheta_j) &= \frac{f_j(t; \vtheta_j)}{R_j(t; \vtheta_j)} && \text{(hazard function)}.
+\end{align}
+\end{definition}
+
+For the series system, these functions combine as follows:
+
+\begin{theorem}[Series System Distribution Functions]
+\label{thm:series-dist}
+The series system has:
+\begin{align}
+    R_{T_i}(t; \vtheta) &= \prod_{j=1}^m R_j(t; \vtheta_j), \\
+    h_{T_i}(t; \vtheta) &= \sum_{j=1}^m h_j(t; \vtheta_j), \\
+    f_{T_i}(t; \vtheta) &= h_{T_i}(t; \vtheta) \cdot R_{T_i}(t; \vtheta).
+\end{align}
+\end{theorem}
+
+The proof follows from the independence of component lifetimes and standard
+arguments \citep{towell2023reliability}.
+
+\subsection{Component Cause of Failure}
+\label{sec:cause-failure}
+
+Let $K_i \in \{1, \ldots, m\}$ denote the index of the component that caused
+system $i$ to fail. Since the system fails when the first component fails,
+$K_i = \arg\min_j T_{ij}$.
+
+\begin{theorem}[Joint Distribution of $(T_i, K_i)$]
+\label{thm:joint-T-K}
+The joint distribution of system lifetime and component cause of failure is:
+\begin{equation}
+\label{eq:joint-T-K}
+    f_{T_i, K_i}(t, k; \vtheta) = h_k(t; \vtheta_k) \prod_{\ell=1}^m R_\ell(t; \vtheta_\ell).
+\end{equation}
+\end{theorem}
+
+\begin{corollary}[Conditional Failure Probability]
+\label{cor:cond-failure}
+Given that the system failed at time $t$, the probability that component $j$
+caused the failure is:
+\begin{equation}
+\label{eq:cond-failure}
+    \Prob\{K_i = j \mid T_i = t\} = \frac{h_j(t; \vtheta_j)}{\sum_{\ell=1}^m h_\ell(t; \vtheta_\ell)}.
+\end{equation}
+\end{corollary}
+
+This probability plays a central role in masked data analysis, as it
+represents the ``true'' probability that each component failed, which the
+masking mechanism partially obscures.
+
+\subsection{Masked Data Structure}
+\label{sec:masked-data}
+
+\begin{definition}[Observed Data]
+\label{def:observed-data}
+For each system $i$, we observe:
+\begin{itemize}
+    \item $S_i = \min\{T_i, \tau_i\}$: Right-censored system lifetime,
+    \item $\delta_i = \ind{T_i \leq \tau_i}$: Event indicator
+        ($1$ if failure observed, $0$ if censored),
+    \item $C_i \subseteq \{1, \ldots, m\}$: Candidate set
+        (only observed when $\delta_i = 1$).
+\end{itemize}
+The latent (unobserved) variables are:
+\begin{itemize}
+    \item $K_i \in \{1, \ldots, m\}$: Index of failed component,
+    \item $(T_{i1}, \ldots, T_{im})$: Component failure times.
+\end{itemize}
+\end{definition}
+
+\subsection{Traditional Conditions C1, C2, C3}
+\label{sec:conditions}
+
+The existing literature \citep{Usher-1988,Lin-1993,Huairu-2013} establishes
+tractable likelihood-based inference under three conditions:
+
+\begin{condition}[C1: Failed Component in Candidate Set]
+\label{cond:C1}
+The candidate set always contains the failed component:
+\begin{equation}
+    \Prob\{K_i \in C_i\} = 1.
+\end{equation}
+\end{condition}
+
+\begin{condition}[C2: Non-Informative Masking]
+\label{cond:C2}
+Given the failure time and that the failed component is in a candidate set $c$,
+the probability of observing $c$ does not depend on which component in $c$
+failed:
+\begin{equation}
+    \Prob\{C_i = c \mid T_i = t, K_i = j\} =
+    \Prob\{C_i = c \mid T_i = t, K_i = j'\}
+\end{equation}
+for all $j, j' \in c$.
+\end{condition}
+
+\begin{condition}[C3: Parameter-Independent Masking]
+\label{cond:C3}
+The masking probabilities do not depend on the system parameters:
+\begin{equation}
+    \Prob\{C_i = c \mid T_i = t, K_i = j\} = \beta_i(c, t, j),
+\end{equation}
+where $\beta_i$ does not depend on $\vtheta$.
+\end{condition}
+
+\subsection{Likelihood Under C1, C2, C3}
+\label{sec:like-C123}
+
+Under all three conditions, the likelihood admits a tractable form:
+
+\begin{theorem}[Likelihood Under C1-C2-C3]
+\label{thm:like-C123}
+Under Conditions C1, C2, and C3, the likelihood contribution from an
+uncensored observation $(s_i, c_i)$ is proportional to:
+\begin{equation}
+\label{eq:like-C123}
+    L_i(\vtheta) \propto \prod_{\ell=1}^m R_\ell(s_i; \vtheta_\ell) \cdot
+    \sum_{k \in c_i} h_k(s_i; \vtheta_k).
+\end{equation}
+For a censored observation with lifetime $s_i$:
+\begin{equation}
+    L_i(\vtheta) = \prod_{\ell=1}^m R_\ell(s_i; \vtheta_\ell).
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+By the chain rule:
+\begin{equation}
+    f_{T_i, C_i}(t, c; \vtheta) =
+    \sum_{k=1}^m f_{T_i, K_i}(t, k; \vtheta) \cdot
+    \Prob_{\vtheta}\{C_i = c \mid T_i = t, K_i = k\}.
+\end{equation}
+Under C1, terms with $k \notin c$ vanish. Under C2, the masking probability
+is constant over $k \in c$, so:
+\begin{equation}
+    f_{T_i, C_i}(t, c; \vtheta) =
+    \Prob\{C_i = c \mid T_i = t, K_i \in c\} \cdot
+    \prod_{\ell=1}^m R_\ell(t; \vtheta_\ell) \sum_{k \in c} h_k(t; \vtheta_k).
+\end{equation}
+Under C3, the masking probability does not depend on $\vtheta$, yielding
+the proportionality in \eqref{eq:like-C123}.
+\end{proof}
+
+The complete log-likelihood for $n$ independent systems is:
+\begin{equation}
+\label{eq:loglike-C123}
+    \ell(\vtheta) = \sum_{i=1}^n \left[
+        \sum_{j=1}^m \log R_j(s_i; \vtheta_j) +
+        \delta_i \log\left(\sum_{k \in c_i} h_k(s_i; \vtheta_k)\right)
+    \right].
+\end{equation}
+
+\subsection{Related Work}
+\label{sec:related}
+
+The masked data problem in series systems was introduced by
+\citet{Usher-1988}, who developed MLE methods for exponential components.
+\citet{Lin-1993} extended this to Weibull components with exact maximum
+likelihood. \citet{Huairu-2013} (Guo et al.) provided simulation studies
+validating the approach under various masking scenarios.
+
+The informative censoring literature in survival analysis
+\citep{klein2005survival,cox1972regression} addresses related issues where
+the censoring mechanism depends on covariates or outcomes. However, the
+candidate set structure in masked data creates a distinct problem not fully
+addressed by standard informative censoring methods.
+
+The competing risks framework \citep{Agustin-2011} provides another
+perspective, viewing component failures as competing causes of system failure.
+However, standard competing risks methods assume the cause is observed, whereas
+masked data only provides partial information through candidate sets.
+
+Our work extends the C1-C2-C3 framework by explicitly modeling departures from
+C2 and C3, providing both theoretical analysis and practical estimation methods.

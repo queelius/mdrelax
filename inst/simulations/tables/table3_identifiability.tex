@@ -1,0 +1,24 @@
+\begin{table}[htbp]
+\centering
+\caption{Fisher Information Matrix Analysis by Candidate Set Correlation}
+\label{tab:identifiability}
+\begin{tabular}{ccc}
+\toprule
+$\rho$ & Smallest Eigenvalue & Condition Number \\
+\midrule
+0.0 & 12.2290 & 2.18 \\
+0.1 & 12.9269 & 2.12 \\
+0.3 & 14.1726 & 2.01 \\
+0.5 & 14.9956 & 1.97 \\
+0.6 & 15.1233 & 1.91 \\
+0.8 & 14.3324 & 2.01 \\
+0.9 & 13.8814 & 2.04 \\
+\bottomrule
+\end{tabular}
+\begin{tablenotes}
+\small
+\item Note: $\rho$ measures correlation between candidate set indicators.
+\item As $\rho \to 1$, components always co-occur in candidate sets,
+\item leading to non-identifiability (eigenvalue $\to 0$, condition number $\to \infty$).
+\end{tablenotes}
+\end{table}

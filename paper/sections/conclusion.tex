@@ -1,0 +1,37 @@
+%% ============================================================================
+\section{Conclusion}
+\label{sec:conclusion}
+%% ============================================================================
+
+We have developed a theoretical framework for likelihood-based inference in
+series systems with masked failure data when the traditional conditions C2
+(non-informative masking) and C3 (parameter-independent masking) are relaxed.
+Our main contributions are:
+
+\begin{enumerate}
+    \item \textbf{Likelihood derivations.} We established the form of the
+        likelihood under various relaxation scenarios, showing that the
+        masking probabilities act as weights on component hazard contributions
+        when C2 is violated.
+
+    \item \textbf{Practical masking models.} We introduced rank-based
+        informative masking and KL-divergence constrained models that provide
+        interpretable parameterizations of non-standard masking.
+
+    \item \textbf{Identifiability results.} We proved that informative masking
+        can paradoxically \emph{improve} identifiability by breaking symmetries
+        that cause non-identifiability under standard conditions.
+
+    \item \textbf{Fisher information analysis.} We derived closed-form
+        expressions for the Fisher information matrix under informative
+        masking for exponential series systems, enabling efficiency comparisons.
+
+    \item \textbf{Misspecification analysis.} We characterized the bias that
+        arises from incorrectly assuming C2 when masking is actually
+        informative, providing guidance on when relaxed models are necessary.
+\end{enumerate}
+
+These results extend the applicability of masked data methods to settings where
+standard assumptions may be violated. The accompanying \texttt{mdrelax} R package
+provides implementation of these methods for practitioners. Directions for
+future research are discussed in \Cref{sec:future}.

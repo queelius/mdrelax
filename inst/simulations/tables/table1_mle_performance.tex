@@ -1,0 +1,28 @@
+\begin{table}[htbp]
+\centering
+\caption{Maximum Likelihood Estimation Performance by Sample Size}
+\label{tab:mle_performance}
+\begin{tabular}{cccccc}
+\toprule
+$n$ & Parameter & Bias & RMSE & Coverage & Mean CI Width \\
+\midrule
+50 & $\lambda_1$ & 0.0170 & 0.4774 & 0.920 & 1.727 \\
+ & $\lambda_2$ & 0.0066 & 0.5112 & 0.935 & 1.952 \\
+ & $\lambda_3$ & 0.0849 & 0.5570 & 0.945 & 2.197 \\
+\midrule
+100 & $\lambda_1$ & 0.0160 & 0.3182 & 0.935 & 1.175 \\
+ & $\lambda_2$ & 0.0548 & 0.3901 & 0.935 & 1.385 \\
+ & $\lambda_3$ & -0.0370 & 0.3664 & 0.950 & 1.519 \\
+\midrule
+200 & $\lambda_1$ & -0.0049 & 0.2010 & 0.935 & 0.825 \\
+ & $\lambda_2$ & 0.0081 & 0.2619 & 0.965 & 0.965 \\
+ & $\lambda_3$ & -0.0334 & 0.2582 & 0.955 & 1.066 \\
+\bottomrule
+\end{tabular}
+\begin{tablenotes}
+\small
+\item Note: Results based on 200 Monte Carlo replications. True parameters:
+\item $\lambda_1 = 1.0$, $\lambda_2 = 1.5$, $\lambda_3 = 2.0$.
+\item Bernoulli masking with $p = 0.3$, censoring proportion $\approx 20\%$.
+\end{tablenotes}
+\end{table}

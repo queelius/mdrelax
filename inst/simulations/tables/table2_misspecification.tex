@@ -1,0 +1,36 @@
+\begin{table}[htbp]
+\centering
+\caption{Bias Comparison: Correct vs Misspecified Model}
+\label{tab:misspecification_bias}
+\begin{tabular}{ccccc}
+\toprule
+$\alpha$ & Parameter & Bias (Correct) & Bias (Misspec.) & RMSE Ratio \\
+\midrule
+0 & $\lambda_1$ & -0.1285 & -0.0005 & 1.019 \\
+ & $\lambda_2$ & 0.0269 & 0.0237 & 1.090 \\
+ & $\lambda_3$ & 0.1045 & -0.0203 & 1.013 \\
+\midrule
+1 & $\lambda_1$ & -0.1364 & -0.0950 & 0.999 \\
+ & $\lambda_2$ & -0.0090 & -0.0038 & 1.031 \\
+ & $\lambda_3$ & 0.1923 & 0.1457 & 0.944 \\
+\midrule
+2 & $\lambda_1$ & -0.1289 & -0.1106 & 1.002 \\
+ & $\lambda_2$ & 0.0099 & 0.0211 & 1.042 \\
+ & $\lambda_3$ & 0.1559 & 0.1263 & 0.982 \\
+\midrule
+5 & $\lambda_1$ & -0.1293 & -0.1274 & 1.002 \\
+ & $\lambda_2$ & -0.0048 & 0.0099 & 1.031 \\
+ & $\lambda_3$ & 0.1470 & 0.1304 & 0.988 \\
+\midrule
+10 & $\lambda_1$ & -0.1534 & -0.1515 & 1.022 \\
+ & $\lambda_2$ & -0.0004 & 0.0024 & 0.993 \\
+ & $\lambda_3$ & 0.1829 & 0.1781 & 1.008 \\
+\bottomrule
+\end{tabular}
+\begin{tablenotes}
+\small
+\item Note: $\alpha = 0$ corresponds to non-informative masking (C2 satisfied).
+\item As $\alpha$ increases, masking becomes more informative.
+\item RMSE Ratio = RMSE(Misspecified) / RMSE(Correct); values $> 1$ indicate efficiency loss.
+\end{tablenotes}
+\end{table}

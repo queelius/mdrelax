@@ -1,3 +1,79 @@
+#' Gradient descent optimizer with numerical gradients
+#'
+#' Minimizes a function `f` using gradient descent with numerical gradient
+#' approximation. Supports constraints via a support function.
+#'
+#' @param f Function to minimize. Takes a vector and returns a scalar.
+#' @param x0 Initial parameter values.
+#' @param sup Support function. Returns TRUE if parameters are valid.
+#' @param lr Learning rate (step size).
+#' @param eps Convergence tolerance for gradient norm.
+#' @param max_iter Maximum number of iterations.
+#' @param debug If TRUE, print debugging information.
+#' @param h Step size for numerical gradient approximation.
+#' @return A list with components:
+#'   \item{param}{Final parameter values}
+#'   \item{converged}{TRUE if converged within max_iter}
+#'   \item{iter}{Number of iterations performed}
+#'   \item{value}{Final function value}
+#' @keywords internal
+grad_descent <- function(f, x0, sup = function(x) TRUE,
+                         lr = 0.01, eps = 1e-8, max_iter = 10000L,
+                         debug = FALSE, h = 1e-6) {
+    x <- x0
+    m <- length(x)
+
+    # Numerical gradient computation
+    num_grad <- function(x) {
+        g <- numeric(m)
+        fx <- f(x)
+        for (j in seq_len(m)) {
+            x_plus <- x
+            x_plus[j] <- x_plus[j] + h
+            g[j] <- (f(x_plus) - fx) / h
+        }
+        g
+    }
+
+    converged <- FALSE
+    for (iter in seq_len(max_iter)) {
+        g <- num_grad(x)
+        grad_norm <- sqrt(sum(g^2))
+
+        if (debug && iter %% 100 == 0) {
+            cat("Iteration:", iter, "| x:", x, "| f(x):", f(x),
+                "| grad_norm:", grad_norm, "\n")
+        }
+
+        if (grad_norm < eps) {
+            converged <- TRUE
+            break
+        }
+
+        # Gradient descent step (minimize, so subtract)
+        x_new <- x - lr * g
+
+        # Project back onto support if needed
+        if (!sup(x_new)) {
+            # Try smaller step sizes
+            step <- lr
+            for (k in 1:10) {
+                step <- step / 2
+                x_new <- x - step * g
+                if (sup(x_new)) break
+            }
+            # If still not in support, stay at current point
+            if (!sup(x_new)) {
+                if (debug) cat("Cannot find valid step, stopping.\n")
+                break
+            }
+        }
+
+        x <- x_new
+    }
+
+    list(param = x, converged = converged, iter = iter, value = f(x))
+}
 
 
 grad_clip <- function(grad, clip) {

@@ -1,13 +1,9 @@
-pandoc: 2.9.2.1
-pkgdown: 2.0.7
+pandoc: 3.1.3
+pkgdown: 2.2.0
 pkgdown_sha: ~
 articles:
-  exponential_series: exponential_series.html
-  exponential_series_2: exponential_series_2.html
-  general_series: general_series.html
-  weibull_series: weibull_series.html
-last_built: 2023-05-24T12:50Z
+  example-use: example-use.html
+last_built: 2025-12-03T07:15Z
 urls:
-  reference: https://queelius.github.io/md_series_system/reference
-  article: https://queelius.github.io/md_series_system/articles
-
+  reference: https://queelius.github.io/mdrelax/reference
+  article: https://queelius.github.io/mdrelax/articles

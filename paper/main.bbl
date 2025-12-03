@@ -1,0 +1,64 @@
+\begin{thebibliography}{8}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Agustin(2011)]{Agustin-2011}
+Marcus Agustin.
+\newblock \emph{Systems in Series}.
+\newblock John Wiley \& Sons, Ltd, 2011.
+\newblock \doi{10.1002/9780470400531.eorms0866}.
+
+\bibitem[Byrd et~al.(1995)Byrd, Lu, Nocedal, and Zhu]{byrd1995}
+Richard~H. Byrd, Peihuang Lu, Jorge Nocedal, and Ciyou Zhu.
+\newblock A limited memory algorithm for bound constrained optimization.
+\newblock \emph{SIAM Journal on Scientific Computing}, 16\penalty0
+  (5):\penalty0 1190--1208, 1995.
+
+\bibitem[Cox(1972)]{cox1972regression}
+D.~R. Cox.
+\newblock Regression models and life-tables.
+\newblock \emph{Journal of the Royal Statistical Society: Series B
+  (Methodological)}, 34\penalty0 (2):\penalty0 187--202, 1972.
+\newblock \doi{10.1111/j.2517-6161.1972.tb00899.x}.
+
+\bibitem[Guo et~al.(2013)Guo, Niu, and Szidarovszky]{Huairu-2013}
+Huairui Guo, Pengying Niu, and F.~Szidarovszky.
+\newblock Estimating component reliabilities from incomplete system failure
+  data.
+\newblock In \emph{Proceedings of the Annual Reliability and Maintainability
+  Symposium (RAMS)}, pages 1--6. IEEE, 2013.
+\newblock \doi{10.1109/rams.2013.6517765}.
+
+\bibitem[Klein and Moeschberger(2005)]{klein2005survival}
+John~P. Klein and Melvin~L. Moeschberger.
+\newblock \emph{Survival Analysis: Techniques for Censored and Truncated Data}.
+\newblock Springer Science \& Business Media, 2nd edition, 2005.
+
+\bibitem[Towell(2023)]{towell2023reliability}
+Alex Towell.
+\newblock Reliability estimation in series systems: Maximum likelihood
+  techniques for right-censored and masked failure data, 2023.
+\newblock URL
+  \url{https://github.com/queelius/reliability-estimation-in-series-systems}.
+\newblock Master's thesis. Available:
+  \url{https://github.com/queelius/reliability-estimation-in-series-systems}.
+
+\bibitem[Usher and Hodgson(1988)]{Usher-1988}
+J.~S. Usher and T.~J. Hodgson.
+\newblock Maximum likelihood analysis of component reliability using masked
+  system life-test data.
+\newblock \emph{IEEE Transactions on Reliability}, 37\penalty0 (5):\penalty0
+  550--555, 1988.
+\newblock \doi{10.1109/24.9880}.
+
+\bibitem[Usher et~al.(1993)Usher, Lin, and Guess]{Lin-1993}
+J.~S. Usher, D.~K.~J. Lin, and F.~M. Guess.
+\newblock Exact maximum likelihood estimation using masked system data.
+\newblock \emph{IEEE Transactions on Reliability}, 42\penalty0 (4):\penalty0
+  631--635, 1993.
+\newblock \doi{10.1109/24.273596}.
+
+\end{thebibliography}
