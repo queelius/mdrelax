@@ -9,4 +9,12 @@
 ^docs$
 ^pkgdown$
 ^\.github$
+^\.vscode$
+^paper$
+^theory$
+^CLAUDE\.md$
+^md_series_systems_realxed_candidate_set_models\.Rproj$
 series_system_estimation_masked_data.Rproj
+inst/.*\.pdf$
+^inst/simulations$
+^inst/exp_experiments$

@@ -4,138 +4,188 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This R package (`mdrelax`) extends the work from the master's thesis "Reliability Estimation in Series Systems" (located at `/home/spinoza/github/papers/reliability-estimation-in-series-systems/`) by implementing relaxed candidate set models that go beyond the traditional C1, C2, C3 conditions.
+R package (`mdrelax`) for relaxed candidate set models in masked series system failure data. Implements likelihood-based inference for exponential and Weibull series systems under relaxed C1/C2/C3 conditions, with minimal dependencies suitable for Monte Carlo simulation studies.
 
-**Project Status:** Early draft (v0.9.1), currently unstable. The package extends masked data analysis by allowing various candidate set structures beyond strict C1/C2/C3 conditions.
+**Status:** v1.0.0 — all core models implemented and tested (868 tests).
 
-**Related Projects (use as references):**
-- **Original Paper** (`/home/spinoza/github/papers/reliability-estimation-in-series-systems/`): Master's thesis with extensive simulation studies for Weibull series systems, BCa confidence intervals, and comprehensive validation
-- **Model Selection Paper** (`/home/spinoza/github/rlang/reliability-estimation-in-series-systems-model-selection/`): Follow-up work on reduced models (homogeneous shape parameters) and likelihood ratio tests
-- **FIM Precursor** (`/home/spinoza/github/papers/expo-masked-fim/`): Closed-form Fisher Information Matrix derivations for exponential series systems
+**Related Projects:**
+- `likelihood.model.series.md`: General likelihood framework (will receive validated code after stabilization)
+- `wei.series.md.c1.c2.c3`: Reference Weibull implementation
+- Master's thesis: `/home/spinoza/github/papers/reliability-estimation-in-series-systems/`
 
 ## Development Commands
 
 ```r
-devtools::load_all()           # Load for interactive development
-devtools::document()           # Generate documentation from roxygen
-devtools::check()              # Run R CMD check
-devtools::test()               # Run tests (tests need to be created)
-covr::package_coverage()       # Test coverage report
-pkgdown::build_site()          # Build documentation site
+devtools::load_all()                     # Load for development
+devtools::test()                         # Run all tests (868 tests)
+devtools::test(filter="c1-c2-c3")        # C1-C2-C3 model tests (153)
+devtools::test(filter="c1-c3")           # Relaxed C2 model tests (180)
+devtools::test(filter="c1-c2$")          # Relaxed C3 model tests (132)
+devtools::test(filter="relaxed-c1")      # Relaxed C1 model tests (228)
+devtools::test(filter="wei-series$")     # Weibull distribution tests (31)
+devtools::test(filter="wei-series-c1")   # Weibull masked data tests (144)
+devtools::document()                     # Regenerate man/ and NAMESPACE
+devtools::check()                        # Full R CMD check
 ```
-
-Data generation scripts in `data-raw/`:
-```r
-source("data-raw/data.R")                    # Main data generation
-source("data-raw/exp_series_stats_1.R")      # Exponential series statistics
-```
-
-## Core Dependencies
-
-- `md.tools` (github::queelius/md.tools) - Masked data utilities for encoding/decoding
-- `algebraic.mle` (github::queelius/algebraic.mle) - MLE framework with Fisher information support
-- `cubature` - Numerical integration for complex likelihoods
-
-## Mathematical Background
-
-### Series Systems
-A series system fails when ANY component fails. For $m$ components:
-- System lifetime: $T_i = \min\{T_{i1}, T_{i2}, \ldots, T_{im}\}$
-- System reliability: $R(t;\theta) = \prod_{j=1}^m R_j(t;\theta_j)$
-- System hazard: $h(t;\theta) = \sum_{j=1}^m h_j(t;\theta_j)$
-
-### Masked Data Problem
-**Observed per system:**
-1. Right-censored system lifetime $S_i = \min(T_i, \tau_i)$ with indicator $\delta_i$
-2. Candidate set $C_i$ when system fails (components that could have caused failure)
-3. Component failure times $T_{ij}$ are NOT observed
-
-**Key challenge:** Failed component $K_i$ is latent but constrained to $K_i \in C_i$
-
-### Traditional Conditions (C1, C2, C3)
-
-**Condition 1 (C1):** Failed component always in candidate set: $\Pr\{K_i \in C_i\} = 1$
-
-**Condition 2 (C2):** Non-informative masking within candidate set (equal probabilities for all candidates given system failure time)
-
-**Condition 3 (C3):** Masking independent of system parameters θ
-
-Under C1, C2, C3, the likelihood contribution for a failed system at time $t$ with candidate set $c$ is:
-$$L_i(\theta) \propto R(t;\theta) \times \sum_{j \in c} h_j(t;\theta_j)$$
-
-### Relaxed Models (This Package)
-This package relaxes these conditions, particularly:
-- **Relaxed C1:** Only enforce failed component in candidate set
-- **Informed masking:** Probability depends on component failure ranks (simulation-friendly)
-- **KL-divergence constraints:** Control "informativeness" relative to baseline Bernoulli model
 
 ## Code Architecture
 
-### Core Functions (R/md_candidate_set_models.R)
+### Model Hierarchy
 
-**Candidate Set Models:**
-- `md_bernoulli_cand_C1_C2_C3()` - Traditional uninformed Bernoulli model
-- `md_bernoulli_cand_C1_kld()` - Relaxed model with KL-divergence from baseline
-- `md_cand_sampler()` - Generate candidate sets from probability vectors
-- `md_block_candidate_m3()` - Block model demonstrating non-identifiability
-
-**Estimation:**
-- `md_mle_exp_series_C1_C2_C3()` / `md_mle_weibull_series_C1_C2_C3()` - MLE computation
-- `md_loglike_exp_series_C1_C2_C3()` / `md_loglike_weibull_series_C1_C2_C3()` - Log-likelihood
-- `md_score_exp_series_C1_C2_C3()` / `md_score_weibull_series_C1_C2_C3()` - Score functions
-- `md_fim_exp_series_C1_C2_C3()` - Fisher information matrix
-
-### Informed Masking (R/informed_candidate_set_utils.R)
-
-- `informative_masking_by_rank(ts, alpha, beta)` - Rank-based probabilities
-  - α → 0: uniform distribution over non-failed components
-  - α → ∞: only failed component and rank-2 component included
-  - β: maximum weight for rank-2 component
-- `generate_relaxed_cand_C1(d, ts, p, ...)` - Find Q with target KL-divergence from P
-- `kl_divergence_bernoulli(p, q)` - KL divergence between Bernoulli vectors
-
-### Distribution Functions
-
-Standard R naming (d/p/q/r):
-- Exponential: `dexp_series_system()`, `pexp_series_system()`, `qexp_series_system()`, `rexp_series_system()`
-- Weibull: `dweibull_series()`, `pweibull_series()`, `qweibull_series()`, `rweibull_series()`
-- Hazard/Survival: `hazard_exp_series_system()`, `survival_exp_series_system()`, etc.
-
-### Data Encoding Pattern (via md.tools)
-
-```r
-# Extract component times from prefixed columns (t1, t2, ..., tm → matrix)
-Tm <- md_decode_matrix(md, "t")
-
-# Encode probabilities back to data frame (matrix → q1, q2, ..., qm)
-md <- md %>% bind_cols(md_encode_matrix(Q, "q"))
-
-# Mark columns as latent
-md <- md %>% md_mark_latent(paste0("q", 1:m))
+```
+C1-C2-C3 (standard)
+├── Relaxed C2 (informative masking, P matrix)
+├── Relaxed C3 (parameter-dependent masking, alpha power weight)
+└── Relaxed C1 (P(K in C) < 1, sensitivity analysis)
 ```
 
-## Typical Analysis Workflow
+Each model tier: Exponential + Weibull (C1-C2-C3 only for Weibull).
 
-1. **Generate/Load masked data** with component times (t1, t2, ..., tm)
-2. **Apply candidate model** to add masking probabilities (q1, q2, ..., qm):
-   - `md_bernoulli_cand_C1_C2_C3(md, p=0.3)` for traditional model
-   - `md_bernoulli_cand_C1_kld(md, p=0.3, d=0.5)` for relaxed model
-3. **Sample candidate sets** using `md_cand_sampler(md)` → creates (x1, x2, ..., xm)
-4. **Compute MLE** using `md_mle_exp_series_C1_C2_C3(md)` or Weibull variant
-5. **Analyze** using standard MLE methods (confidence intervals, hypothesis tests)
+### R/exp_series_c1_c2_c3.R — Standard Model (C1, C2, C3)
 
-## Known Issues and Development Notes
+Dependency-free exponential series system under full conditions.
 
-- **No test suite exists** - tests/ directory needs to be populated
-- **Optimization failures** - Functions use tryCatch; convergence not guaranteed
-- **Bug in informative_masking_by_rank():** Uses undefined `alpha0`/`beta0` instead of `alpha`/`beta` parameters (line 56-57)
-- **grad_descent not defined:** `generate_relaxed_cand_C1` calls `grad_descent` but utils.R defines `grad_ascent`
-- **Identifiability:** Some candidate set structures produce non-unique MLEs (see `md_block_candidate_m3`)
+| Function | Description |
+|----------|-------------|
+| `loglik_exp_series(t, C, delta)` | Log-likelihood (returns closure) |
+| `score_exp_series(t, C, delta)` | Score / gradient function |
+| `fim_exp_series(t, C, delta)` | Fisher information matrix |
+| `mle_exp_series(t, C, delta, theta0)` | MLE (returns list: theta, se, vcov, loglik, converged, fim) |
+| `rexp_series_md(n, theta, p, tau)` | Data generation (Bernoulli masking) |
+| `as_dataframe(sim)` | Convert sim output to data frame |
+| `decode_matrix(df, prefix)` | Extract x1,x2,... columns into matrix |
+| `encode_matrix(mat, prefix)` | Convert matrix to x1,x2,... columns |
+| `*_df()` variants | Data frame wrappers for all above |
 
-## Reference Implementation Comparison
+### R/exp_series_c1_c3.R — Relaxed C2 (Informative Masking)
 
-The original thesis (`wei.series.md.c1.c2.c3` package) provides validated implementations. Key simulation findings from that work:
-- MLE performs well even with significant masking (p up to 0.4) and censoring (up to 40%)
-- BCa confidence intervals have good coverage probability
-- Shape parameters harder to estimate than scale parameters
-- Larger samples (n ≥ 250) provide reliable estimates
+General Bernoulli model where `P[j,k] = P(j in C | K = k)` can vary with k.
+
+| Function | Description |
+|----------|-------------|
+| `loglik_exp_series_c1_c3(t, C, delta, P)` | Log-likelihood (P=NULL for joint estimation) |
+| `score_exp_series_c1_c3(t, C, delta, P)` | Analytical score (P must be known) |
+| `fim_exp_series_c1_c3(t, C, delta, P)` | Analytical FIM (P must be known) |
+| `mle_exp_series_c1_c3(t, C, delta, ..., fixed_P)` | MLE with optional joint P estimation |
+| `rexp_series_md_c1_c3(n, theta, P, tau)` | Data generation with P matrix |
+| `make_P_matrix(m, type, p, values)` | Create P matrix ("uniform", "symmetric", "full") |
+| `satisfies_C2(P)` | Check if P satisfies condition C2 |
+| `compute_pi(c, k, P)` | Compute P(C=c \| K=k) |
+| `compute_pi_all(c, P)` | All pi_k values for candidates in c |
+
+### R/exp_series_c1_c2.R — Relaxed C3 (Parameter-Dependent Masking)
+
+Power-weighted hazard model: `p_j(theta) = base_p * theta_j^alpha / max(theta^alpha)`.
+
+| Function | Description |
+|----------|-------------|
+| `loglik_exp_series_c1_c2(t, C, delta, alpha, base_p)` | Log-likelihood (alpha=NULL for joint) |
+| `score_exp_series_c1_c2(t, C, delta, alpha, base_p)` | Score (numerical masking gradient) |
+| `fim_exp_series_c1_c2(t, C, delta, alpha, base_p)` | Numerical FIM |
+| `mle_exp_series_c1_c2(t, C, delta, alpha, base_p)` | MLE with fixed or joint alpha |
+| `rexp_series_md_c1_c2(n, theta, alpha, base_p, tau)` | Data generation |
+
+### R/exp_series_relaxed_c1.R — Relaxed C1 (P(K in C) < 1)
+
+Failed component may not be in candidate set. Likelihood sums over ALL k=1,...,m.
+
+| Function | Description |
+|----------|-------------|
+| `loglik_exp_series_relaxed_c1(t, C, delta, P)` | Log-likelihood |
+| `score_exp_series_relaxed_c1(t, C, delta, P)` | Analytical score |
+| `fim_exp_series_relaxed_c1(t, C, delta, P)` | Analytical FIM |
+| `mle_exp_series_relaxed_c1(t, C, delta, P)` | MLE |
+| `rexp_series_md_relaxed_c1(n, theta, P, tau)` | Data generation (diagonal of P < 1) |
+
+### R/wei_series.R — Weibull Distribution Functions
+
+R-style d/p/q/r functions for Weibull series systems.
+
+| Function | Description |
+|----------|-------------|
+| `dwei_series(t, shapes, scales)` | PDF |
+| `pwei_series(q, shapes, scales)` | CDF |
+| `qwei_series(p, shapes, scales)` | Quantile (Newton's method) |
+| `rwei_series(n, shapes, scales)` | Random generation |
+| `hazard_wei_series(t, shapes, scales)` | Hazard function |
+| `surv_wei_series(t, shapes, scales)` | Survival function |
+| `wei_series_mttf(shapes, scales)` | Mean time to failure |
+
+### R/wei_series_c1_c2_c3.R — Weibull Masked Data (C1, C2, C3)
+
+Parameter convention: `theta = c(k1, beta1, k2, beta2, ..., km, betam)`.
+
+| Function | Description |
+|----------|-------------|
+| `loglik_wei_series(t, C, delta)` | Log-likelihood |
+| `score_wei_series(t, C, delta)` | Analytical score |
+| `fim_wei_series(t, C, delta)` | Numerical FIM (4-point Hessian) |
+| `mle_wei_series(t, C, delta, theta0)` | MLE via L-BFGS-B |
+| `rwei_series_md(n, shapes, scales, p, tau)` | Data generation |
+
+### R/simulation_study.R — Simulation Framework
+
+| Function | Description |
+|----------|-------------|
+| `sim_config(n_sim, n_obs, theta, tau)` | Create configuration |
+| `run_simulation_scenario(config, scenario, ...)` | Run single scenario |
+| `run_all_simulations(config, scenarios, ...)` | Run multiple scenarios |
+| `summarize_simulation(results)` | Compute bias, variance, MSE, coverage |
+| `print_simulation_summary(summary_df)` | Print formatted results |
+| `quick_simulation_study(...)` | Quick convenience wrapper |
+
+**Scenarios:** 1 (C1-C2-C3 baseline), 2 (C1-C2-C3 data, relaxed C2 joint), 2b (known P), 3 (relaxed C2 data, C1-C2-C3 misspecified), 4 (relaxed C2 data, relaxed C2 joint), 4b (known P), 5 (C1-C2-C3 data, relaxed C3 misspecified), 6 (relaxed C3 data, C1-C2-C3 misspecified), 6b (known alpha).
+
+## Key Formulas
+
+**Log-likelihood (C1-C2-C3, exponential):**
+```
+l(theta) = -sum_i t_i * sum_j theta_j + sum_{i:delta_i=1} log(sum_{j in C_i} theta_j)
+```
+
+**Log-likelihood (C1-C3, relaxed C2):**
+```
+l(theta) = -sum_i t_i * sum_j theta_j + sum_{i:delta_i=1} log(sum_{j in C_i} theta_j * pi_j(c_i))
+```
+where `pi_j(c_i) = P(C=c_i | K=j)` from the Bernoulli model with P matrix.
+
+**Log-likelihood (Weibull C1-C2-C3):**
+```
+l(theta) = sum_i [-sum_j (t_i/beta_j)^k_j] + sum_{i:delta_i=1} log(sum_{j in C_i} h_j(t_i))
+```
+
+## Tests
+
+Run with `devtools::test()` (868 tests total). Test files:
+
+| File | Tests | Model |
+|------|-------|-------|
+| `test-exp-series-c1-c2-c3.R` | 153 | Standard exponential |
+| `test-exp-series-c1-c3.R` | 180 | Relaxed C2 |
+| `test-exp-series-c1-c2.R` | 132 | Relaxed C3 |
+| `test-exp-series-relaxed-c1.R` | 228 | Relaxed C1 |
+| `test-wei-series.R` | 31 | Weibull distributions |
+| `test-wei-series-c1-c2-c3.R` | 144 | Weibull masked data |
+| `test-simulations.R` | 18 (skip) | Simulation framework |
+
+Tests verify: likelihood/score/FIM correctness, score matches numerical gradient, FIM equals negative Hessian, MLE convergence and unbiasedness (Monte Carlo), model nesting (exponential as Weibull special case), edge cases.
+
+## Conventions
+
+- **Censoring:** `delta=1` = observed failure, `delta=0` = right-censored
+- **Candidate set:** `C[i,j]=TRUE` means component j is in observation i's candidate set
+- **Exponential parameters:** `theta` = rate parameters (lambda_1, ..., lambda_m)
+- **Weibull parameters:** `theta = c(k1, beta1, k2, beta2, ...)` shape-scale pairs
+- **P matrix:** `P[j,k] = P(j in C | K = k)`. Diagonal = 1 under C1.
+- **Functions return closures:** `loglik_*(...)` returns `function(theta)`, not a value
+
+## Roadmap
+
+1. Done: Exponential C1-C2-C3 (153 tests)
+2. Done: Relaxed C2 — General Bernoulli (180 tests)
+3. Done: Relaxed C3 — Power-weighted masking (132 tests)
+4. Done: Relaxed C1 — P(K in C) < 1 (228 tests)
+5. Done: Weibull series systems (175 tests)
+6. Done: Simulation framework with all scenarios
+7. Pending: Weibull + relaxed C2/C3 models
+8. Pending: Migrate validated code to likelihood.model.series.md

@@ -2,6 +2,6 @@
 # It should not be edited.
 
 library(testthat)
-library(md_series_system_relaxed_candidate_set_models)
+library(mdrelax)
 
-test_check("md_series_system_relaxed_candidate_set_models")
+test_check("mdrelax")
