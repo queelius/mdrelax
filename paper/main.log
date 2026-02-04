@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2025.2.2)  2 DEC 2025 16:47
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2025.2.2)  3 DEC 2025 01:23
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -643,8 +643,8 @@ Package microtype Info: Loading generic protrusion settings for font family
 {/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}{/usr/share/texmf/fonts/enc/
 dvips/cm-super/cm-super-ts1.enc}])
 (./sections/background.tex [2] [3] [4]) (./sections/relaxed_models.tex [5]
-[6] [7]) (./sections/identifiability.tex [8] [9] [10] [11])
-(./sections/simulations.tex [12]
+[6] [7]) (./sections/identifiability.tex [8] [9] [10] [11] [12])
+(./sections/simulations.tex
 Overfull \hbox (39.63606pt too wide) in paragraph at lines 48--50
 []\OT1/cmr/bx/n/10.95 (-20) Correlated can-di-date sets: \OT1/cmr/m/n/10.95 (-2
 0) Can-di-date set in-di-ca-tors have cor-re-la-tion $\OML/cmm/m/it/10.95 ^^Z \
@@ -659,79 +659,65 @@ m/n/10.95 (-20) 5\OML/cmm/m/it/10.95 ; \OT1/cmr/m/n/10.95 (-20) 0\OML/cmm/m/it/
 10.95 g$\OT1/cmr/m/n/10.95 (-20) . 
  []
 
-<../inst/simulations/figures/fig1_rmse_by_sample_size.pdf, id=436, 505.89pt x 3
+[13]
+<../inst/simulations/figures/fig1_rmse_by_sample_size.pdf, id=451, 505.89pt x 3
 61.35pt>
 File: ../inst/simulations/figures/fig1_rmse_by_sample_size.pdf Graphic file (ty
 pe pdf)
 <use ../inst/simulations/figures/fig1_rmse_by_sample_size.pdf>
 Package pdftex.def Info: ../inst/simulations/figures/fig1_rmse_by_sample_size.p
-df  used on input line 107.
+df  used on input line 110.
 (pdftex.def)             Requested size: 375.80544pt x 268.4369pt.
-<../inst/simulations/figures/fig2_coverage_by_sample_size.pdf, id=437, 505.89pt
+<../inst/simulations/figures/fig2_coverage_by_sample_size.pdf, id=452, 505.89pt
  x 361.35pt>
 File: ../inst/simulations/figures/fig2_coverage_by_sample_size.pdf Graphic file
  (type pdf)
 <use ../inst/simulations/figures/fig2_coverage_by_sample_size.pdf>
 Package pdftex.def Info: ../inst/simulations/figures/fig2_coverage_by_sample_si
-ze.pdf  used on input line 115.
+ze.pdf  used on input line 118.
 (pdftex.def)             Requested size: 375.80544pt x 268.4369pt.
-[13] [14 <../inst/simulations/figures/fig1_rmse_by_sample_size.pdf> <../inst/si
-mulations/figures/fig2_coverage_by_sample_size.pdf>]
-<../inst/simulations/figures/fig3_misspecification_bias.pdf, id=470, 650.43pt x
+ [14] [15 <../inst/simulations/figures/fig1_rmse_by_sample_size.pdf> <../inst/s
+imulations/figures/fig2_coverage_by_sample_size.pdf>]
+<../inst/simulations/figures/fig3_misspecification_bias.pdf, id=488, 650.43pt x
  361.35pt>
 File: ../inst/simulations/figures/fig3_misspecification_bias.pdf Graphic file (
 type pdf)
 <use ../inst/simulations/figures/fig3_misspecification_bias.pdf>
 Package pdftex.def Info: ../inst/simulations/figures/fig3_misspecification_bias
-.pdf  used on input line 184.
+.pdf  used on input line 190.
 (pdftex.def)             Requested size: 422.77664pt x 234.88023pt.
-<../inst/simulations/figures/fig4_rmse_ratio.pdf, id=471, 505.89pt x 361.35pt>
+<../inst/simulations/figures/fig4_rmse_ratio.pdf, id=489, 505.89pt x 361.35pt>
 File: ../inst/simulations/figures/fig4_rmse_ratio.pdf Graphic file (type pdf)
 <use ../inst/simulations/figures/fig4_rmse_ratio.pdf>
 Package pdftex.def Info: ../inst/simulations/figures/fig4_rmse_ratio.pdf  used 
-on input line 193.
+on input line 199.
 (pdftex.def)             Requested size: 375.80544pt x 268.4369pt.
- [15] [16 <../inst/simulations/figures/fig3_misspecification_bias.pdf> <../inst
-/simulations/figures/fig4_rmse_ratio.pdf>]
-<../inst/simulations/figures/fig5_fim_eigenvalue.pdf, id=504, 505.89pt x 361.35
+<../inst/simulations/figures/fig5_fim_eigenvalue.pdf, id=491, 505.89pt x 361.35
 pt>
 File: ../inst/simulations/figures/fig5_fim_eigenvalue.pdf Graphic file (type pd
 f)
 <use ../inst/simulations/figures/fig5_fim_eigenvalue.pdf>
 Package pdftex.def Info: ../inst/simulations/figures/fig5_fim_eigenvalue.pdf  u
-sed on input line 249.
+sed on input line 258.
 (pdftex.def)             Requested size: 375.80544pt x 268.4369pt.
-<../inst/simulations/figures/fig6_rmse_by_correlation.pdf, id=505, 505.89pt x 3
+<../inst/simulations/figures/fig6_rmse_by_correlation.pdf, id=492, 505.89pt x 3
 61.35pt>
 File: ../inst/simulations/figures/fig6_rmse_by_correlation.pdf Graphic file (ty
 pe pdf)
 <use ../inst/simulations/figures/fig6_rmse_by_correlation.pdf>
 Package pdftex.def Info: ../inst/simulations/figures/fig6_rmse_by_correlation.p
-df  used on input line 258.
+df  used on input line 267.
 (pdftex.def)             Requested size: 375.80544pt x 268.4369pt.
- [17 <../inst/simulations/figures/fig5_fim_eigenvalue.pdf>])
-(./sections/discussion.tex [18 <../inst/simulations/figures/fig6_rmse_by_correl
-ation.pdf>] [19]
+ [16] [17 <../inst/simulations/figures/fig3_misspecification_bias.pdf> <../inst
+/simulations/figures/fig4_rmse_ratio.pdf>] [18 <../inst/simulations/figures/fig
+5_fim_eigenvalue.pdf>]) (./sections/discussion.tex [19 <../inst/simulations/fig
+ures/fig6_rmse_by_correlation.pdf>] [20]
 Overfull \hbox (1.58815pt too wide) in paragraph at lines 104--107
 []\OT1/cmr/bx/n/10.95 (-20) Parametric mask-ing mod-els. \OT1/cmr/m/n/10.95 (-2
 0) Our in-for-ma-tive mask-ing mod-els (rank-based, KL-constrained)
  []
 
-[20]
-Overfull \hbox (22.62943pt too wide) in paragraph at lines 139--142
-[]\OT1/cmr/bx/n/10.95 (-20) R pack-age doc-u-men-ta-tion. \OT1/cmr/m/n/10.95 (-
-20) Ex-pand the \OT1/cmtt/m/n/10.95 md-series-systems-relaxed-candidate-set-mod
-els
- []
-
-) (./sections/conclusion.tex) (./main.bbl [21]) (./sections/appendix.tex
-[22]
-Overfull \hbox (128.31566pt too wide) in paragraph at lines 102--105
-\OT1/cmr/m/n/10.95 (-20) The the-o-ret-i-cal frame-work de-vel-oped in this pa-
-per is im-ple-mented in the \OT1/cmtt/m/n/10.95 md-series-systems-relaxed-candi
-date-set-models
- []
-
+[21]) (./sections/conclusion.tex) (./main.bbl [22]) (./sections/appendix.tex
 [23] [24]) [25] (./main.aux)
  ***********
 LaTeX2e <2023-11-01> patch level 1
@@ -741,39 +727,41 @@ Package rerunfilecheck Info: File `main.out' has not changed.
 (rerunfilecheck)             Checksum: 3FEC2F2B8BDFB9957A685E71C3163212;10927.
  ) 
 Here is how much of TeX's memory you used:
- 18476 strings out of 474222
- 305454 string characters out of 5748734
- 1939975 words of memory out of 5000000
- 39965 multiletter control sequences out of 15000+600000
- 583093 words of font info for 224 fonts, out of 8000000 for 9000
+ 18489 strings out of 474222
+ 305524 string characters out of 5748734
+ 1941975 words of memory out of 5000000
+ 39961 multiletter control sequences out of 15000+600000
+ 583633 words of font info for 227 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 75i,13n,79p,1001b,638s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 75i,13n,79p,1001b,583s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></us
 r/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/shar
 e/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/share/texl
 ive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/te
 xmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></usr/share/texlive/texmf-dis
 t/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/share/texlive/texmf-dist/fonts
-/type1/public/amsfonts/cm/cmmib10.pfb></usr/share/texlive/texmf-dist/fonts/type
-1/public/amsfonts/cmextra/cmmib8.pfb></usr/share/texlive/texmf-dist/fonts/type1
-/public/amsfonts/cm/cmr10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public
-/amsfonts/cm/cmr12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfon
-ts/cm/cmr17.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/c
-mr6.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb>
-</usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/sh
-are/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/te
-xlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/share/texlive/t
-exmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/share/texlive/texmf-di
-st/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/share/texlive/texmf-dist/fon
-ts/type1/public/amsfonts/cm/cmti8.pfb></usr/share/texlive/texmf-dist/fonts/type
-1/public/amsfonts/cm/cmtt10.pfb></usr/share/texlive/texmf-dist/fonts/type1/publ
-ic/amsfonts/cm/cmtt12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/ams
-fonts/symbols/msbm10.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfrm1095
-.pfb>
-Output written on main.pdf (25 pages, 386201 bytes).
+/type1/public/amsfonts/cm/cmmi9.pfb></usr/share/texlive/texmf-dist/fonts/type1/
+public/amsfonts/cm/cmmib10.pfb></usr/share/texlive/texmf-dist/fonts/type1/publi
+c/amsfonts/cmextra/cmmib8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public
+/amsfonts/cm/cmr10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfon
+ts/cm/cmr12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/c
+mr17.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb
+></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/s
+hare/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/share/tex
+live/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texlive/t
+exmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/share/texlive/texmf-di
+st/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/share/texlive/texmf-dist/font
+s/type1/public/amsfonts/cm/cmsy9.pfb></usr/share/texlive/texmf-dist/fonts/type1
+/public/amsfonts/cm/cmti10.pfb></usr/share/texlive/texmf-dist/fonts/type1/publi
+c/amsfonts/cm/cmti8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfo
+nts/cm/cmti9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/
+cmtt10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt12
+.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.
+pfb></usr/share/texmf/fonts/type1/public/cm-super/sfrm1095.pfb>
+Output written on main.pdf (25 pages, 425962 bytes).
 PDF statistics:
- 781 PDF objects out of 1000 (max. 8388607)
- 689 compressed objects within 7 object streams
- 263 named destinations out of 1000 (max. 500000)
- 44511 words of extra memory for PDF output out of 51595 (max. 10000000)
+ 805 PDF objects out of 1000 (max. 8388607)
+ 706 compressed objects within 8 object streams
+ 269 named destinations out of 1000 (max. 500000)
+ 46559 words of extra memory for PDF output out of 51595 (max. 10000000)
 

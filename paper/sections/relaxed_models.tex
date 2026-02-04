@@ -105,24 +105,96 @@ time'' as the actual failure are more likely to be included in the candidate
 set.
 \end{remark}
 
-\subsubsection{Independent Bernoulli Candidate Set Model}
+\subsubsection{General Bernoulli Candidate Set Model}
 
-A flexible model assumes independent component inclusion:
+The most general Bernoulli model for candidate set formation allows the
+inclusion probability of each component to depend on \emph{which} component
+actually failed.
 
-\begin{definition}[Independent Bernoulli Model]
-\label{def:bernoulli}
+\begin{definition}[General Bernoulli Model]
+\label{def:bernoulli-general}
+Let $p_j(k)$ denote the probability that component $j$ is included in the
+candidate set given that component $k$ failed:
+\begin{equation}
+\label{eq:pjk}
+    p_j(k) = \Prob\{j \in C_i \mid K_i = k\}.
+\end{equation}
+Under C1, we require $p_j(j) = 1$ for all $j$. These probabilities can be
+organized into an $m \times m$ matrix $\mathbf{P}$:
+\begin{equation}
+\label{eq:P-matrix}
+    \mathbf{P} = \begin{pmatrix}
+        1 & p_1(2) & \cdots & p_1(m) \\
+        p_2(1) & 1 & \cdots & p_2(m) \\
+        \vdots & \vdots & \ddots & \vdots \\
+        p_m(1) & p_m(2) & \cdots & 1
+    \end{pmatrix},
+\end{equation}
+where the $(j,k)$ entry is $p_j(k) = \Prob\{j \in C \mid K = k\}$.
+\end{definition}
+
+\begin{remark}[Time-Independence Assumption]
+\label{rem:time-independence}
+The most general Bernoulli model would allow $p_j(k, t)$ to depend on the
+failure time $t$ as well as the failed component $k$. We simplify by assuming
+time-independence: $p_j(k, t) = p_j(k)$ for all $t$. This is a reasonable
+assumption when the masking mechanism depends on which component failed but
+not on when the failure occurred. Time-dependent models are left to future work.
+\end{remark}
+
+\begin{remark}[Condition C2 in Terms of $\mathbf{P}$]
+Condition C2 holds if and only if each row of $\mathbf{P}$ has constant
+off-diagonal entries, i.e., $p_j(k) = p_j$ for all $k \neq j$. Relaxing C2
+allows each column to have different values, meaning the masking mechanism
+``knows'' something about which component failed.
+\end{remark}
+
+The probability of observing candidate set $c$ given that component $k$ failed is:
+\begin{equation}
+\label{eq:bernoulli-prob-general}
+    \pi_k(c) = \Prob\{C = c \mid K = k\} =
+    \ind{k \in c} \prod_{j \in c \setminus \{k\}} p_j(k)
+    \prod_{j \notin c} (1 - p_j(k)).
+\end{equation}
+
+\begin{theorem}[Likelihood Under General Bernoulli Model]
+\label{thm:bernoulli-like-general}
+Under the general Bernoulli model with C1 (and C3), the likelihood contribution
+from an uncensored observation $(s_i, c_i)$ is:
+\begin{equation}
+\label{eq:bernoulli-like-general}
+    L_i(\vtheta, \mathbf{P}) = \prod_{\ell=1}^m R_\ell(s_i; \vtheta_\ell) \cdot
+    \sum_{k \in c_i} h_k(s_i; \vtheta_k) \cdot \pi_k(c_i),
+\end{equation}
+where $\pi_k(c_i)$ is given by \eqref{eq:bernoulli-prob-general}.
+\end{theorem}
+
+\begin{remark}[Nuisance Parameters]
+The off-diagonal entries of $\mathbf{P}$ constitute $m(m-1)$ nuisance parameters
+that must be estimated alongside the $m$ rate parameters $\vtheta$ (for
+exponential components). The total parameter count is $m^2$.
+\end{remark}
+
+\subsubsection{Simplified Bernoulli Model (C2 Satisfied)}
+
+A special case assumes the inclusion probabilities do not depend on $k$:
+
+\begin{definition}[Simplified Bernoulli Model]
+\label{def:bernoulli-simple}
 Each component $j$ is included in the candidate set independently with
 probability $q_j$, subject to C1 (failed component always included):
 \begin{equation}
-    \Prob\{j \in C_i \mid T_i = t, K_i = k\} = \begin{cases}
+    p_j(k) = \begin{cases}
         1 & \text{if } j = k, \\
-        q_j & \text{otherwise}.
+        q_j & \text{if } j \neq k.
     \end{cases}
 \end{equation}
+This model satisfies C2 since the masking probability does not depend on
+which component $k \in c$ actually failed.
 \end{definition}
 
-Under this model, the probability of observing candidate set $c$ given
-$(T_i = t, K_i = k)$ is:
+Under this simplified model, the probability of observing candidate set $c$
+given $(T_i = t, K_i = k)$ is:
 \begin{equation}
 \label{eq:bernoulli-prob}
     \Prob\{C_i = c \mid T_i = t, K_i = k\} =
@@ -130,9 +202,9 @@ $(T_i = t, K_i = k)$ is:
     \prod_{j \notin c} (1 - q_j).
 \end{equation}
 
-\begin{proposition}[Likelihood Under Bernoulli Model]
+\begin{proposition}[Likelihood Under Simplified Bernoulli Model]
 \label{prop:bernoulli-like}
-Under the independent Bernoulli model with C1 and known probabilities
+Under the simplified Bernoulli model with C1, C2 and known probabilities
 $(q_1, \ldots, q_m)$, the likelihood contribution is:
 \begin{equation}
 \label{eq:bernoulli-like}
@@ -143,8 +215,9 @@ where
 \begin{equation}
     w_k(c) = \prod_{j \in c \setminus \{k\}} q_j \prod_{j \notin c} (1 - q_j)
 \end{equation}
-is the probability of observing $c$ given that $k$ failed (excluding the
-deterministic inclusion of $k$).
+is the probability of observing $c$ given that $k$ failed.
+Note that $w_k(c)$ is the same for all $k \in c$ (by C2), so it factors out
+and the likelihood reduces to the C1-C2-C3 form up to a constant.
 \end{proposition}
 
 \subsubsection{KL-Divergence Constrained Models}
@@ -230,6 +303,58 @@ This models diagnosticians who are more likely to include components with
 higher failure probabilities given the observed failure time. The function
 $g$ controls the sensitivity of masking to these probabilities.
 
+\subsubsection{Power-Weighted Hazard Model}
+
+A particularly tractable form uses hazard rates raised to a power $\alpha$:
+
+\begin{definition}[Power-Weighted Masking]
+\label{def:power-masking}
+The inclusion probability for component $j$ is proportional to its hazard
+rate raised to power $\alpha \geq 0$:
+\begin{equation}
+\label{eq:power-masking}
+    \Prob_{\vtheta}\{j \in C_i \mid T_i = t\} =
+    \frac{h_j(t; \vtheta_j)^\alpha}{\sum_{\ell=1}^m h_\ell(t; \vtheta_\ell)^\alpha}.
+\end{equation}
+\end{definition}
+
+\begin{remark}[Limiting Cases]
+\begin{itemize}
+    \item $\alpha = 0$: Uniform distribution over all components (uninformative).
+    \item $\alpha = 1$: Inclusion proportional to hazard (posterior failure probability).
+    \item $\alpha \to \infty$: Assigns probability 1 to the component with highest
+        hazard rate (maximally informative).
+\end{itemize}
+For exponential components with rates $\theta_1, \ldots, \theta_m$, the hazards
+are constant, so the inclusion probability for component $j$ becomes
+$\theta_j^\alpha / \sum_\ell \theta_\ell^\alpha$, independent of $t$.
+\end{remark}
+
+\begin{remark}[Relaxing C1]
+Under power-weighted masking with large $\alpha$, the true failed component
+has high posterior probability of being included even without enforcing C1.
+This suggests that for ``maximally informative'' masking models, the strict
+requirement that $K \in C$ (C1) may be relaxed to a softer constraint.
+\end{remark}
+
+\begin{remark}[Model Misspecification Risk]
+\label{rem:misspec-risk}
+Parameter-dependent masking models like \eqref{eq:power-masking} represent
+strong assumptions about the data-generating process. If the assumed masking
+mechanism is incorrect, the resulting MLEs may be severely biased.
+
+For example, if data are generated under the simple Bernoulli model (C1-C2-C3)
+but analyzed under the power-weighted model with $\alpha > 0$, the estimator
+will attribute variation in candidate sets to hazard rate differences rather
+than random masking, leading to biased rate estimates.
+
+This contrasts with the conservative C1-C2-C3 approach: when C2 and C3 hold,
+the masking mechanism is non-informative and can be ``integrated out,'' making
+inference robust to the specific masking probabilities. When relaxing these
+conditions, the analyst trades robustness for potential efficiency gains, but
+only when the assumed masking model is correct.
+\end{remark}
+
 \subsection{The General Case: Both C2 and C3 Relaxed}
 \label{sec:relax-both}
 
@@ -253,3 +378,125 @@ Estimation in this general case requires either:
 In practice, the most common scenario is relaxed C2 with C3 maintained
 (informative but parameter-independent masking), which we focus on in the
 simulation studies.
+
+\subsection{Simulation Evidence: Robustness of Relaxed C2}
+\label{sec:sim-relax-c2}
+
+We conducted simulation studies to evaluate the practical implications of
+model choice when C2 may or may not hold. The key question: \emph{What is the
+cost of using the more flexible relaxed-C2 model when C2 actually holds?}
+
+\subsubsection{Simulation Design}
+
+We consider an exponential series system with $m = 2$ components and true
+parameters $\theta_1 = 1$, $\theta_2 = 2$. Each scenario uses $n = 400$
+observations with right-censoring time $\tau = 5$ (moderate censoring).
+
+\begin{description}
+    \item[Scenario 1:] Data generated under C1-C2-C3 ($p = 0.3$), analyzed
+        with C1-C2-C3 model. (Baseline)
+    \item[Scenario 2b:] Data generated under C1-C2-C3 ($p = 0.3$), analyzed
+        with relaxed-C2 model using \emph{known} $\mathbf{P}$.
+    \item[Scenario 3:] Data generated under relaxed C2 ($\mathbf{P}$
+        asymmetric), analyzed with C1-C2-C3 model. (Misspecified)
+    \item[Scenario 4b:] Data generated under relaxed C2 ($\mathbf{P}$
+        asymmetric), analyzed with relaxed-C2 model using \emph{known}
+        $\mathbf{P}$.
+\end{description}
+
+For the asymmetric $\mathbf{P}$ matrix, we use $p_1(2) = 0.8$ (component 1
+very likely included when component 2 fails) and $p_2(1) = 0.1$ (component 2
+unlikely when component 1 fails).
+
+\subsubsection{Results}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{llrrrr}
+\toprule
+Scenario & Model & Rel.\ Bias $\theta_1$ & Rel.\ Bias $\theta_2$ &
+    RMSE $\theta_1$ & RMSE $\theta_2$ \\
+\midrule
+1 (C2 holds) & C1-C2-C3 & 0.7\% & 1.6\% & 9.7\% & 7.2\% \\
+2b (C2 holds) & Relaxed C2 (known $\mathbf{P}$) & 0.7\% & 1.6\% & 9.6\% & 7.2\% \\
+3 (C2 violated) & C1-C2-C3 & \textbf{109\%} & \textbf{$-$53\%} & 110\% & 54\% \\
+4b (C2 violated) & Relaxed C2 (known $\mathbf{P}$) & 2.2\% & 0.0\% & 10.7\% & 7.2\% \\
+\bottomrule
+\end{tabular}
+\caption{Simulation results comparing model robustness. Relative bias and
+RMSE as percentage of true parameter value. Based on 50 replications.}
+\label{tab:sim-relax-c2}
+\end{table}
+
+\subsubsection{Interpretation}
+
+\begin{enumerate}
+    \item \textbf{Relaxed C2 is safe when C2 holds} (Scenarios 1 vs.\ 2b):
+        Using the more flexible relaxed-C2 model on data that satisfies C2
+        incurs essentially \emph{no efficiency penalty}. Both bias and RMSE
+        are virtually identical.
+
+    \item \textbf{Misspecification is catastrophic} (Scenario 3): Fitting the
+        C1-C2-C3 model when C2 is violated produces severe bias---over 100\%
+        for $\theta_1$ and $-53\%$ for $\theta_2$. The model misattributes
+        informative masking to component failure rates.
+
+    \item \textbf{Correct model recovers parameters} (Scenario 4b): When the
+        relaxed-C2 model is used with the correct $\mathbf{P}$, estimates are
+        nearly unbiased with reasonable variance.
+\end{enumerate}
+
+\begin{remark}[Practical Implications]
+These results support a conservative modeling strategy: when the masking
+mechanism is uncertain, use the relaxed-C2 model with an estimated or
+hypothesized $\mathbf{P}$ matrix. If C2 actually holds, little is lost. If C2
+is violated, severe bias is avoided.
+
+However, jointly estimating $\vtheta$ and $\mathbf{P}$ from data alone poses
+identifiability challenges. In practice, $\mathbf{P}$ should be either:
+(i) estimated from auxiliary data or expert knowledge,
+(ii) constrained to a lower-dimensional structure, or
+(iii) subjected to sensitivity analysis.
+\end{remark}
+
+\subsubsection{Identifiability of Joint Estimation}
+
+Additional simulations reveal that the difficulty with joint estimation of
+$\vtheta$ and $\mathbf{P}$ is \emph{not} a finite-sample problem. Even with
+$n = 2000$ observations, the joint MLE exhibits persistent bias:
+
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+Estimation Method & $\hat\theta_1$ & $\hat\theta_2$ \\
+\midrule
+Joint ($\vtheta$, $\mathbf{P}$) & 1.62 & 1.44 \\
+Known $\mathbf{P}$ & 0.97 & 2.08 \\
+True values & 1.00 & 2.00 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The joint estimator consistently converges to $\hat\theta \approx (1.6, 1.4)$
+with $\hat{P}_{21} \approx 0.45$ (true: 0.10), regardless of sample size. This
+indicates \emph{fundamental non-identifiability}: different combinations of
+$(\vtheta, \mathbf{P})$ yield similar likelihoods.
+
+Notably, the \emph{total hazard} $\sum_j \theta_j$ remains well-identified
+($\hat\Sigma\theta = 3.01$ vs.\ true 3.00), but individual components are
+confounded with the off-diagonal elements of $\mathbf{P}$.
+
+\begin{remark}[Implications for Practice]
+This non-identifiability result has important practical implications:
+\begin{enumerate}
+    \item If $\mathbf{P}$ can be estimated from auxiliary information (expert
+        knowledge, pilot studies, or the masking process itself), the
+        relaxed-C2 model provides excellent estimates.
+    \item If $\mathbf{P}$ is completely unknown, the analyst faces a choice:
+        (a) assume C2 holds and use the simpler model (risking bias if C2 is
+        violated), or (b) impose structural constraints on $\mathbf{P}$
+        (e.g., symmetry, sparsity) to achieve identifiability.
+    \item Sensitivity analysis over plausible $\mathbf{P}$ matrices may reveal
+        how conclusions depend on the assumed masking mechanism.
+\end{enumerate}
+\end{remark}

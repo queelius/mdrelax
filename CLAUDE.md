@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 R package (`mdrelax`) for relaxed candidate set models in masked series system failure data. Implements likelihood-based inference for exponential and Weibull series systems under relaxed C1/C2/C3 conditions, with minimal dependencies suitable for Monte Carlo simulation studies.
 
-**Status:** v1.0.0 — all core models implemented and tested (868 tests).
+**Status:** v1.1.0 — all core models + Weibull relaxed models implemented and tested (1276 tests).
 
 **Related Projects:**
 - `likelihood.model.series.md`: General likelihood framework (will receive validated code after stabilization)
@@ -16,16 +16,20 @@ R package (`mdrelax`) for relaxed candidate set models in masked series system f
 ## Development Commands
 
 ```r
-devtools::load_all()                     # Load for development
-devtools::test()                         # Run all tests (868 tests)
-devtools::test(filter="c1-c2-c3")        # C1-C2-C3 model tests (153)
-devtools::test(filter="c1-c3")           # Relaxed C2 model tests (180)
-devtools::test(filter="c1-c2$")          # Relaxed C3 model tests (132)
-devtools::test(filter="relaxed-c1")      # Relaxed C1 model tests (228)
-devtools::test(filter="wei-series$")     # Weibull distribution tests (31)
-devtools::test(filter="wei-series-c1")   # Weibull masked data tests (144)
-devtools::document()                     # Regenerate man/ and NAMESPACE
-devtools::check()                        # Full R CMD check
+devtools::load_all()                           # Load for development
+devtools::test()                               # Run all tests (1276 tests)
+devtools::test(filter="c1-c2-c3")              # C1-C2-C3 model tests (153)
+devtools::test(filter="c1-c3")                 # Relaxed C2 model tests (180)
+devtools::test(filter="c1-c2$")                # Relaxed C3 model tests (132)
+devtools::test(filter="relaxed-c1")            # Relaxed C1 model tests (228)
+devtools::test(filter="wei-series$")           # Weibull distribution tests (31)
+devtools::test(filter="wei-series-c1-c2-c3")   # Weibull C1-C2-C3 tests (144)
+devtools::test(filter="wei-series-c1-c3")      # Weibull relaxed C2 tests (162)
+devtools::test(filter="wei-series-c1-c2$")     # Weibull relaxed C3 tests (177)
+devtools::test(filter="wei-series-relaxed")    # Theoretical expectations (28)
+devtools::test(filter="wei-simulations")       # Weibull simulation tests (41)
+devtools::document()                           # Regenerate man/ and NAMESPACE
+devtools::check()                              # Full R CMD check
 ```
 
 ## Code Architecture
@@ -39,7 +43,7 @@ C1-C2-C3 (standard)
 └── Relaxed C1 (P(K in C) < 1, sensitivity analysis)
 ```
 
-Each model tier: Exponential + Weibull (C1-C2-C3 only for Weibull).
+Each model tier: Exponential + Weibull.
 
 ### R/exp_series_c1_c2_c3.R — Standard Model (C1, C2, C3)
 
@@ -123,7 +127,36 @@ Parameter convention: `theta = c(k1, beta1, k2, beta2, ..., km, betam)`.
 | `mle_wei_series(t, C, delta, theta0)` | MLE via L-BFGS-B |
 | `rwei_series_md(n, shapes, scales, p, tau)` | Data generation |
 
+### R/wei_series_c1_c3.R — Weibull Relaxed C2 (Informative Masking)
+
+Weibull series with general Bernoulli model: `P[j,k] = P(j in C | K = k)` can vary with k.
+
+| Function | Description |
+|----------|-------------|
+| `loglik_wei_series_c1_c3(t, C, delta, P)` | Log-likelihood (weighted hazard) |
+| `score_wei_series_c1_c3(t, C, delta, P)` | Analytical score |
+| `fim_wei_series_c1_c3(t, C, delta, P)` | Numerical FIM (4-point Hessian) |
+| `mle_wei_series_c1_c3(t, C, delta, P, theta0)` | MLE via L-BFGS-B |
+| `rwei_series_md_c1_c3(n, shapes, scales, P, tau)` | Data generation with P matrix |
+| `*_df()` variants | Data frame wrappers |
+
+### R/wei_series_c1_c2.R — Weibull Relaxed C3 (Parameter-Dependent Masking)
+
+Power-weighted model: `p_j(θ) = base_p * (k_j/λ_j)^α / max((k_l/λ_l)^α)`.
+
+| Function | Description |
+|----------|-------------|
+| `wei_power_weights(shapes, scales, alpha)` | Compute normalized power weights |
+| `loglik_wei_series_c1_c2(t, C, delta, alpha, base_p)` | Log-likelihood (alpha=NULL for joint) |
+| `score_wei_series_c1_c2(t, C, delta, alpha, base_p)` | Score (numerical masking gradient) |
+| `fim_wei_series_c1_c2(t, C, delta, alpha, base_p)` | Numerical FIM |
+| `mle_wei_series_c1_c2(t, C, delta, alpha, base_p)` | MLE with fixed or joint alpha |
+| `rwei_series_md_c1_c2(n, shapes, scales, alpha, base_p, tau)` | Data generation |
+| `*_df()` variants | Data frame wrappers |
+
 ### R/simulation_study.R — Simulation Framework
+
+#### Exponential Simulation Functions
 
 | Function | Description |
 |----------|-------------|
@@ -134,7 +167,17 @@ Parameter convention: `theta = c(k1, beta1, k2, beta2, ..., km, betam)`.
 | `print_simulation_summary(summary_df)` | Print formatted results |
 | `quick_simulation_study(...)` | Quick convenience wrapper |
 
-**Scenarios:** 1 (C1-C2-C3 baseline), 2 (C1-C2-C3 data, relaxed C2 joint), 2b (known P), 3 (relaxed C2 data, C1-C2-C3 misspecified), 4 (relaxed C2 data, relaxed C2 joint), 4b (known P), 5 (C1-C2-C3 data, relaxed C3 misspecified), 6 (relaxed C3 data, C1-C2-C3 misspecified), 6b (known alpha).
+**Exponential Scenarios:** 1 (C1-C2-C3 baseline), 2 (C1-C2-C3 data, relaxed C2 joint), 2b (known P), 3 (relaxed C2 data, C1-C2-C3 misspecified), 4 (relaxed C2 data, relaxed C2 joint), 4b (known P), 5 (C1-C2-C3 data, relaxed C3 misspecified), 6 (relaxed C3 data, C1-C2-C3 misspecified), 6b (known alpha).
+
+#### Weibull Simulation Functions
+
+| Function | Description |
+|----------|-------------|
+| `wei_sim_config(n_sim, n_obs, shapes, scales, tau)` | Create Weibull configuration |
+| `run_wei_replication(config, scenario, ...)` | Run single Weibull replication |
+| `run_weibull_simulation_study(...)` | Run full Weibull simulation study |
+
+**Weibull Scenarios:** W1 (baseline), W2 (C1-C2-C3→relaxed C2, overfit), W3 (relaxed C2→C1-C2-C3, misspec), W4 (relaxed C2→relaxed C2, correct), W5 (C1-C2-C3→relaxed C3, overfit), W6 (relaxed C3→C1-C2-C3, misspec), W7 (relaxed C3→relaxed C3, correct).
 
 ## Key Formulas
 
@@ -154,21 +197,39 @@ where `pi_j(c_i) = P(C=c_i | K=j)` from the Bernoulli model with P matrix.
 l(theta) = sum_i [-sum_j (t_i/beta_j)^k_j] + sum_{i:delta_i=1} log(sum_{j in C_i} h_j(t_i))
 ```
 
+## Key Formulas (Weibull Relaxed Models)
+
+**Log-likelihood (Weibull C1-C3, relaxed C2):**
+```
+l(θ) = Σᵢ [-Σⱼ (tᵢ/λⱼ)^kⱼ] + Σᵢ:δᵢ=1 log(Σⱼ∈Cᵢ hⱼ(tᵢ) · πⱼ(cᵢ))
+```
+where `πⱼ(c) = P(C=c|K=j)` from the general Bernoulli model with P matrix.
+
+**Log-likelihood (Weibull C1-C2, relaxed C3):**
+```
+l(θ) = Σᵢ [-Σⱼ (tᵢ/λⱼ)^kⱼ] + Σᵢ:δᵢ=1 [log(Σⱼ∈Cᵢ hⱼ(tᵢ)) + log(π_c(θ))]
+```
+where inclusion prob `pⱼ(θ) = base_p · (kⱼ/λⱼ)^α / max((kₗ/λₗ)^α)`.
+
 ## Tests
 
-Run with `devtools::test()` (868 tests total). Test files:
+Run with `devtools::test()` (1276 tests total). Test files:
 
 | File | Tests | Model |
 |------|-------|-------|
 | `test-exp-series-c1-c2-c3.R` | 153 | Standard exponential |
-| `test-exp-series-c1-c3.R` | 180 | Relaxed C2 |
-| `test-exp-series-c1-c2.R` | 132 | Relaxed C3 |
-| `test-exp-series-relaxed-c1.R` | 228 | Relaxed C1 |
+| `test-exp-series-c1-c3.R` | 180 | Exponential relaxed C2 |
+| `test-exp-series-c1-c2.R` | 132 | Exponential relaxed C3 |
+| `test-exp-series-relaxed-c1.R` | 228 | Exponential relaxed C1 |
 | `test-wei-series.R` | 31 | Weibull distributions |
-| `test-wei-series-c1-c2-c3.R` | 144 | Weibull masked data |
-| `test-simulations.R` | 18 (skip) | Simulation framework |
+| `test-wei-series-c1-c2-c3.R` | 144 | Weibull C1-C2-C3 |
+| `test-wei-series-c1-c3.R` | 162 | Weibull relaxed C2 |
+| `test-wei-series-c1-c2.R` | 177 | Weibull relaxed C3 |
+| `test-wei-series-relaxed-expectations.R` | 28 | Theoretical expectations |
+| `test-wei-simulations.R` | 41 | Weibull simulation framework |
+| `test-simulations.R` | 18 (skip) | Legacy simulation framework |
 
-Tests verify: likelihood/score/FIM correctness, score matches numerical gradient, FIM equals negative Hessian, MLE convergence and unbiasedness (Monte Carlo), model nesting (exponential as Weibull special case), edge cases.
+Tests verify: likelihood/score/FIM correctness, score matches numerical gradient, FIM equals negative Hessian, MLE convergence and unbiasedness (Monte Carlo), model nesting (exponential as Weibull special case, relaxed→standard reduction), misspecification bias, edge cases.
 
 ## Conventions
 
@@ -187,5 +248,8 @@ Tests verify: likelihood/score/FIM correctness, score matches numerical gradient
 4. Done: Relaxed C1 — P(K in C) < 1 (228 tests)
 5. Done: Weibull series systems (175 tests)
 6. Done: Simulation framework with all scenarios
-7. Pending: Weibull + relaxed C2/C3 models
-8. Pending: Migrate validated code to likelihood.model.series.md
+7. Done: Weibull + relaxed C2 model (162 tests)
+8. Done: Weibull + relaxed C3 model (177 tests)
+9. Done: Weibull simulation scenarios W1-W7 (41 tests)
+10. Done: Theoretical expectation tests (28 tests)
+11. Pending: Migrate validated code to likelihood.model.series.md

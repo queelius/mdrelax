@@ -624,6 +624,271 @@ quick_simulation_study <- function(n_sim = 50, n_obs = 200, theta = c(1, 2),
     )
 }
 
+# =============================================================================
+# Weibull Simulation Study Framework
+# =============================================================================
+#
+# Scenarios W1-W7 for Weibull series systems:
+#   W1: Weibull C1-C2-C3 data -> Weibull C1-C2-C3 model (baseline)
+#   W2: Weibull C1-C2-C3 data -> Weibull relaxed C2 model (overfit check)
+#   W3: Weibull relaxed C2 data -> Weibull C1-C2-C3 model (misspecification)
+#   W4: Weibull relaxed C2 data -> Weibull relaxed C2 model (correct)
+#   W5: Weibull C1-C2-C3 data -> Weibull relaxed C3 model (overfit check)
+#   W6: Weibull relaxed C3 data -> Weibull C1-C2-C3 model (misspecification)
+#   W7: Weibull relaxed C3 data -> Weibull relaxed C3 model (correct)
+
+# -----------------------------------------------------------------------------
+# Weibull Simulation Configuration
+# -----------------------------------------------------------------------------
+
+#' Create a Weibull simulation configuration
+#'
+#' @param n_sim Number of simulation replications
+#' @param n_obs Number of observations per replication
+#' @param shapes True shape parameters (k_1, ..., k_m)
+#' @param scales True scale parameters (lambda_1, ..., lambda_m)
+#' @param tau Right-censoring time
+#' @param seed Random seed for reproducibility
+#' @return Configuration list
+#' @export
+wei_sim_config <- function(n_sim = 100, n_obs = 200,
+                            shapes = c(2, 1.5), scales = c(3, 4),
+                            tau = 8, seed = 42) {
+    m <- length(shapes)
+    if (length(scales) != m) stop("shapes and scales must have same length")
+    list(
+        n_sim = n_sim,
+        n_obs = n_obs,
+        shapes = shapes,
+        scales = scales,
+        theta = pack_wei_params(shapes, scales),
+        m = m,
+        tau = tau,
+        seed = seed
+    )
+}
+
+# -----------------------------------------------------------------------------
+# Single Weibull Replication
+# -----------------------------------------------------------------------------
+
+#' Run a single Weibull simulation replication
+#'
+#' @param config Weibull simulation configuration
+#' @param scenario Which scenario: "W1"-"W7"
+#' @param p Inclusion probability for C1-C2-C3 scenarios
+#' @param P Inclusion probability matrix for relaxed C2 scenarios
+#' @param alpha Power parameter for relaxed C3 scenarios
+#' @param base_p Baseline inclusion probability
+#' @return Data frame with results from this replication
+#' @keywords internal
+run_wei_replication <- function(config, scenario, p = 0.3, P = NULL,
+                                 alpha = 1, base_p = 0.5) {
+    theta_true <- config$theta
+
+    if (scenario == "W1") {
+        # W1: Weibull C1-C2-C3 data -> C1-C2-C3 model (baseline)
+        sim <- rwei_series_md(n = config$n_obs, shapes = config$shapes,
+                               scales = config$scales, p = p, tau = config$tau)
+        fit <- tryCatch(
+            mle_wei_series(sim$t, sim$C, sim$delta, theta0 = theta_true * 0.9),
+            error = function(e) list(theta = rep(NA, 2*config$m),
+                                      converged = FALSE, loglik = NA_real_, se = rep(NA, 2*config$m))
+        )
+        data.frame(scenario = "W1",
+                   scenario_name = "Wei C1-C2-C3 data -> C1-C2-C3 model",
+                   converged = fit$converged,
+                   theta_true = I(list(theta_true)),
+                   theta_est = I(list(fit$theta)),
+                   se_est = I(list(fit$se)),
+                   loglik = fit$loglik %||% NA_real_)
+
+    } else if (scenario == "W2") {
+        # W2: Weibull C1-C2-C3 data -> relaxed C2 model (overfit check)
+        P_uniform <- make_P_matrix(config$m, "uniform", p = p)
+        sim <- rwei_series_md(n = config$n_obs, shapes = config$shapes,
+                               scales = config$scales, p = p, tau = config$tau)
+        fit <- tryCatch(
+            mle_wei_series_c1_c3(sim$t, sim$C, sim$delta, P = P_uniform,
+                                  theta0 = theta_true * 0.9),
+            error = function(e) list(theta = rep(NA, 2*config$m),
+                                      converged = FALSE, loglik = NA_real_, se = rep(NA, 2*config$m))
+        )
+        data.frame(scenario = "W2",
+                   scenario_name = "Wei C1-C2-C3 data -> relaxed C2 model",
+                   converged = fit$converged,
+                   theta_true = I(list(theta_true)),
+                   theta_est = I(list(fit$theta)),
+                   se_est = I(list(fit$se)),
+                   loglik = fit$loglik %||% NA_real_)
+
+    } else if (scenario == "W3") {
+        # W3: Weibull relaxed C2 data -> C1-C2-C3 model (misspecification)
+        if (is.null(P)) P <- make_P_matrix(config$m, "full",
+                                            values = seq(0.2, 0.6, length.out = config$m * (config$m - 1)))
+        sim <- rwei_series_md_c1_c3(n = config$n_obs, shapes = config$shapes,
+                                     scales = config$scales, P = P, tau = config$tau)
+        fit <- tryCatch(
+            mle_wei_series(sim$t, sim$C, sim$delta, theta0 = theta_true * 0.9),
+            error = function(e) list(theta = rep(NA, 2*config$m),
+                                      converged = FALSE, loglik = NA_real_, se = rep(NA, 2*config$m))
+        )
+        data.frame(scenario = "W3",
+                   scenario_name = "Wei relaxed C2 data -> C1-C2-C3 model",
+                   converged = fit$converged,
+                   theta_true = I(list(theta_true)),
+                   theta_est = I(list(fit$theta)),
+                   se_est = I(list(fit$se)),
+                   loglik = fit$loglik %||% NA_real_)
+
+    } else if (scenario == "W4") {
+        # W4: Weibull relaxed C2 data -> relaxed C2 model (correct)
+        if (is.null(P)) P <- make_P_matrix(config$m, "full",
+                                            values = seq(0.2, 0.6, length.out = config$m * (config$m - 1)))
+        sim <- rwei_series_md_c1_c3(n = config$n_obs, shapes = config$shapes,
+                                     scales = config$scales, P = P, tau = config$tau)
+        fit <- tryCatch(
+            mle_wei_series_c1_c3(sim$t, sim$C, sim$delta, P = P,
+                                  theta0 = theta_true * 0.9),
+            error = function(e) list(theta = rep(NA, 2*config$m),
+                                      converged = FALSE, loglik = NA_real_, se = rep(NA, 2*config$m))
+        )
+        data.frame(scenario = "W4",
+                   scenario_name = "Wei relaxed C2 data -> relaxed C2 model",
+                   converged = fit$converged,
+                   theta_true = I(list(theta_true)),
+                   theta_est = I(list(fit$theta)),
+                   se_est = I(list(fit$se)),
+                   loglik = fit$loglik %||% NA_real_)
+
+    } else if (scenario == "W5") {
+        # W5: Weibull C1-C2-C3 data -> relaxed C3 model (overfit check)
+        sim <- rwei_series_md(n = config$n_obs, shapes = config$shapes,
+                               scales = config$scales, p = base_p, tau = config$tau)
+        fit <- tryCatch(
+            mle_wei_series_c1_c2(sim$t, sim$C, sim$delta, alpha = 0,
+                                  base_p = base_p, theta0 = theta_true * 0.9),
+            error = function(e) list(theta = rep(NA, 2*config$m),
+                                      converged = FALSE, loglik = NA_real_, se = rep(NA, 2*config$m))
+        )
+        data.frame(scenario = "W5",
+                   scenario_name = "Wei C1-C2-C3 data -> relaxed C3 model",
+                   converged = fit$converged,
+                   theta_true = I(list(theta_true)),
+                   theta_est = I(list(fit$theta)),
+                   se_est = I(list(fit$se)),
+                   loglik = fit$loglik %||% NA_real_)
+
+    } else if (scenario == "W6") {
+        # W6: Weibull relaxed C3 data -> C1-C2-C3 model (misspecification)
+        sim <- rwei_series_md_c1_c2(n = config$n_obs, shapes = config$shapes,
+                                     scales = config$scales, alpha = alpha,
+                                     base_p = base_p, tau = config$tau)
+        fit <- tryCatch(
+            mle_wei_series(sim$t, sim$C, sim$delta, theta0 = theta_true * 0.9),
+            error = function(e) list(theta = rep(NA, 2*config$m),
+                                      converged = FALSE, loglik = NA_real_, se = rep(NA, 2*config$m))
+        )
+        data.frame(scenario = "W6",
+                   scenario_name = "Wei relaxed C3 data -> C1-C2-C3 model",
+                   converged = fit$converged,
+                   theta_true = I(list(theta_true)),
+                   theta_est = I(list(fit$theta)),
+                   se_est = I(list(fit$se)),
+                   loglik = fit$loglik %||% NA_real_)
+
+    } else if (scenario == "W7") {
+        # W7: Weibull relaxed C3 data -> relaxed C3 model (correct)
+        sim <- rwei_series_md_c1_c2(n = config$n_obs, shapes = config$shapes,
+                                     scales = config$scales, alpha = alpha,
+                                     base_p = base_p, tau = config$tau)
+        fit <- tryCatch(
+            mle_wei_series_c1_c2(sim$t, sim$C, sim$delta, alpha = alpha,
+                                  base_p = base_p, theta0 = theta_true * 0.9),
+            error = function(e) list(theta = rep(NA, 2*config$m),
+                                      converged = FALSE, loglik = NA_real_, se = rep(NA, 2*config$m))
+        )
+        data.frame(scenario = "W7",
+                   scenario_name = "Wei relaxed C3 data -> relaxed C3 model",
+                   converged = fit$converged,
+                   theta_true = I(list(theta_true)),
+                   theta_est = I(list(fit$theta)),
+                   se_est = I(list(fit$se)),
+                   loglik = fit$loglik %||% NA_real_)
+
+    } else {
+        stop("Unknown scenario: ", scenario)
+    }
+}
+
+# -----------------------------------------------------------------------------
+# Weibull Simulation Runner
+# -----------------------------------------------------------------------------
+
+#' Run a Weibull simulation study
+#'
+#' Runs simulation studies for Weibull series system models comparing
+#' correctly specified and misspecified models.
+#'
+#' @param n_sim Number of simulation replications
+#' @param n_obs Number of observations per replication
+#' @param shapes True shape parameters
+#' @param scales True scale parameters
+#' @param tau Right-censoring time
+#' @param scenarios Which scenarios to run (default: "W1" through "W7")
+#' @param p Inclusion probability for C1-C2-C3 scenarios
+#' @param P Inclusion probability matrix for relaxed C2 scenarios
+#' @param alpha Power parameter for relaxed C3 scenarios
+#' @param base_p Baseline inclusion probability
+#' @param seed Random seed
+#' @param verbose Print progress
+#' @return List with config, results, and summary
+#' @export
+#' @examples
+#' \dontrun{
+#' study <- run_weibull_simulation_study(n_sim = 20, n_obs = 200,
+#'     shapes = c(2, 1.5), scales = c(3, 4),
+#'     scenarios = c("W1", "W4"))
+#' print_simulation_summary(study$summary)
+#' }
+run_weibull_simulation_study <- function(n_sim = 100, n_obs = 200,
+                                          shapes = c(2, 1.5), scales = c(3, 4),
+                                          tau = 8, scenarios = paste0("W", 1:7),
+                                          p = 0.3, P = NULL, alpha = 1,
+                                          base_p = 0.5, seed = 42,
+                                          verbose = TRUE) {
+    config <- wei_sim_config(n_sim = n_sim, n_obs = n_obs,
+                              shapes = shapes, scales = scales,
+                              tau = tau, seed = seed)
+
+    all_results <- list()
+
+    for (s in scenarios) {
+        if (verbose) cat(sprintf("\n=== Running Scenario %s ===\n", s))
+        set.seed(seed)
+
+        results_list <- vector("list", n_sim)
+        for (i in seq_len(n_sim)) {
+            if (verbose && i %% 10 == 0) {
+                cat(sprintf("  Replication %d/%d\n", i, n_sim))
+            }
+            results_list[[i]] <- run_wei_replication(config, s, p = p, P = P,
+                                                      alpha = alpha, base_p = base_p)
+            results_list[[i]]$replication <- i
+        }
+        all_results[[s]] <- do.call(rbind, results_list)
+    }
+
+    results <- do.call(rbind, all_results)
+    summary_df <- summarize_simulation(results)
+
+    list(
+        config = config,
+        results = results,
+        summary = summary_df
+    )
+}
+
 # -----------------------------------------------------------------------------
 # Helper: null-coalescing operator
 # -----------------------------------------------------------------------------
