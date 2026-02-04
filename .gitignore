@@ -6,3 +6,21 @@
 inst/doc
 /Meta/
 ..Rcheck/
+
+# Simulation data (large RDS files)
+paper/data/*.rds
+
+# LaTeX build artifacts
+paper/*.aux
+paper/*.log
+paper/*.out
+paper/*.bbl
+paper/*.blg
+paper/*.toc
+paper/*.synctex.gz
+paper/*.fdb_latexmk
+paper/*.fls
+paper/*.nav
+paper/*.snm
+paper/*.vrb
+paper/*.latexml.log

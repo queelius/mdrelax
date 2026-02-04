@@ -33,10 +33,18 @@ guidance for choosing between standard C1-C2-C3 models and relaxed alternatives.
 \subsubsection{Consider Relaxed Models When:}
 
 \begin{enumerate}
-    \item \textbf{Masking mechanism is known to be informative.} If
+    \item \textbf{Masking mechanism is known to be informative (C2).} If
         diagnostic procedures systematically favor certain components (e.g.,
         those that ``look bad'' at the failure time), C2 is violated and
         bias will result.
+
+    \item \textbf{Masking depends on component parameters (C3).} If
+        inclusion probabilities vary with the reliability parameters
+        themselves (e.g., weaker components are more likely to appear in
+        candidate sets), C3 is violated. The simulation studies
+        (\Cref{sec:sim-c3}) show that the resulting bias grows with the
+        degree of parameter-dependence, though the simpler C1-C2-C3 model
+        may still have competitive RMSE due to a bias-variance tradeoff.
 
     \item \textbf{Masking probabilities can be estimated.} If historical data
         or expert knowledge provides information about the masking mechanism,
@@ -86,10 +94,11 @@ Based on our analysis, we recommend the following workflow:
 Our analysis has several limitations:
 
 \begin{enumerate}
-    \item \textbf{Exponential focus.} While we derive general likelihood
-        results, the Fisher information analysis focuses on exponential
-        components. Extension to Weibull or other distributions introduces
-        additional complexity due to time-varying hazards.
+    \item \textbf{Limited distribution scope.} While we extend the analysis
+        to Weibull components (\Cref{sec:sim-weibull}), the closed-form
+        Fisher information results focus on exponential systems. Other
+        lifetime distributions (log-normal, gamma) may exhibit different
+        misspecification patterns due to differing hazard structures.
 
     \item \textbf{Known masking probabilities.} Our relaxed models assume
         masking probabilities are known. In practice, these may need to be
@@ -117,10 +126,6 @@ Our analysis has several limitations:
 Several extensions would strengthen this work:
 
 \begin{enumerate}
-    \item \textbf{Weibull extension.} Derive Fisher information and conduct
-        simulations for Weibull components, where shape parameters introduce
-        additional estimation challenges.
-
     \item \textbf{Semiparametric methods.} Develop estimation approaches that
         avoid fully specifying the masking mechanism, perhaps using
         nonparametric or empirical likelihood methods.
@@ -135,6 +140,11 @@ Several extensions would strengthen this work:
     \item \textbf{Sequential estimation.} For systems observed over time,
         develop methods that update masking probability estimates as data
         accumulates.
+
+    \item \textbf{Additional lifetime distributions.} While our Weibull
+        extension (\Cref{sec:sim-weibull}) validates the framework beyond
+        exponential components, distributions with non-monotone hazards
+        (e.g., log-normal) may present distinct challenges.
 
     \item \textbf{R package documentation.} Expand the
         \texttt{mdrelax} package with

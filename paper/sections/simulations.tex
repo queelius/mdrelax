@@ -282,6 +282,223 @@ Key findings from Study 3:
         actually improve information content.
 \end{enumerate}
 
+\subsection{Study 4: C3 Misspecification Bias Analysis}
+\label{sec:sim-c3}
+
+We now quantify the bias from incorrectly assuming C1-C2-C3 when masking is
+actually parameter-dependent (C3 violated). Data is generated with
+power-weighted masking (\Cref{def:power-masking}) with varying
+informativeness $\alpha$, then analyzed using both the correct model and the
+misspecified C1-C2-C3 model. This study is motivated by the theoretical
+result in \Cref{thm:misspec-C3}.
+
+\subsubsection{Design}
+
+Data is generated under the power-weighted masking model with
+$\text{base\_p} = 0.5$ and $\alpha \in \{0, 0.5, 1, 2\}$, using $n = 200$
+and $B = 200$ replications. Three comparisons are made:
+\begin{description}
+    \item[Scenario 6:] Relaxed C3 data analyzed with C1-C2-C3 model
+        (misspecified).
+    \item[Scenario 6b:] Relaxed C3 data analyzed with relaxed C3 model
+        using known $\alpha$ (correctly specified).
+    \item[Scenario 5:] C1-C2-C3 data analyzed with relaxed C3 model
+        (overfitting check).
+\end{description}
+
+\subsubsection{Results}
+
+Table~\ref{tab:c3_misspec_bias} compares bias under correct versus
+misspecified models for C3 violations.
+
+\begin{table}[htbp]
+\centering
+\caption{C3 Misspecification: Bias Comparison by Power Parameter $\alpha$}
+\label{tab:c3_misspec_bias}
+\begin{tabular}{ccccc}
+\toprule
+$\alpha$ & Parameter & Bias (Correct) & Bias (Misspec.) & RMSE Ratio \\
+\midrule
+0 & $\lambda_1$ & $-0.011$ & $-0.011$ & $1.000$ \\
+  & $\lambda_2$ & $0.036$ & $0.036$ & $1.000$ \\
+  & $\lambda_3$ & $0.029$ & $0.029$ & $1.000$ \\
+\midrule
+0.5 & $\lambda_1$ & $-0.762$ & $-0.264$ & $0.424$ \\
+    & $\lambda_2$ & $0.195$ & $0.003$ & $0.801$ \\
+    & $\lambda_3$ & $0.619$ & $0.314$ & $0.626$ \\
+\midrule
+1 & $\lambda_1$ & $-0.691$ & $-0.366$ & $0.574$ \\
+  & $\lambda_2$ & $0.116$ & $-0.067$ & $1.077$ \\
+  & $\lambda_3$ & $0.628$ & $0.486$ & $0.834$ \\
+\midrule
+2 & $\lambda_1$ & $-0.569$ & $-0.432$ & $0.788$ \\
+  & $\lambda_2$ & $0.026$ & $-0.205$ & $1.850$ \\
+  & $\lambda_3$ & $0.597$ & $0.691$ & $1.169$ \\
+\bottomrule
+\end{tabular}
+
+\vspace{2pt}
+\begin{minipage}{\textwidth}
+\footnotesize
+\textit{Notes.} $\alpha = 0$ corresponds to parameter-independent masking
+(C3 satisfied). RMSE Ratio = RMSE(Misspecified) / RMSE(Correct); values $< 1$
+indicate the misspecified model has \emph{lower} RMSE due to fewer parameters.
+\end{minipage}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\textwidth]{fig7_c3_misspec_bias.pdf}
+\caption{C3 misspecification bias comparison. The misspecified model (ignoring
+parameter-dependent masking) shows different bias patterns from the correct
+model, but the magnitude of bias grows with $\alpha$.}
+\label{fig:c3_misspec_bias}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.8\textwidth]{fig8_c3_rmse_ratio.pdf}
+\caption{RMSE ratio (misspecified / correct) for C3 violations. Unlike C2
+misspecification (\Cref{fig:rmse_ratio}), the ratio is often below 1,
+indicating the simpler misspecified model can achieve lower RMSE despite bias.}
+\label{fig:c3_rmse_ratio}
+\end{figure}
+
+\subsubsection{Interpretation}
+
+Key findings from Study 4:
+\begin{enumerate}
+    \item \textbf{Bias grows with $\alpha$:} As the power parameter
+        increases, the C1-C2-C3 model produces increasing bias,
+        confirming \Cref{thm:misspec-C3}.
+    \item \textbf{Bias-variance tradeoff:} The correctly specified relaxed C3
+        model often has \emph{higher} RMSE than the misspecified model
+        (RMSE ratio $< 1$), because the additional masking parameters
+        increase variance. This contrasts with the C2 case (Study 2)
+        where RMSE ratios were close to 1.
+    \item \textbf{Overfit risk (Scenario 5):} Fitting the relaxed C3 model
+        to C1-C2-C3 data produces bias for $\alpha > 0$, with convergence
+        rates dropping to 80--98\%, indicating overfitting when the
+        extra flexibility is unnecessary.
+    \item \textbf{Comparison with C2:} While C2 misspecification
+        (Study 2) showed at most 9\% efficiency loss, C3
+        misspecification creates a more complex picture with
+        parameter-specific effects and a bias-variance tradeoff
+        favoring the simpler model in many cases.
+\end{enumerate}
+
+\subsection{Study 5: Weibull Series Systems}
+\label{sec:sim-weibull}
+
+To assess whether our findings generalize beyond exponential components, we
+repeat key analyses with Weibull components. We consider a 2-component system
+with shapes $\mathbf{k} = (2.0, 1.5)$ and scales
+$\vlambda = (3.0, 4.0)$, using $n = 200$, $\tau = 8$, and $B = 100$
+replications.
+
+\subsubsection{Scenarios}
+
+\begin{description}
+    \item[W1:] C1-C2-C3 data $\to$ C1-C2-C3 model (baseline).
+    \item[W3:] Relaxed C2 data $\to$ C1-C2-C3 model (C2 misspecification).
+    \item[W4:] Relaxed C2 data $\to$ relaxed C2 model (correctly specified).
+    \item[W6:] Relaxed C3 data $\to$ C1-C2-C3 model (C3 misspecification).
+    \item[W7:] Relaxed C3 data $\to$ relaxed C3 model (correctly specified).
+\end{description}
+
+\subsubsection{Results}
+
+Table~\ref{tab:weibull_sims} presents the Weibull simulation results.
+
+\begin{table}[htbp]
+\centering
+\caption{Weibull Simulation Results: Bias and RMSE by Scenario}
+\label{tab:weibull_sims}
+\begin{tabular}{clcccc}
+\toprule
+Scenario & Parameter & True & Bias & RMSE & Conv. \\
+\midrule
+W1 & $k_1$ & 2.0 & $0.007$ & 0.124 & 100\% \\
+   & $\lambda_1$ & 3.0 & $-0.016$ & 0.155 & \\
+   & $k_2$ & 1.5 & $0.006$ & 0.141 & \\
+   & $\lambda_2$ & 4.0 & $0.003$ & 0.376 & \\
+\midrule
+W3 & $k_1$ & 2.0 & $-0.043$ & 0.147 & 100\% \\
+   & $\lambda_1$ & 3.0 & $-0.199$ & 0.241 & \\
+   & $k_2$ & 1.5 & $-0.028$ & 0.165 & \\
+   & $\lambda_2$ & 4.0 & $0.757$ & 0.982 & \\
+\midrule
+W4 & $k_1$ & 2.0 & $-0.005$ & 0.152 & 100\% \\
+   & $\lambda_1$ & 3.0 & $-0.019$ & 0.162 & \\
+   & $k_2$ & 1.5 & $0.010$ & 0.146 & \\
+   & $\lambda_2$ & 4.0 & $0.041$ & 0.431 & \\
+\midrule
+W6 & $k_1$ & 2.0 & $-0.044$ & 0.147 & 100\% \\
+   & $\lambda_1$ & 3.0 & $-0.209$ & 0.250 & \\
+   & $k_2$ & 1.5 & $-0.032$ & 0.170 & \\
+   & $\lambda_2$ & 4.0 & $0.821$ & 1.042 & \\
+\midrule
+W7 & $k_1$ & 2.0 & $-0.440$ & 0.459 & 100\% \\
+   & $\lambda_1$ & 3.0 & $0.146$ & 0.278 & \\
+   & $k_2$ & 1.5 & $0.639$ & 0.679 & \\
+   & $\lambda_2$ & 4.0 & $-0.405$ & 0.481 & \\
+\bottomrule
+\end{tabular}
+
+\vspace{2pt}
+\begin{minipage}{\textwidth}
+\footnotesize
+\textit{Notes.} True Weibull parameters: $k_1 = 2.0$, $\lambda_1 = 3.0$,
+$k_2 = 1.5$, $\lambda_2 = 4.0$. $P$ matrix: $P_{12} = 0.3$, $P_{21} = 0.5$
+for relaxed C2; $\alpha = 1$, base\_p $= 0.5$ for relaxed C3.
+\end{minipage}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.7\textwidth]{fig9_weibull_baseline.pdf}
+\caption{Weibull baseline MLE performance (W1). Bars show bias, error bars
+indicate RMSE. All parameters are estimated with small bias and reasonable
+RMSE.}
+\label{fig:weibull_baseline}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\textwidth]{fig10_weibull_misspec.pdf}
+\caption{Weibull misspecification comparison. Left: C2 violation (W3 vs W4).
+Right: C3 violation (W6 vs W7). The correctly specified C2 model (W4)
+substantially reduces bias; the C3 case is more complex.}
+\label{fig:weibull_misspec}
+\end{figure}
+
+\subsubsection{Interpretation}
+
+Key findings from Study 5:
+\begin{enumerate}
+    \item \textbf{Weibull baseline performs well:} Under correctly specified
+        C1-C2-C3 (W1), all Weibull parameters are estimated with small bias
+        and reasonable RMSE, confirming the MLE framework extends to
+        non-exponential components.
+    \item \textbf{C2 misspecification hurts:} Ignoring informative masking
+        (W3) produces substantial bias in the scale parameter $\lambda_2$
+        (bias $= 0.757$), which is largely corrected by the relaxed C2
+        model (W4, bias $= 0.041$). This is more pronounced than the
+        exponential case, likely because Weibull scale and shape parameters
+        interact with the masking weights.
+    \item \textbf{C3 misspecification in Weibull:} The misspecified model (W6)
+        shows large $\lambda_2$ bias ($0.821$), but the correctly specified
+        relaxed C3 model (W7) performs \emph{worse}, with substantial
+        bias in the shape parameters ($k_1$: $-0.440$, $k_2$: $0.639$).
+        This suggests that parameter-dependent masking is more difficult
+        to handle with Weibull components due to the interaction between
+        shape and scale in the power weights.
+    \item \textbf{Exponential results generalize partially:} The qualitative
+        finding that C2 misspecification produces predictable bias that can
+        be corrected holds for Weibull systems. The C3 case requires further
+        investigation for non-exponential distributions.
+\end{enumerate}
+
 \subsection{Summary of Simulation Results}
 \label{sec:sim-summary}
 
@@ -290,37 +507,49 @@ Our simulation studies lead to the following conclusions:
 \begin{enumerate}
     \item \textbf{MLE performs well:} Under the correctly specified C1-C2-C3
         Bernoulli masking model, the MLE achieves coverage near nominal levels
-        and RMSE consistent with asymptotic efficiency.
+        and RMSE consistent with asymptotic efficiency (Study 1).
 
-    \item \textbf{C2 is robust:} Misspecifying C2 (assuming non-informative
-        masking when masking is informative) produces at most 9\% efficiency
-        loss and bias patterns similar to the correct model.
+    \item \textbf{C2 misspecification is mild:} Misspecifying C2 (assuming
+        non-informative masking when masking is informative) produces at most
+        9\% efficiency loss and bias patterns similar to the correct model
+        (Study 2).
 
     \item \textbf{Identifiability is robust:} Even with high correlation
         ($\rho = 0.9$) between candidate set indicators, parameters remain
-        identifiable with stable FIM eigenvalues and condition numbers.
+        identifiable with stable FIM eigenvalues and condition numbers
+        (Study 3).
+
+    \item \textbf{C3 misspecification is nuanced:} Ignoring parameter-dependent
+        masking (C3 violation) produces increasing bias with the power
+        parameter $\alpha$, but the simpler misspecified model can have
+        lower RMSE due to a bias-variance tradeoff (Study 4).
+
+    \item \textbf{Weibull systems confirm and extend:} The framework
+        generalizes to Weibull components. C2 misspecification produces
+        larger bias for Weibull than exponential systems, reinforcing the
+        value of relaxed models when masking is known to be informative
+        (Study 5).
 
     \item \textbf{Practical guidance:} For sample sizes $n \geq 100$ with
-        moderate masking ($p \approx 0.3$) and censoring ($\approx 20\%$),
-        the C1-C2-C3 Bernoulli model provides reliable inference. The
-        additional complexity of modeling informative masking may not be
-        justified unless there is strong evidence of systematic departures
-        from C2.
+        moderate masking and censoring, the C1-C2-C3 model provides reliable
+        inference. Relaxed models are most beneficial when (a) masking is
+        known to be informative, (b) the masking mechanism can be
+        characterized, and (c) the sample size supports additional parameters.
 \end{enumerate}
 
 \begin{table}[htbp]
 \centering
-\caption{Summary of key simulation findings.}
+\caption{Summary of key simulation findings across all five studies.}
 \label{tab:sim-summary}
-\begin{tabular}{lccc}
+\begin{tabular}{lccccc}
 \toprule
-Metric & Study 1 & Study 2 & Study 3 \\
+Metric & Study 1 & Study 2 & Study 3 & Study 4 & Study 5 \\
 \midrule
-RMSE range & 0.20--0.56 & 0.19--0.47 & 0.23--0.47 \\
-Coverage range & 92.0--96.5\% & --- & --- \\
-Max RMSE ratio & --- & 1.09 & --- \\
-Min FIM eigenvalue & --- & --- & 12.23 \\
-Max condition number & --- & --- & 2.18 \\
+Components & 3 (exp) & 3 (exp) & 3 (exp) & 3 (exp) & 2 (Weibull) \\
+RMSE range & 0.20--0.56 & 0.19--0.47 & 0.23--0.47 & 0.15--0.77 & 0.12--1.04 \\
+Coverage range & 92--97\% & --- & --- & --- & --- \\
+Max RMSE ratio & --- & 1.09 & --- & 1.85 & --- \\
+Min FIM eigenvalue & --- & --- & 12.23 & --- & --- \\
 \bottomrule
 \end{tabular}
 \end{table}

@@ -57,6 +57,10 @@ The joint distribution of system lifetime and component cause of failure is:
 \end{equation}
 \end{theorem}
 
+The proof follows from the definition of the series system minimum and the
+independence of component lifetimes; see \citep{towell2023reliability} for
+details.
+
 \begin{corollary}[Conditional Failure Probability]
 \label{cor:cond-failure}
 Given that the system failed at time $t$, the probability that component $j$
@@ -66,6 +70,9 @@ caused the failure is:
     \Prob\{K_i = j \mid T_i = t\} = \frac{h_j(t; \vtheta_j)}{\sum_{\ell=1}^m h_\ell(t; \vtheta_\ell)}.
 \end{equation}
 \end{corollary}
+
+This follows immediately from \Cref{thm:joint-T-K} and Bayes' theorem;
+see \citep{towell2023reliability}.
 
 This probability plays a central role in masked data analysis, as it
 represents the ``true'' probability that each component failed, which the
@@ -146,23 +153,9 @@ For a censored observation with lifetime $s_i$:
 \end{equation}
 \end{theorem}
 
-\begin{proof}
-By the chain rule:
-\begin{equation}
-    f_{T_i, C_i}(t, c; \vtheta) =
-    \sum_{k=1}^m f_{T_i, K_i}(t, k; \vtheta) \cdot
-    \Prob_{\vtheta}\{C_i = c \mid T_i = t, K_i = k\}.
-\end{equation}
-Under C1, terms with $k \notin c$ vanish. Under C2, the masking probability
-is constant over $k \in c$, so:
-\begin{equation}
-    f_{T_i, C_i}(t, c; \vtheta) =
-    \Prob\{C_i = c \mid T_i = t, K_i \in c\} \cdot
-    \prod_{\ell=1}^m R_\ell(t; \vtheta_\ell) \sum_{k \in c} h_k(t; \vtheta_k).
-\end{equation}
-Under C3, the masking probability does not depend on $\vtheta$, yielding
-the proportionality in \eqref{eq:like-C123}.
-\end{proof}
+The proof proceeds by summing over $K_i$ and applying C1, C2, C3 in sequence
+to factor and then eliminate the masking probability; see
+\citep{towell2023reliability} for the full derivation.
 
 The complete log-likelihood for $n$ independent systems is:
 \begin{equation}

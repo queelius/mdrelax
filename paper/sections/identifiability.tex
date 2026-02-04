@@ -345,5 +345,38 @@ the misspecified model overestimates components that are more likely to be
 in candidate sets, producing systematic bias.
 \end{proof}
 
-This result motivates the simulation studies in \Cref{sec:simulations}, which
-quantify the bias under various misspecification scenarios.
+\begin{theorem}[Bias from C3 Misspecification]
+\label{thm:misspec-C3}
+Suppose the true model has parameter-dependent masking (C3 violated) with
+$\pi_c(t; \vtheta) = \Prob_{\vtheta}\{C_i = c \mid T_i = t, K_i \in c\}$,
+but estimation is performed assuming C1-C2-C3 (ignoring the
+$\vtheta$-dependence). The resulting MLE $\hat{\vtheta}$ is generally biased,
+unless the masking probability $\pi_c(t; \vtheta)$ is locally constant in
+$\vtheta$ near the true parameter value.
+\end{theorem}
+
+\begin{proof}
+Under the true model (relaxed C3), the log-likelihood contribution is:
+\begin{equation}
+    \ell_i^{\text{true}}(\vtheta) = \sum_{j=1}^m \log R_j(s_i; \vtheta_j)
+    + \delta_i \left[\log\left(\sum_{k \in c_i} h_k(s_i; \vtheta_k)\right)
+    + \log \pi_{c_i}(s_i; \vtheta)\right].
+\end{equation}
+The misspecified model drops the masking term:
+\begin{equation}
+    \ell_i^{\text{wrong}}(\vtheta) = \sum_{j=1}^m \log R_j(s_i; \vtheta_j)
+    + \delta_i \log\left(\sum_{k \in c_i} h_k(s_i; \vtheta_k)\right).
+\end{equation}
+The misspecified score omits $\partial \log \pi_{c_i}/\partial \vtheta_j$,
+which is non-zero when masking depends on $\vtheta$. Setting the wrong score
+to zero yields a pseudo-true parameter $\vtheta^{\dagger}$ satisfying:
+\begin{equation}
+    \E\left[\frac{\partial \ell_i^{\text{wrong}}}{\partial \vtheta_j}
+    \bigg|_{\vtheta = \vtheta^{\dagger}}\right] = 0,
+\end{equation}
+which differs from $\vtheta^*$ unless
+$\E[\partial \log \pi_{c_i}/\partial \vtheta_j] = 0$ at $\vtheta^*$.
+\end{proof}
+
+These results motivate the simulation studies in \Cref{sec:simulations}, which
+quantify the bias under both C2 and C3 misspecification scenarios.
