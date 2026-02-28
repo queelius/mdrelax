@@ -1,4 +1,5 @@
-%% Relaxed Candidate Set Models for Masked Data in Series Systems
+%% Sensitivity of Series System Reliability Estimation
+%% to the Non-Informative Masking Assumption
 %% Main document
 
 \documentclass[11pt,letterpaper]{article}
@@ -90,7 +91,8 @@
 %% Document Information
 %% ============================================================================
 
-\title{Relaxed Candidate Set Models for Masked Data in Series Systems}
+\title{Sensitivity of Series System Reliability Estimation\\
+to the Non-Informative Masking Assumption}
 
 \author{
     Alex Towell\\
@@ -108,25 +110,27 @@
 \maketitle
 
 \begin{abstract}
-We develop likelihood-based inference methods for series systems with masked
-failure data when the traditional conditions governing candidate set formation
-are relaxed. While existing methods require that masking be non-informative
-(Condition C2) and parameter-independent (Condition C3), practical diagnostic
-systems often violate these assumptions. We derive the likelihood under
-various relaxation scenarios, establish identifiability conditions, and
-compare Fisher information under standard versus relaxed models. Our analysis
-reveals that informative masking, when properly modeled, can paradoxically
-improve estimation efficiency by providing additional information about the
-failed component. Simulation studies quantify the bias from incorrectly
-assuming standard conditions when masking is informative (C2 violation) or
-parameter-dependent (C3 violation), and demonstrate that the framework extends
-to Weibull series systems. We implement these methods in the \texttt{mdrelax}
-R package.
+Maximum likelihood estimation for series systems with masked failure data
+relies on the non-informative masking assumption (Condition~C2): that the
+candidate set reported for a failed component is independent of the true cause
+of failure. This assumption is rarely verifiable and frequently suspect. We
+characterize the bias that arises when C2 is violated but assumed to hold,
+proving that the MLE converges to a pseudo-true parameter whose individual
+component parameters are biased while the system hazard remains consistent.
+Using a Bernoulli masking model that generates controlled C2 violations of
+varying severity, we conduct a systematic simulation sweep on a 5-component
+Weibull series system. The results establish a practical breakdown boundary:
+system-level reliability estimates are robust to C2 violations across the full
+severity range, but individual component estimates degrade with severity,
+with scale parameters showing order-of-magnitude bias under strong
+informative masking. Since the masking mechanism and component parameters are
+jointly non-identifiable, we recommend sensitivity analysis over model
+elaboration. Software is available in the \texttt{mdrelax} R package.
 \end{abstract}
 
 \noindent\textbf{Keywords:}
-Series systems, masked data, reliability estimation, informative masking,
-candidate sets, Fisher information, maximum likelihood estimation
+Series systems, masked failure data, non-informative masking, model
+misspecification, sensitivity analysis, maximum likelihood estimation
 
 %% ============================================================================
 %% Main Sections
@@ -134,8 +138,7 @@ candidate sets, Fisher information, maximum likelihood estimation
 
 \input{sections/introduction}
 \input{sections/background}
-\input{sections/relaxed_models}
-\input{sections/identifiability}
+\input{sections/sensitivity_framework}
 \input{sections/simulations}
 \input{sections/discussion}
 \input{sections/conclusion}

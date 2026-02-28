@@ -16,148 +16,90 @@ system. Component lifetimes are assumed independent with parametric
 distributions indexed by $\vtheta_j$; the full parameter vector is
 $\vtheta = (\vtheta_1, \ldots, \vtheta_m) \in \vOmega$.
 
-\begin{definition}[Component Distribution Functions]
-\label{def:component-dist}
-For component $j$ with parameter $\vtheta_j$:
-\begin{align}
-    R_j(t; \vtheta_j) &= \Prob\{T_{ij} > t\} && \text{(reliability function)}, \\
-    f_j(t; \vtheta_j) &= -\frac{d}{dt}R_j(t; \vtheta_j) && \text{(density function)}, \\
-    h_j(t; \vtheta_j) &= \frac{f_j(t; \vtheta_j)}{R_j(t; \vtheta_j)} && \text{(hazard function)}.
-\end{align}
-\end{definition}
-
-For the series system, these functions combine as follows:
-
-\begin{theorem}[Series System Distribution Functions]
-\label{thm:series-dist}
-The series system has:
-\begin{align}
-    R_{T_i}(t; \vtheta) &= \prod_{j=1}^m R_j(t; \vtheta_j), \\
-    h_{T_i}(t; \vtheta) &= \sum_{j=1}^m h_j(t; \vtheta_j), \\
-    f_{T_i}(t; \vtheta) &= h_{T_i}(t; \vtheta) \cdot R_{T_i}(t; \vtheta).
-\end{align}
-\end{theorem}
-
-The proof follows from the independence of component lifetimes and standard
-arguments \citep{towell2023reliability}.
-
-\subsection{Component Cause of Failure}
-\label{sec:cause-failure}
-
-Let $K_i \in \{1, \ldots, m\}$ denote the index of the component that caused
-system $i$ to fail. Since the system fails when the first component fails,
-$K_i = \arg\min_j T_{ij}$.
-
-\begin{theorem}[Joint Distribution of $(T_i, K_i)$]
-\label{thm:joint-T-K}
-The joint distribution of system lifetime and component cause of failure is:
+For component $j$ with parameter $\vtheta_j$, the reliability, density, and
+hazard functions are
 \begin{equation}
-\label{eq:joint-T-K}
-    f_{T_i, K_i}(t, k; \vtheta) = h_k(t; \vtheta_k) \prod_{\ell=1}^m R_\ell(t; \vtheta_\ell).
+    R_j(t; \vtheta_j) = \Prob\{T_{ij} > t\}, \quad
+    f_j(t; \vtheta_j) = -R_j'(t; \vtheta_j), \quad
+    h_j(t; \vtheta_j) = \frac{f_j(t; \vtheta_j)}{R_j(t; \vtheta_j)}.
 \end{equation}
-\end{theorem}
+Independence yields the series system hazard
+$h_T(t; \vtheta) = \sum_{j=1}^m h_j(t; \vtheta_j)$ and survival
+$R_T(t; \vtheta) = \prod_{j=1}^m R_j(t; \vtheta_j)$.
 
-The proof follows from the definition of the series system minimum and the
-independence of component lifetimes; see \citep{towell2023reliability} for
-details.
-
-\begin{corollary}[Conditional Failure Probability]
-\label{cor:cond-failure}
-Given that the system failed at time $t$, the probability that component $j$
-caused the failure is:
+Given that the system failed at time $t$, the conditional probability that
+component $j$ caused the failure is
 \begin{equation}
 \label{eq:cond-failure}
-    \Prob\{K_i = j \mid T_i = t\} = \frac{h_j(t; \vtheta_j)}{\sum_{\ell=1}^m h_\ell(t; \vtheta_\ell)}.
+    \Prob\{K_i = j \mid T_i = t\} = \frac{h_j(t; \vtheta_j)}{%
+    \sum_{\ell=1}^m h_\ell(t; \vtheta_\ell)},
 \end{equation}
-\end{corollary}
+which follows from the joint density $f_{T,K}(t,k) = h_k(t;\vtheta_k)\,
+R_T(t;\vtheta)$ and Bayes' theorem~\citep{towell2023reliability}.
 
-This follows immediately from \Cref{thm:joint-T-K} and Bayes' theorem;
-see \citep{towell2023reliability}.
-
-This probability plays a central role in masked data analysis, as it
-represents the ``true'' probability that each component failed, which the
-masking mechanism partially obscures.
-
-\subsection{Masked Data Structure}
+\subsection{Masked Data}
 \label{sec:masked-data}
 
-\begin{definition}[Observed Data]
-\label{def:observed-data}
 For each system $i$, we observe:
 \begin{itemize}
-    \item $S_i = \min\{T_i, \tau_i\}$: Right-censored system lifetime,
-    \item $\delta_i = \ind{T_i \leq \tau_i}$: Event indicator
-        ($1$ if failure observed, $0$ if censored),
-    \item $C_i \subseteq \{1, \ldots, m\}$: Candidate set
-        (only observed when $\delta_i = 1$).
+    \item $S_i = \min\{T_i, \tau_i\}$: right-censored system lifetime,
+    \item $\delta_i = \ind{T_i \leq \tau_i}$: event indicator
+        ($1$ if failure observed),
+    \item $C_i \subseteq \{1, \ldots, m\}$: candidate set
+        (only meaningful when $\delta_i = 1$).
 \end{itemize}
-The latent (unobserved) variables are:
-\begin{itemize}
-    \item $K_i \in \{1, \ldots, m\}$: Index of failed component,
-    \item $(T_{i1}, \ldots, T_{im})$: Component failure times.
-\end{itemize}
-\end{definition}
+The true cause of failure $K_i$ and the individual component lifetimes
+$(T_{i1}, \ldots, T_{im})$ are latent.
 
-\subsection{Traditional Conditions C1, C2, C3}
+\subsection{Conditions C1, C2, C3}
 \label{sec:conditions}
 
-The existing literature \citep{Usher-1988,Lin-1993,Huairu-2013} establishes
-tractable likelihood-based inference under three conditions:
+Tractable likelihood-based inference requires conditions on the relationship
+between the latent cause $K_i$ and the observed candidate set
+$C_i$~\citep{Usher-1988, Lin-1993, Huairu-2013}:
 
 \begin{condition}[C1: Failed Component in Candidate Set]
 \label{cond:C1}
-The candidate set always contains the failed component:
-\begin{equation}
-    \Prob\{K_i \in C_i\} = 1.
-\end{equation}
+$\Prob\{K_i \in C_i\} = 1$.
 \end{condition}
 
 \begin{condition}[C2: Non-Informative Masking]
 \label{cond:C2}
-Given the failure time and that the failed component is in a candidate set $c$,
-the probability of observing $c$ does not depend on which component in $c$
-failed:
+For all $j, j' \in c$:
 \begin{equation}
     \Prob\{C_i = c \mid T_i = t, K_i = j\} =
-    \Prob\{C_i = c \mid T_i = t, K_i = j'\}
+    \Prob\{C_i = c \mid T_i = t, K_i = j'\}.
 \end{equation}
-for all $j, j' \in c$.
 \end{condition}
 
 \begin{condition}[C3: Parameter-Independent Masking]
 \label{cond:C3}
-The masking probabilities do not depend on the system parameters:
-\begin{equation}
-    \Prob\{C_i = c \mid T_i = t, K_i = j\} = \beta_i(c, t, j),
-\end{equation}
-where $\beta_i$ does not depend on $\vtheta$.
+$\Prob\{C_i = c \mid T_i = t, K_i = j\}$ does not depend on $\vtheta$.
 \end{condition}
 
-\subsection{Likelihood Under C1, C2, C3}
+C1 is a minimal correctness requirement. C3 is often reasonable when the
+diagnostic process is fixed independently of the reliability parameters. C2 is
+the strongest assumption: it requires that the diagnostic process which
+generates candidate sets reveals nothing about the failure cause beyond C1.
+This paper studies the consequences of C2 failure.
+
+\subsection{Likelihood Under C1-C2-C3}
 \label{sec:like-C123}
 
-Under all three conditions, the likelihood admits a tractable form:
-
-\begin{theorem}[Likelihood Under C1-C2-C3]
+\begin{theorem}[Likelihood Under C1-C2-C3 {\citep{towell2023reliability}}]
 \label{thm:like-C123}
-Under Conditions C1, C2, and C3, the likelihood contribution from an
-uncensored observation $(s_i, c_i)$ is proportional to:
+Under Conditions C1, C2, and C3, the likelihood contribution from observation
+$i$ is
 \begin{equation}
 \label{eq:like-C123}
     L_i(\vtheta) \propto \prod_{\ell=1}^m R_\ell(s_i; \vtheta_\ell) \cdot
-    \sum_{k \in c_i} h_k(s_i; \vtheta_k).
-\end{equation}
-For a censored observation with lifetime $s_i$:
-\begin{equation}
-    L_i(\vtheta) = \prod_{\ell=1}^m R_\ell(s_i; \vtheta_\ell).
+    \left[\sum_{k \in c_i} h_k(s_i; \vtheta_k)\right]^{\delta_i}.
 \end{equation}
 \end{theorem}
 
-The proof proceeds by summing over $K_i$ and applying C1, C2, C3 in sequence
-to factor and then eliminate the masking probability; see
-\citep{towell2023reliability} for the full derivation.
-
-The complete log-likelihood for $n$ independent systems is:
+The masking probability factors out and cancels from the likelihood, leaving a
+tractable expression for MLE. The complete log-likelihood for $n$ independent
+systems is
 \begin{equation}
 \label{eq:loglike-C123}
     \ell(\vtheta) = \sum_{i=1}^n \left[
@@ -166,25 +108,54 @@ The complete log-likelihood for $n$ independent systems is:
     \right].
 \end{equation}
 
-\subsection{Related Work}
-\label{sec:related}
+\paragraph{Exponential specialization.}
+When each component has exponential lifetime $T_{ij} \sim \text{Exp}(\theta_j)$
+with rate $\theta_j > 0$, we have $h_j(t) = \theta_j$ and
+$R_j(t) = e^{-\theta_j t}$, giving
+\begin{equation}
+\label{eq:loglike-exp}
+    \ell(\vtheta) = \sum_{i=1}^n \left[
+        -s_i \sum_{j=1}^m \theta_j +
+        \delta_i \log\left(\sum_{k \in c_i} \theta_k\right)
+    \right].
+\end{equation}
 
-The masked data problem in series systems was introduced by
-\citet{Usher-1988}, who developed MLE methods for exponential components.
-\citet{Lin-1993} extended this to Weibull components with exact maximum
-likelihood. \citet{Huairu-2013} (Guo et al.) provided simulation studies
-validating the approach under various masking scenarios.
+\paragraph{Weibull specialization.}
+When each component has Weibull lifetime with shape $k_j$ and scale
+$\lambda_j$, the hazard is $h_j(t) = (k_j/\lambda_j)(t/\lambda_j)^{k_j-1}$
+and $R_j(t) = \exp[-(t/\lambda_j)^{k_j}]$. The log-likelihood becomes
+\begin{equation}
+\label{eq:loglike-wei}
+    \ell(\vtheta) = \sum_{i=1}^n \left[
+        -\sum_{j=1}^m \left(\frac{s_i}{\lambda_j}\right)^{k_j} +
+        \delta_i \log\left(\sum_{k \in c_i} h_k(s_i)\right)
+    \right],
+\end{equation}
+where $\vtheta = (k_1, \lambda_1, \ldots, k_m, \lambda_m)$.
 
-The informative censoring literature in survival analysis
-\citep{klein2005survival,cox1972regression} addresses related issues where
-the censoring mechanism depends on covariates or outcomes. However, the
-candidate set structure in masked data creates a distinct problem not fully
-addressed by standard informative censoring methods.
+\subsection{Prior Work on Dependent Masking}
+\label{sec:prior-work}
 
-The competing risks framework \citep{Agustin-2011} provides another
-perspective, viewing component failures as competing causes of system failure.
-However, standard competing risks methods assume the cause is observed, whereas
-masked data only provides partial information through candidate sets.
+Several authors have proposed models that relax C2 by explicitly specifying a
+masking mechanism that depends on the failure cause.
 
-Our work extends the C1-C2-C3 framework by explicitly modeling departures from
-C2 and C3, providing both theoretical analysis and practical estimation methods.
+\citet{LinGuess1994} introduced proportional masking probabilities for
+two-component systems, deriving closed-form MLEs under the assumption that the
+masking probability for the true cause exceeds that for the non-failed
+component by a fixed ratio. \citet{Guttman1995} extended two-component
+dependent masking to a Bayesian framework with conjugate priors.
+\citet{Mukhopadhyay2006} developed EM-based maximum likelihood estimation for
+general $m$-component systems where masking probabilities depend on the cause
+of failure, establishing conditions for identifiability of the joint
+parameter. \citet{CraiuReiser2010} studied conditional masking probability
+models and proved identifiability results under specific structural
+assumptions on the masking mechanism.
+
+These approaches share a common strategy: they replace C2 with a specific
+parametric masking model and estimate its parameters jointly with the
+component reliability parameters. The implicit assumption is that the masking
+model is correctly specified. However, the masking mechanism is itself a
+diagnostic process that is rarely known in detail. A natural complementary
+question---one not addressed in the prior literature---is: \emph{how sensitive
+is the standard C1-C2-C3 estimator to violations of C2 when no alternative
+masking model is adopted?} This is the question we study.

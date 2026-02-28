@@ -1,0 +1,228 @@
+%% ============================================================================
+\section{Sensitivity Framework}
+\label{sec:framework}
+%% ============================================================================
+
+We now develop the tools needed to study the sensitivity of C1-C2-C3 inference
+to C2 violations. We proceed in four steps: the general likelihood under C1
+alone (\Cref{sec:like-C1}), a Bernoulli model for generating controlled C2
+violations (\Cref{sec:bernoulli}), a misspecification theorem characterizing
+the resulting bias (\Cref{sec:misspec}), and a non-identifiability result that
+motivates sensitivity analysis over model estimation (\Cref{sec:identifiability}).
+
+\subsection{Likelihood Under C1 Alone}
+\label{sec:like-C1}
+
+When only C1 holds, the masking probability enters the likelihood and cannot
+be eliminated.
+
+\begin{theorem}[Likelihood Under C1 Alone]
+\label{thm:like-C1}
+Under Condition C1 alone, the likelihood contribution from an uncensored
+observation $(s_i, c_i)$ is:
+\begin{equation}
+\label{eq:like-C1}
+    L_i(\vtheta) = \prod_{\ell=1}^m R_\ell(s_i; \vtheta_\ell) \cdot
+    \sum_{k \in c_i} h_k(s_i; \vtheta_k) \cdot
+    \Prob\{C_i = c_i \mid T_i = s_i, K_i = k\}.
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Under C1, $\Prob\{C_i = c \mid T_i = t, K_i = k\} = 0$ when $k \notin c$.
+Summing over $K_i$:
+\begin{align}
+    f_{T_i, C_i}(t, c; \vtheta)
+    &= \sum_{k=1}^m h_k(t; \vtheta_k) \prod_{\ell=1}^m R_\ell(t; \vtheta_\ell)
+        \cdot \Prob\{C_i = c \mid T_i = t, K_i = k\} \notag \\
+    &= \prod_{\ell=1}^m R_\ell(t; \vtheta_\ell) \cdot
+        \sum_{k \in c} h_k(t; \vtheta_k)\,
+        \Prob\{C_i = c \mid T_i = t, K_i = k\}. \qedhere
+\end{align}
+\end{proof}
+
+Under C2, the masking probability $\Prob\{C_i = c \mid T_i = t, K_i = k\}$ is
+constant over $k \in c$ and factors out of the sum. Under C3, it does not
+depend on $\vtheta$ and can be dropped from the likelihood. When either
+condition fails, the masking probability remains inside the sum, coupling the
+inference about $\vtheta$ to the unknown masking mechanism.
+
+\subsection{The Bernoulli Perturbation Model}
+\label{sec:bernoulli}
+
+To generate data with controlled C2 violations, we use a Bernoulli candidate
+set model. We do not claim this model describes how masking works in practice.
+Rather, it provides a device for producing data whose departure from C2 is
+known and calibrated.
+
+\begin{definition}[Bernoulli Masking Model]
+\label{def:bernoulli}
+Let $p_j(k) = \Prob\{j \in C_i \mid K_i = k\}$ denote the probability that
+component $j$ is included in the candidate set given that component $k$
+failed. Under C1, $p_j(j) = 1$ for all $j$. These probabilities form an
+$m \times m$ matrix:
+\begin{equation}
+\label{eq:P-matrix}
+    \mathbf{P} = \begin{pmatrix}
+        1 & p_1(2) & \cdots & p_1(m) \\
+        p_2(1) & 1 & \cdots & p_2(m) \\
+        \vdots & \vdots & \ddots & \vdots \\
+        p_m(1) & p_m(2) & \cdots & 1
+    \end{pmatrix},
+\end{equation}
+where each component is included independently. The probability of observing
+candidate set $c$ given $K_i = k$ is
+\begin{equation}
+\label{eq:pi-k-c}
+    \pi_k(c) = \ind{k \in c} \prod_{j \in c \setminus \{k\}} p_j(k)
+    \prod_{j \notin c} (1 - p_j(k)).
+\end{equation}
+\end{definition}
+
+\begin{remark}[C2 in Terms of $\mathbf{P}$]
+\label{rem:C2-P}
+Condition C2 holds if and only if each row of $\mathbf{P}$ has constant
+off-diagonal entries: $p_j(k) = p_j$ for all $k \neq j$. When the columns of
+$\mathbf{P}$ differ, the masking mechanism ``knows'' which component failed,
+violating C2.
+\end{remark}
+
+The likelihood under this model follows immediately from
+\Cref{thm:like-C1}:
+
+\begin{corollary}[Likelihood Under the Bernoulli Model]
+\label{cor:bernoulli-like}
+Under the Bernoulli masking model with known $\mathbf{P}$, the likelihood
+contribution from an uncensored observation $(s_i, c_i)$ is:
+\begin{equation}
+\label{eq:bernoulli-like}
+    L_i(\vtheta) = \prod_{\ell=1}^m R_\ell(s_i; \vtheta_\ell) \cdot
+    \sum_{k \in c_i} h_k(s_i; \vtheta_k) \cdot \pi_k(c_i).
+\end{equation}
+\end{corollary}
+
+\paragraph{Parameterizing violation severity.}
+We generate a family of $\mathbf{P}$ matrices indexed by a scalar severity
+parameter $s \in [0,1]$:
+\begin{equation}
+\label{eq:P-sweep}
+    \mathbf{P}(s) = \mathbf{P}_0 + s\,\mathbf{D},
+\end{equation}
+where $\mathbf{P}_0$ is the uniform (C2-satisfying) matrix with all
+off-diagonal entries equal to a base probability $p_0$, and $\mathbf{D}$ is a
+fixed ``direction'' matrix with zero diagonal, whose off-diagonal entries
+create column-wise asymmetry. Off-diagonal entries of $\mathbf{P}(s)$ are
+clamped to $[0.05, 0.95]$ to maintain valid probabilities. At $s = 0$, C2
+holds exactly; as $s$ increases, the columns of $\mathbf{P}$ diverge and the
+masking becomes increasingly informative.
+
+\subsection{Misspecification Under C2 Violation}
+\label{sec:misspec}
+
+We now characterize what happens when the standard C1-C2-C3 model is fitted
+to data generated under C2 violation.
+
+\begin{theorem}[Bias from C2 Misspecification]
+\label{thm:misspec-C2}
+Suppose data is generated under C1 and C3 with informative masking weights
+$\pi_{k,c}$, but estimation is performed under C1-C2-C3 (assuming
+non-informative masking). The MLE under the misspecified model converges in
+probability to a pseudo-true parameter $\vtheta^{\dagger}$ satisfying
+\begin{equation}
+\label{eq:pseudo-true}
+    \E_{\vtheta^*}\left[\frac{\partial \ell^{\mathrm{wrong}}}{\partial
+    \theta_j}\bigg|_{\vtheta = \vtheta^{\dagger}}\right] = 0,
+\end{equation}
+where the expectation is taken under the true data-generating process with
+parameter $\vtheta^*$. The pseudo-true parameter differs from $\vtheta^*$
+unless C2 holds.
+
+For exponential components with rates $\vtheta = (\theta_1, \ldots, \theta_m)$:
+\begin{enumerate}
+    \item[(a)] The total system hazard is approximately preserved:
+        $\sum_j \theta_j^{\dagger} \approx \sum_j \theta_j^*$.
+    \item[(b)] Individual rates absorb the masking asymmetry:
+        components that are over-represented in candidate sets
+        (due to asymmetric $\mathbf{P}$) have inflated $\theta_j^{\dagger}$,
+        while under-represented components have deflated estimates.
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}
+The misspecified score for exponential component $j$ is
+\begin{equation}
+    \frac{\partial \ell_i^{\mathrm{wrong}}}{\partial \theta_j} = -s_i +
+    \delta_i\frac{\ind{j \in c_i}}{\sum_{k \in c_i} \theta_k}.
+\end{equation}
+The true score under C1-C3 (with masking weights $\pi_{k,c}$) is
+\begin{equation}
+    \frac{\partial \ell_i^{\mathrm{true}}}{\partial \theta_j} = -s_i +
+    \delta_i\frac{\pi_{j,c_i}\,\ind{j \in c_i}}
+         {\sum_{k \in c_i} \theta_k\,\pi_{k,c_i}}.
+\end{equation}
+At $\vtheta^*$, the true score has expectation zero. The misspecified score
+replaces $\pi_{k,c}$ with uniform weights $1/|c|$. Setting
+$\E[\partial\ell^{\mathrm{wrong}}/\partial\theta_j] = 0$ at
+$\vtheta^{\dagger}$ yields a system whose solution differs from $\vtheta^*$
+whenever the masking weights $\pi_{k,c}$ vary with $k$.
+
+For part~(a), summing the misspecified score over all $j$ yields the total
+hazard score
+\begin{equation}
+    \sum_j \frac{\partial \ell_i^{\mathrm{wrong}}}{\partial \theta_j}
+    = -ms_i + \delta_i\frac{|c_i|}{\sum_{k \in c_i} \theta_k}.
+\end{equation}
+The analogous sum for the true score is
+\begin{equation}
+    \sum_j \frac{\partial \ell_i^{\mathrm{true}}}{\partial \theta_j}
+    = -ms_i + \delta_i\frac{\sum_{k \in c_i} \pi_{k,c_i}}
+    {\sum_{k \in c_i} \theta_k\,\pi_{k,c_i}}.
+\end{equation}
+When the masking weights satisfy
+$\sum_{k \in c} \pi_{k,c} / \sum_{k \in c} \theta_k\pi_{k,c} \approx
+|c| / \sum_{k \in c} \theta_k$, the total hazard score equations agree and
+$\sum_j \theta_j^{\dagger} \approx \sum_j \theta_j^*$. This holds exactly
+when C2 is satisfied and approximately when the masking asymmetry is
+moderate.
+\end{proof}
+
+\begin{remark}[Interpretation]
+The misspecified estimator acts as if each candidate in $c_i$ contributes
+equally to the observed failure, regardless of the actual masking weights. When
+a component is over-included in candidate sets (its column of $\mathbf{P}$ has
+higher off-diagonal values), it ``claims credit'' for more failures than it
+actually caused, inflating its estimated rate.
+\end{remark}
+
+\subsection{The Identifiability Trap}
+\label{sec:identifiability}
+
+A natural response to C2 uncertainty would be to estimate $\mathbf{P}$ jointly
+with $\vtheta$ from the data. This fails.
+
+\begin{theorem}[Non-Identifiability of $(\vtheta, \mathbf{P})$]
+\label{thm:non-ident}
+For exponential series systems with masked data, the joint parameter
+$(\vtheta, \mathbf{P})$ is not identifiable from the observed data
+$(s_i, c_i, \delta_i)_{i=1}^n$. Different combinations of $(\vtheta,
+\mathbf{P})$ can yield equivalent likelihoods.
+
+However, the total system hazard $\sum_{j=1}^m \theta_j$ remains identifiable
+from the marginal system lifetime data.
+\end{theorem}
+
+This result is supported by both theoretical argument and simulation evidence.
+Even with $n = 2000$ observations, the joint MLE of $(\vtheta, \mathbf{P})$
+exhibits persistent bias with individual component rates confounded with the
+off-diagonal entries of $\mathbf{P}$, while the total hazard
+$\sum_j \hat\theta_j$ converges to the true value
+(see~\Cref{sec:appendix-ident}).
+
+\begin{remark}[Implications]
+Since $\vtheta$ and $\mathbf{P}$ cannot be disentangled from the data, we
+cannot ``just estimate'' the masking mechanism. This makes sensitivity
+analysis the appropriate tool: fit the standard C1-C2-C3 model, then assess
+how conclusions change under plausible perturbations of the masking structure
+via different $\mathbf{P}$ matrices. If the substantive conclusions are stable,
+C2 violations are not a concern for the application at hand.
+\end{remark}

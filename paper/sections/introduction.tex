@@ -3,70 +3,70 @@
 \label{sec:introduction}
 %% ============================================================================
 
-Estimating the reliability of individual components in a series system presents
-a fundamental challenge in reliability engineering: system-level failure data
-is observable, but component-level failure causes are often masked. When a
-series system fails, diagnostic procedures may identify only a \emph{candidate
-set} of components that could have caused the failure, rather than pinpointing
-the exact failed component \citep{Usher-1988}. This masking, combined with
-right-censoring of system lifetimes, complicates statistical inference about
+Estimating the reliability of individual components in a series system is a
+fundamental challenge when failure causes are masked. When a series system
+fails, diagnostic procedures may identify only a \emph{candidate set} of
+components that could have caused the failure, rather than pinpointing the
+exact failed component \citep{Usher-1988}. Maximum likelihood estimation under
+masked data has been developed extensively under a standard set of
+assumptions~\citep{Lin-1993, towell2023reliability}: (C1)~the true failed
+component is always in the candidate set; (C2)~masking is non-informative,
+meaning the candidate set formation is independent of the failure cause given
+the failure time; and (C3)~the masking mechanism does not depend on the
 component reliability parameters.
 
-Prior work on masked data in series systems has established a tractable
-likelihood framework under three conditions \citep{towell2023reliability}:
-\begin{itemize}
-    \item \textbf{C1:} The failed component is always contained in the
-        candidate set.
-    \item \textbf{C2:} Masking is non-informative---conditional on the failure
-        time and candidate set, each component in the candidate set is equally
-        likely to have failed.
-    \item \textbf{C3:} The masking mechanism does not depend on the system
-        parameters $\vtheta$.
-\end{itemize}
-Under these conditions, the likelihood has a simple closed form that enables
-efficient maximum likelihood estimation (MLE). However, practical diagnostic
-systems may violate C2 and C3:
-\begin{itemize}
-    \item Experienced technicians may preferentially include components that
-        ``seem likely'' to have failed based on failure time characteristics,
-        violating C2.
-    \item Diagnostic algorithms based on reliability rankings may systematically
-        favor certain components, with the ranking depending on the true
-        parameters, violating C3.
-\end{itemize}
+Among these, C2 is the strongest and least verifiable assumption. It requires
+that the diagnostic process which generates candidate sets reveals nothing
+about which component actually failed beyond the guarantee of C1. In practice,
+the masking mechanism reflects a complex diagnostic process---technician
+experience, test equipment sensitivity, failure mode characteristics---that is
+rarely known and seldom non-informative. An experienced technician may
+preferentially include components whose failure signatures match the observed
+failure time; an automated diagnostic may weight components by their estimated
+reliability ranking, effectively violating C2.
 
-This paper develops the theoretical and computational framework for
-likelihood-based inference when C2 and/or C3 are relaxed while maintaining C1.
-Our contributions are:
+Prior work has addressed dependent masking by proposing alternative models for
+the masking probability. \citet{LinGuess1994} introduced proportional masking
+probabilities for two-component systems with closed-form maximum likelihood
+estimators. \citet{Guttman1995} developed Bayesian inference under dependent
+masking for two-component systems. \citet{Mukhopadhyay2006} extended
+likelihood-based inference to general $m$-component systems where masking
+depends on the cause of failure. \citet{CraiuReiser2010} studied conditional
+masking probability models and their identifiability. These approaches share a
+common structure: they propose a specific masking model to replace C2 and
+estimate its parameters jointly with the component reliability parameters.
+
+We take a complementary approach. Rather than proposing an alternative masking
+model, we study the \emph{sensitivity} of the standard C1-C2-C3 estimator to
+violations of C2. The question is practical: when a reliability engineer fits
+the standard model---as is common practice---how wrong are the resulting
+estimates when C2 fails? Our contributions are:
 \begin{enumerate}
-    \item \textbf{General likelihood framework.} We derive the likelihood under
-        C1 alone, showing how informative and parameter-dependent masking
-        modify the standard likelihood structure (\Cref{sec:relaxed}).
+    \item \textbf{Misspecification characterization.} We prove that when C2 is
+        violated but assumed to hold, the MLE converges to a pseudo-true
+        parameter whose individual component rates absorb the masking
+        asymmetry. The total system hazard, however, remains consistently
+        estimated (\Cref{sec:framework}).
 
-    \item \textbf{Practical masking models.} We introduce the rank-based
-        informative masking model and the Bernoulli candidate set model with
-        KL-divergence constraints, which provide interpretable parameterizations
-        of non-standard masking (\Cref{sec:relaxed}).
-
-    \item \textbf{Identifiability analysis.} We establish conditions under which
-        parameters remain identifiable when standard conditions fail, including
-        the surprising result that informative masking can \emph{improve}
-        identifiability in certain cases (\Cref{sec:identifiability}).
-
-    \item \textbf{Efficiency comparison.} We derive the Fisher information
-        matrix under relaxed conditions for exponential series systems,
-        enabling precise comparison of estimation efficiency
-        (\Cref{sec:identifiability}).
-
-    \item \textbf{Simulation studies.} We quantify the bias from incorrectly
-        assuming C2 when masking is informative, and demonstrate the improved
-        estimation achievable when the masking structure is properly modeled
+    \item \textbf{Simulation sweep.} Using a Bernoulli perturbation model that
+        generates controlled C2 violations of varying severity, we map the
+        bias, RMSE, and coverage degradation as a function of violation
+        severity for a 5-component Weibull series system
         (\Cref{sec:simulations}).
+
+    \item \textbf{Practical finding.} System-level reliability estimates
+        (total hazard, mean time to failure) are robust to C2 violations
+        across the full severity range. Individual component parameter
+        estimates are not. Since the masking mechanism and component rates are
+        jointly non-identifiable, sensitivity analysis---not model
+        elaboration---is the appropriate response (\Cref{sec:discussion}).
 \end{enumerate}
 
 The remainder of this paper is organized as follows. \Cref{sec:background}
-reviews series systems, masked data, and the standard C1-C2-C3 likelihood.
-\Cref{sec:relaxed} develops the likelihood under relaxed conditions.
-\Cref{sec:identifiability} analyzes identifiability and Fisher information.
-\Cref{sec:simulations} presents simulation studies. \Cref{sec:discussion}
-discusses practical implications, and \Cref{sec:conclusion} concludes.
+reviews series systems, masked data, and the standard C1-C2-C3 likelihood, and
+surveys prior work on dependent masking. \Cref{sec:framework} develops the
+sensitivity framework: the general likelihood under C1 alone, the Bernoulli
+perturbation model, the misspecification theorem, and the identifiability
+result. \Cref{sec:simulations} presents the simulation sweep.
+\Cref{sec:discussion} discusses practical implications, and
+\Cref{sec:conclusion} concludes.
