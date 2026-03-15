@@ -96,6 +96,7 @@ to the Non-Informative Masking Assumption}
 
 \author{
     Alex Towell\\
+    Southern Illinois University Edwardsville\\
     \texttt{lex@metafunctor.com}
 }
 
@@ -106,6 +107,8 @@ to the Non-Informative Masking Assumption}
 %% ============================================================================
 
 \begin{document}
+
+\doublespacing
 
 \maketitle
 
@@ -122,8 +125,9 @@ varying severity, we conduct a systematic simulation sweep on a 5-component
 Weibull series system. The results establish a practical breakdown boundary:
 system-level reliability estimates are robust to C2 violations across the full
 severity range, but individual component estimates degrade with severity,
-with scale parameters showing order-of-magnitude bias under strong
-informative masking. Since the masking mechanism and component parameters are
+with scale parameters showing substantial bias (up to 40\% relative error)
+under strong informative masking, compounded by occasional extreme outlier
+estimates driven by near-singular Fisher information. Since the masking mechanism and component parameters are
 jointly non-identifiable, we recommend sensitivity analysis over model
 elaboration. Software is available in the \texttt{mdrelax} R package.
 \end{abstract}
@@ -140,6 +144,7 @@ misspecification, sensitivity analysis, maximum likelihood estimation
 \input{sections/background}
 \input{sections/sensitivity_framework}
 \input{sections/simulations}
+\input{sections/application}
 \input{sections/discussion}
 \input{sections/conclusion}
 

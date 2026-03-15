@@ -15,7 +15,7 @@ C2 violations. The system hazard remained approximately unbiased across all
 severity levels in our 5-component Weibull system. This robustness arises from
 the structure of the misspecified score: summing over components eliminates the
 masking weights, so the total hazard estimating equation is approximately
-correct regardless of the masking mechanism (\Cref{thm:misspec-C2}).
+correct regardless of the masking mechanism (\Cref{prop:hazard-robust}).
 
 \paragraph{Component-level inference: C2 matters.}
 If the goal is to estimate individual component parameters---for example,
@@ -51,8 +51,11 @@ recommend the following approach:
 
     \item \textbf{Report sensitivity bounds.} When conclusions are sensitive to
         the assumed masking structure, report the range of estimates across the
-        $\mathbf{P}$ family as sensitivity bounds, analogous to sensitivity
-        analysis in causal inference.
+        $\mathbf{P}$ family as sensitivity bounds. This parallels the partial
+        identification approach~\citep{manski2003partial}, where the data
+        identify a set of possible parameter values rather than a point
+        estimate, and reporting the identified set is more honest than
+        reporting a single estimate under an unverifiable assumption.
 \end{enumerate}
 
 \subsection{Limitations}
@@ -75,10 +78,19 @@ Several limitations should be acknowledged:
         $\mathbf{D}$ determines which parameters are over- or under-estimated.
         Different $\mathbf{D}$ matrices would produce different bias patterns,
         though the system-hazard robustness should persist by
-        \Cref{thm:misspec-C2}.
+        \Cref{prop:hazard-robust}.
 
     \item \textbf{Sample size.} Our simulations use $n = 500$. The relative
         bias would be similar at larger sample sizes (misspecification bias
         does not shrink with $n$), but coverage degradation would be more
         pronounced as confidence intervals narrow.
+
+    \item \textbf{Variance estimation.} The coverage metric uses Wald
+        intervals based on the model-based Fisher information, which assumes
+        correct specification. Under misspecification, the sandwich
+        estimator~\citep{huber1967behavior} is more appropriate for variance
+        estimation. The observed coverage degradation thus conflates two
+        effects: bias moving the point estimate away from the true value, and
+        the model-based standard error being incorrect. Disentangling these
+        effects via sandwich-based coverage is an avenue for future work.
 \end{itemize}

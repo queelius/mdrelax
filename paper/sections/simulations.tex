@@ -45,7 +45,8 @@ matrix itself.
 At each severity level, all $B$ datasets are fitted with the standard
 \emph{C1-C2-C3} Weibull series MLE from \eqref{eq:loglike-wei}, ignoring the
 informative masking. Optimization uses L-BFGS-B with starting values at 90\%
-of true parameters. Convergence was 100\% across all conditions.
+of true parameters. All 2{,}200 fits ($11 \times 200$) converged
+successfully.
 
 \paragraph{Metrics.}
 For each parameter and severity level, we report:
@@ -100,8 +101,10 @@ component parameters are shown in the figures.
 \begin{table}[htbp]
 \centering
 \caption{Weibull sensitivity sweep ($m=5$, $n=500$, $B=200$). Selected
-parameters illustrating the range of misspecification effects. True system
-hazard $h_T^*(2.0) = 1.460$.}
+parameters illustrating the range of misspecification effects, including
+$\lambda_2$ which shows the most extreme behavior. The system hazard
+$h_T^*(2.0) = 1.460$ maintains near-nominal coverage across all severity
+levels.}
 \label{tab:wei-sweep}
 \small
 \begin{tabular}{cl rrr}
@@ -109,35 +112,31 @@ hazard $h_T^*(2.0) = 1.460$.}
 $s$ & Parameter & Bias & RMSE & Coverage \\
 \midrule
 0.0 & $k_2$ ($1.5$) & $+0.032$ & 0.259 & 0.960 \\
+    & $\lambda_2$ ($4.0$) & $+0.219$ & 0.979 & 0.945 \\
     & $\lambda_3$ ($5.0$) & $+0.231$ & 1.538 & 0.905 \\
-    & $k_4$ ($1.8$) & $-0.001$ & 0.268 & 0.930 \\
     & $k_5$ ($1.0$) & $+0.018$ & 0.111 & 0.945 \\
-    & $h_T(2.0)$ & $+0.024$ & 0.108 & --- \\
-\addlinespace
-0.2 & $k_2$ ($1.5$) & $-0.064$ & 0.251 & 0.905 \\
-    & $\lambda_3$ ($5.0$) & $+0.366$ & 3.449 & --- \\
-    & $k_4$ ($1.8$) & $+0.000$ & 0.303 & 0.930 \\
-    & $k_5$ ($1.0$) & $+0.028$ & 0.125 & 0.930 \\
-    & $h_T(2.0)$ & $+0.031$ & 0.105 & --- \\
+    & $h_T(2.0)$ & $+0.024$ & 0.108 & 0.940 \\
 \addlinespace
 0.5 & $k_2$ ($1.5$) & $-0.194$ & 0.305 & 0.790 \\
+    & $\lambda_2$ ($4.0$)$^\dagger$ & $+3.727$ & 38.12 & 0.980 \\
     & $\lambda_3$ ($5.0$) & $-0.287$ & 1.465 & 0.800 \\
-    & $k_4$ ($1.8$) & $-0.117$ & 0.322 & 0.875 \\
     & $k_5$ ($1.0$) & $+0.027$ & 0.129 & 0.940 \\
-    & $h_T(2.0)$ & $+0.028$ & 0.108 & --- \\
+    & $h_T(2.0)$ & $+0.028$ & 0.108 & 0.940 \\
 \addlinespace
 0.8 & $k_2$ ($1.5$) & $-0.302$ & 0.346 & 0.540 \\
+    & $\lambda_2$ ($4.0$) & $+1.356$ & 2.202 & 0.990 \\
     & $\lambda_3$ ($5.0$) & $-0.596$ & 1.720 & 0.670 \\
-    & $k_4$ ($1.8$) & $-0.251$ & 0.378 & 0.730 \\
     & $k_5$ ($1.0$) & $+0.080$ & 0.155 & 0.935 \\
-    & $h_T(2.0)$ & $+0.012$ & 0.103 & --- \\
+    & $h_T(2.0)$ & $+0.012$ & 0.103 & 0.945 \\
 \addlinespace
-1.0 & $k_2$ ($1.5$) & $-0.338$ & 0.384 & --- \\
+1.0 & $k_2$ ($1.5$) & $-0.338$ & 0.384 & 0.442 \\
+    & $\lambda_2$ ($4.0$) & $+1.637$ & 2.750 & 0.995 \\
     & $\lambda_3$ ($5.0$) & $-0.712$ & 1.385 & 0.665 \\
-    & $k_4$ ($1.8$) & $-0.315$ & 0.401 & 0.650 \\
     & $k_5$ ($1.0$) & $+0.084$ & 0.160 & 0.930 \\
-    & $h_T(2.0)$ & $+0.038$ & 0.109 & --- \\
+    & $h_T(2.0)$ & $+0.038$ & 0.109 & 0.930 \\
 \bottomrule
+\multicolumn{5}{l}{\footnotesize $^\dagger$Mean bias inflated by 1--2
+    extreme outlier fits (max $\hat\lambda_2 = 542$); median bias $= +0.56$.}
 \end{tabular}
 \end{table}
 
@@ -149,8 +148,8 @@ The most striking finding is the stability of the system hazard. Across all
 severity levels from $s = 0$ to $s = 1.0$, the system hazard bias remains
 between $+0.012$ and $+0.038$ (at most 2.6\% relative error), and the RMSE
 is virtually constant near 0.10. This confirms part~(a) of
-\Cref{thm:misspec-C2}: the misspecified estimator preserves the system hazard
-even when individual component parameters are severely biased. The robustness
+\Cref{prop:hazard-robust}: the misspecified estimator preserves the system
+hazard even when individual component parameters are severely biased. The robustness
 holds despite the system having 10 free parameters (five shape-scale pairs)
 and substantial heterogeneity across components.
 
@@ -161,6 +160,21 @@ at $s = 1.0$ (23\% relative), with coverage dropping from 0.96 to below
 nominal. The shape parameters $k_3$ and $k_4$ show similar degradation, with
 coverage falling to 0.70 and 0.65 respectively at full severity.
 
+\paragraph{Scale parameter instability.}
+The scale parameter $\lambda_2$ exhibits an instructive anomaly at $s = 0.5$:
+its mean RMSE spikes dramatically (compared to 1.5--2.7 at adjacent severity
+levels), driven by 1--2 replications out of 200 in which the optimizer
+converges to extreme estimates (the maximum $\hat\lambda_2$ reaches 542, versus
+a median of 4.56 and true value of 4.0). Despite this, the Wald coverage for
+$\lambda_2$ remains high, because the estimated standard errors grow
+commensurately---the Fisher information becomes near-singular for this
+parameter at the $\mathbf{P}(0.5)$ configuration. This highlights a practical concern beyond
+bias: under certain masking configurations, some component parameters become
+effectively unestimable, with the standard errors correctly signaling this
+through large confidence intervals. The system hazard is unaffected (bias
+$+0.028$, RMSE $0.108$ at $s = 0.5$), confirming that system-level
+robustness persists even when individual parameters are poorly determined.
+
 \paragraph{The exponential component.}
 Component~5 ($k_5 = 1.0$, exponential) is notably resistant to
 misspecification: its shape bias reaches only $+0.08$ at $s = 1.0$ (8\%
@@ -170,11 +184,15 @@ family, consistent with the theoretical analysis in \Cref{sec:misspec} where
 the exponential score is simpler and less susceptible to masking weight
 distortion.
 
-\paragraph{The breakdown boundary.}
+\paragraph{A practical threshold.}
 For practitioners concerned with individual component estimates, the simulation
-results suggest a rough breakdown boundary around $s \approx 0.3$: below this
-threshold, component-level biases remain within typical estimation uncertainty
-and coverage stays above 90\%. Above this threshold, the standard model
-increasingly misattributes masking effects to component failure rates. For
-system-level inference (system hazard, mean time to failure), the standard
-model remains reliable across the full severity range.
+results suggest that for this particular system configuration, component-level
+biases remain within typical estimation uncertainty and coverage stays above
+90\% when the severity parameter is below approximately $s = 0.3$. Above this
+level, the standard model increasingly misattributes masking effects to
+component failure rates. This threshold is specific to the system considered
+here---a different number of components, different true parameters, or a
+different direction matrix $\mathbf{D}$ would yield a different threshold.
+For system-level inference (system hazard, mean time to failure), the standard
+model remains reliable across the full severity range regardless of the system
+configuration.

@@ -1,0 +1,65 @@
+%% ============================================================================
+\section{Application: Guo et al.\ Turbine Engine Data}
+\label{sec:application}
+%% ============================================================================
+
+To illustrate the sensitivity analysis workflow, we apply it to the masked
+failure data from \citet{Huairu-2013}, a $m = 3$ component series system with
+$n = 30$ uncensored failures. Each observation records the system failure time
+and a candidate set indicating which components could have caused the failure.
+This dataset has been used as a benchmark in several masked data
+studies~\citep{Huairu-2013, towell2023reliability}.
+
+\paragraph{Standard analysis.}
+Fitting the C1-C2-C3 Weibull series MLE yields estimated shapes
+$\hat{\mathbf{k}} = (1.26, 1.17, 1.13)$ and scales
+$\hat{\vlambda} = (1000, 897, 847)$. The system hazard at the median failure
+time $t_0 = 249.5$ is $\hat{h}_T(t_0) = 0.00307$. The large scale estimates
+reflect the long lifetimes in this dataset; the shape estimates near 1 suggest
+approximately exponential behavior.
+
+\paragraph{Sensitivity sweep.}
+We construct a family of $\mathbf{P}$ matrices using the same severity
+parameterization as in \Cref{sec:simulations}, with a $3 \times 3$ cyclic
+direction matrix and base probability $p_0 = 0.5$. For each severity level,
+we refit the Weibull series MLE under the relaxed C2 model with known
+$\mathbf{P}(s)$.
+
+\begin{table}[htbp]
+\centering
+\caption{Sensitivity analysis of the Guo et al.\ dataset ($m = 3$, $n = 30$).
+The system hazard $\hat{h}_T(t_0)$ at $t_0 = 249.5$ is stable across all
+severity levels; individual scale parameters shift by up to 22\%.}
+\label{tab:guo-sensitivity}
+\small
+\begin{tabular}{c ccc ccc c}
+\toprule
+$s$ & $\hat{k}_1$ & $\hat{k}_2$ & $\hat{k}_3$ &
+      $\hat{\lambda}_1$ & $\hat{\lambda}_2$ & $\hat{\lambda}_3$ &
+      $\hat{h}_T(t_0)$ \\
+\midrule
+0.0 & 1.26 & 1.17 & 1.13 & 1000 & 897 & 847 & 0.00307 \\
+0.3 & 1.36 & 1.12 & 1.08 &  883 & 923 & 965 & 0.00302 \\
+0.5 & 1.34 & 1.10 & 1.15 & 1032 & 918 & 800 & 0.00308 \\
+0.8 & 1.35 & 1.08 & 1.16 & 1036 & 933 & 786 & 0.00306 \\
+1.0 & 1.36 & 1.07 & 1.16 & 1033 & 945 & 780 & 0.00305 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\Cref{tab:guo-sensitivity} confirms the pattern from the simulation study on
+real data: the system hazard is remarkably stable (varying by less than 2\%
+across the full severity range), while individual component parameters shift
+with severity. The scale parameter $\hat\lambda_3$ decreases from 847 to 780
+(an 8\% shift) as severity increases, while $\hat\lambda_2$ increases from 897
+to 945 (a 5\% shift). Shape parameters show smaller absolute changes but
+relative shifts of up to 9\%.
+
+For this dataset, a practitioner can confidently report the system-level
+conclusion---that the system hazard at the median failure time is approximately
+0.003---without concern about C2 violations. Individual component rankings,
+however, are less stable: at $s = 0$, component~3 appears least reliable
+($\hat\lambda_3 = 847$, smallest scale), but by $s = 1.0$ component~3 has
+$\hat\lambda_3 = 780$ while component~1 has $\hat\lambda_1 = 1033$,
+amplifying the gap. Whether this shift matters depends on how the component
+estimates will be used.

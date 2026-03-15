@@ -130,6 +130,7 @@ run_sweep <- function(quick_mode) {
 
         theta_hat_mat <- matrix(NA_real_, nrow = B, ncol = 2 * m)
         se_mat        <- matrix(NA_real_, nrow = B, ncol = 2 * m)
+        fim_mat_list  <- vector("list", B)
         converged     <- logical(B)
 
         for (b in seq_len(B)) {
@@ -148,6 +149,7 @@ run_sweep <- function(quick_mode) {
                 converged[b]       <- TRUE
                 theta_hat_mat[b, ] <- fit$theta
                 se_mat[b, ]        <- fit$se
+                fim_mat_list[[b]]  <- fit$fim
             }
         }
         cat(sprintf(" %d/%d converged\n", sum(converged), B))
@@ -162,27 +164,52 @@ run_sweep <- function(quick_mode) {
                 ses  <- se_mat[ok, ci]
                 tv   <- theta_true[ci]
             } else {
-                # System hazard at t_ref
+                # System hazard at t_ref via delta method
                 ests <- numeric(n_conv)
-                ses  <- rep(NA_real_, n_conv)
+                ses  <- numeric(n_conv)
                 for (r in seq_len(n_conv)) {
                     idx <- ok[r]
-                    k_hat <- theta_hat_mat[idx, seq(1, 2 * m, by = 2)]
-                    l_hat <- theta_hat_mat[idx, seq(2, 2 * m, by = 2)]
+                    th  <- theta_hat_mat[idx, ]
+                    k_hat <- th[seq(1, 2 * m, by = 2)]
+                    l_hat <- th[seq(2, 2 * m, by = 2)]
                     ests[r] <- hazard_wei_series(t_ref, k_hat, l_hat)
+
+                    # Delta method SE for system hazard
+                    h_fn <- function(theta) {
+                        ks <- theta[seq(1, 2 * m, by = 2)]
+                        ls <- theta[seq(2, 2 * m, by = 2)]
+                        hazard_wei_series(t_ref, ks, ls)
+                    }
+                    grad_h <- tryCatch(
+                        numDeriv::grad(h_fn, th),
+                        error = function(e) rep(NA_real_, 2 * m)
+                    )
+                    cov_mat <- tryCatch(
+                        solve(fim_mat_list[[idx]]),
+                        error = function(e) matrix(NA_real_, 2 * m, 2 * m)
+                    )
+                    ses[r] <- tryCatch(
+                        sqrt(as.numeric(t(grad_h) %*% cov_mat %*% grad_h)),
+                        error = function(e) NA_real_
+                    )
                 }
                 tv <- true_haz
             }
 
             bias <- mean(ests) - tv
             rmse <- sqrt(mean((ests - tv)^2))
+            med_bias <- median(ests) - tv
+            mad_est  <- mad(ests)
 
-            if (ci <= 2 * m) {
-                coverage <- mean(ests - 1.96 * ses <= tv &
-                                 tv <= ests + 1.96 * ses)
-            } else {
-                coverage <- NA_real_
+            # Print lambda2 quantiles at s=0.5 for outlier investigation
+            if (s == 0.5 && comp_names[ci] == "lambda2") {
+                cat(sprintf("\n  >>> lambda2 at s=0.5: quantiles = %s\n",
+                    paste(sprintf("%.3f", quantile(ests, probs = c(0, 0.25, 0.5, 0.75, 1))),
+                          collapse = ", ")))
             }
+
+            coverage <- mean(ests - 1.96 * ses <= tv &
+                             tv <= ests + 1.96 * ses, na.rm = TRUE)
 
             rows[[ci]] <- data.frame(
                 severity    = s,
@@ -190,6 +217,8 @@ run_sweep <- function(quick_mode) {
                 bias        = bias,
                 rmse        = rmse,
                 coverage    = coverage,
+                median_bias = med_bias,
+                mad         = mad_est,
                 mean_est    = mean(ests),
                 true_value  = tv,
                 n_converged = n_conv,
@@ -275,5 +304,11 @@ plot_metric(results, "rmse", "RMSE",
 plot_metric(results, "coverage", "Coverage",
             file.path(fig_dir, "fig_coverage_vs_severity.pdf"),
             nominal_line = 0.95)
+
+plot_metric(results, "median_bias", "Median Bias",
+            file.path(fig_dir, "fig_median_bias_vs_severity.pdf"))
+
+plot_metric(results, "mad", "MAD",
+            file.path(fig_dir, "fig_mad_vs_severity.pdf"))
 
 cat("\n=== Sensitivity sweep complete ===\n")

@@ -65,7 +65,7 @@ $\Prob\{K_i \in C_i\} = 1$.
 
 \begin{condition}[C2: Non-Informative Masking]
 \label{cond:C2}
-For all $j, j' \in c$:
+For all $c \subseteq \{1,\ldots,m\}$, all $t > 0$, and all $j, j' \in c$:
 \begin{equation}
     \Prob\{C_i = c \mid T_i = t, K_i = j\} =
     \Prob\{C_i = c \mid T_i = t, K_i = j'\}.
@@ -144,18 +144,28 @@ two-component systems, deriving closed-form MLEs under the assumption that the
 masking probability for the true cause exceeds that for the non-failed
 component by a fixed ratio. \citet{Guttman1995} extended two-component
 dependent masking to a Bayesian framework with conjugate priors.
-\citet{Mukhopadhyay2006} developed EM-based maximum likelihood estimation for
-general $m$-component systems where masking probabilities depend on the cause
-of failure, establishing conditions for identifiability of the joint
-parameter. \citet{CraiuReiser2010} studied conditional masking probability
-models and proved identifiability results under specific structural
-assumptions on the masking mechanism.
+\citet{craiu2004inference} developed EM-based inference for the competing risks
+model with masked causes, deriving conditions under which the EM algorithm
+converges to consistent estimators. \citet{Mukhopadhyay2006} extended
+Bayesian analysis to general $m$-component systems where masking probabilities
+depend on the cause of failure. \citet{CraiuReiser2006} studied conditional
+masking probability models and proved identifiability results under specific
+structural assumptions on the masking mechanism. \citet{flehinger2002parametric}
+developed parametric Weibull models for masked competing risks with two-stage
+diagnostic procedures.
 
 These approaches share a common strategy: they replace C2 with a specific
 parametric masking model and estimate its parameters jointly with the
 component reliability parameters. The implicit assumption is that the masking
 model is correctly specified. However, the masking mechanism is itself a
-diagnostic process that is rarely known in detail. A natural complementary
-question---one not addressed in the prior literature---is: \emph{how sensitive
-is the standard C1-C2-C3 estimator to violations of C2 when no alternative
-masking model is adopted?} This is the question we study.
+diagnostic process that is rarely known in detail.
+
+Our approach is instead inspired by sensitivity analysis methodology in causal
+inference~\citep{rosenbaum2002observational}, where the strength of an
+unverifiable assumption is parameterized and conclusions are examined as the
+assumption is relaxed. \citet{vanderweele2017sensitivity} formalize this via the
+E-value, quantifying the minimum confounding strength needed to overturn a
+finding; \citet{siannis2004applications} apply the same principle to informative
+censoring in survival analysis. We adapt this paradigm to masked data: rather
+than proposing an alternative masking model, we ask \emph{how sensitive is the
+standard C1-C2-C3 estimator to violations of C2?}
