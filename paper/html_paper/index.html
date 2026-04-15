@@ -1,0 +1,1803 @@
+<!DOCTYPE html><html lang="en">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption</title>
+<!--Generated on Sat Mar 14 07:46:21 2026 by LaTeXML (version 0.8.8) http://dlmf.nist.gov/LaTeXML/.-->
+<!--Document created on March 14, 2026.-->
+
+<link rel="stylesheet" href="LaTeXML.css" type="text/css">
+<link rel="stylesheet" href="ltx-article.css" type="text/css">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+</head>
+<body>
+<div class="ltx_page_main">
+<div class="ltx_page_content">
+<article class="ltx_document ltx_authors_1line">
+<h1 class="ltx_title ltx_title_document">Sensitivity of Series System Reliability Estimation
+<br class="ltx_break">to the Non-Informative Masking Assumption</h1>
+<div class="ltx_authors">
+<span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">
+Alex Towell
+<br class="ltx_break"><span class="ltx_text ltx_font_typewriter">lex@metafunctor.com</span>
+</span></span>
+</div>
+<div class="ltx_dates">(March 14, 2026)</div>
+
+<div class="ltx_abstract">
+<h6 class="ltx_title ltx_title_abstract">Abstract</h6>
+<p class="ltx_p">Maximum likelihood estimation for series systems with masked failure data
+relies on the non-informative masking assumption (Condition C2): that the
+candidate set reported for a failed component is independent of the true cause
+of failure. This assumption is rarely verifiable and frequently suspect. We
+characterize the bias that arises when C2 is violated but assumed to hold,
+proving that the MLE converges to a pseudo-true parameter whose individual
+component parameters are biased while the system hazard remains consistent.
+Using a Bernoulli masking model that generates controlled C2 violations of
+varying severity, we conduct a systematic simulation sweep on a 5-component
+Weibull series system. The results establish a practical breakdown boundary:
+system-level reliability estimates are robust to C2 violations across the full
+severity range, but individual component estimates degrade with severity,
+with scale parameters showing order-of-magnitude bias under strong
+informative masking. Since the masking mechanism and component parameters are
+jointly non-identifiable, we recommend sensitivity analysis over model
+elaboration. Software is available in the <span class="ltx_text ltx_font_typewriter">mdrelax</span> R package.</p>
+</div>
+<div id="p1" class="ltx_para ltx_noindent">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Keywords:</span>
+Series systems, masked failure data, non-informative masking, model
+misspecification, sensitivity analysis, maximum likelihood estimation</p>
+</div>
+<section id="S1" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">1 </span>Introduction</h2>
+
+<div id="S1.p1" class="ltx_para">
+<p class="ltx_p">Estimating the reliability of individual components in a series system is a
+fundamental challenge when failure causes are masked. When a series system
+fails, diagnostic procedures may identify only a <em class="ltx_emph ltx_font_italic">candidate set</em> of
+components that could have caused the failure, rather than pinpointing the
+exact failed component <cite class="ltx_cite ltx_citemacro_citep">[<a href="#bib.bib4" title="Maximum likelihood analysis of component reliability using masked system life-test data" class="ltx_ref">15</a>]</cite>. Maximum likelihood estimation under
+masked data has been developed extensively under a standard set of
+assumptions <cite class="ltx_cite ltx_citemacro_citep">[<a href="#bib.bib5" title="Exact maximum likelihood estimation using masked system data" class="ltx_ref">16</a>, <a href="#bib.bib1" title="Reliability estimation in series systems: maximum likelihood techniques for right-censored and masked failure data" class="ltx_ref">13</a>]</cite>: (C1) the true failed
+component is always in the candidate set; (C2) masking is non-informative,
+meaning the candidate set formation is independent of the failure cause given
+the failure time; and (C3) the masking mechanism does not depend on the
+component reliability parameters.</p>
+</div>
+<div id="S1.p2" class="ltx_para">
+<p class="ltx_p">Among these, C2 is the strongest and least verifiable assumption. It requires
+that the diagnostic process which generates candidate sets reveals nothing
+about which component actually failed beyond the guarantee of C1. In practice,
+the masking mechanism reflects a complex diagnostic process—technician
+experience, test equipment sensitivity, failure mode characteristics—that is
+rarely known and seldom non-informative. An experienced technician may
+preferentially include components whose failure signatures match the observed
+failure time; an automated diagnostic may weight components by their estimated
+reliability ranking, effectively violating C2.</p>
+</div>
+<div id="S1.p3" class="ltx_para">
+<p class="ltx_p">Prior work has addressed dependent masking by proposing alternative models for
+the masking probability. <cite class="ltx_cite ltx_citemacro_citet">Lin and Guess [<a href="#bib.bib15" title="System life data analysis with dependent partial knowledge on the exact cause of system failure" class="ltx_ref">8</a>]</cite> introduced proportional masking
+probabilities for two-component systems with closed-form maximum likelihood
+estimators. <cite class="ltx_cite ltx_citemacro_citet">Guttman<span class="ltx_text ltx_bib_etal"> et al.</span> [<a href="#bib.bib16" title="Dependent masking and system life data analysis: Bayesian inference for two-component systems" class="ltx_ref">6</a>]</cite> developed Bayesian inference under dependent
+masking for two-component systems. <cite class="ltx_cite ltx_citemacro_citet">Mukhopadhyay and Basu [<a href="#bib.bib17" title="Bayesian analysis of incomplete time and cause of failure data" class="ltx_ref">10</a>]</cite> extended
+likelihood-based inference to general <math id="S1.p3.m1" class="ltx_Math" alttext="m" display="inline"><mi>m</mi></math>-component systems where masking
+depends on the cause of failure. <cite class="ltx_cite ltx_citemacro_citet">Craiu and Reiser [<a href="#bib.bib18" title="Inference for the dependent competing risks model with masked causes of failure" class="ltx_ref">1</a>]</cite> studied conditional
+masking probability models and their identifiability. These approaches share a
+common structure: they propose a specific masking model to replace C2 and
+estimate its parameters jointly with the component reliability parameters.</p>
+</div>
+<div id="S1.p4" class="ltx_para">
+<p class="ltx_p">We take a complementary approach. Rather than proposing an alternative masking
+model, we study the <em class="ltx_emph ltx_font_italic">sensitivity</em> of the standard C1-C2-C3 estimator to
+violations of C2. The question is practical: when a reliability engineer fits
+the standard model—as is common practice—how wrong are the resulting
+estimates when C2 fails? Our contributions are:</p>
+<ol id="S1.I1" class="ltx_enumerate">
+<li id="S1.I1.i1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">1.</span> 
+<div id="S1.I1.i1.p1" class="ltx_para">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Misspecification characterization.</span> We prove that when C2 is
+violated but assumed to hold, the MLE converges to a pseudo-true
+parameter whose individual component rates absorb the masking
+asymmetry. The total system hazard, however, remains consistently
+estimated (<a href="#S3" title="3 Sensitivity Framework ‣ Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Section</span> <span class="ltx_text ltx_ref_tag">3</span></a>).</p>
+</div>
+</li>
+<li id="S1.I1.i2" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">2.</span> 
+<div id="S1.I1.i2.p1" class="ltx_para">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Simulation sweep.</span> Using a Bernoulli perturbation model that
+generates controlled C2 violations of varying severity, we map the
+bias, RMSE, and coverage degradation as a function of violation
+severity for a 5-component Weibull series system
+(<a href="#S4" title="4 Simulation Study ‣ Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Section</span> <span class="ltx_text ltx_ref_tag">4</span></a>).</p>
+</div>
+</li>
+<li id="S1.I1.i3" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">3.</span> 
+<div id="S1.I1.i3.p1" class="ltx_para">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Practical finding.</span> System-level reliability estimates
+(total hazard, mean time to failure) are robust to C2 violations
+across the full severity range. Individual component parameter
+estimates are not. Since the masking mechanism and component rates are
+jointly non-identifiable, sensitivity analysis—not model
+elaboration—is the appropriate response (<a href="#S5" title="5 Discussion ‣ Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Section</span> <span class="ltx_text ltx_ref_tag">5</span></a>).</p>
+</div>
+</li>
+</ol>
+</div>
+<div id="S1.p5" class="ltx_para">
+<p class="ltx_p">The remainder of this paper is organized as follows. <a href="#S2" title="2 Background ‣ Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Section</span> <span class="ltx_text ltx_ref_tag">2</span></a>
+reviews series systems, masked data, and the standard C1-C2-C3 likelihood, and
+surveys prior work on dependent masking. <a href="#S3" title="3 Sensitivity Framework ‣ Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Section</span> <span class="ltx_text ltx_ref_tag">3</span></a> develops the
+sensitivity framework: the general likelihood under C1 alone, the Bernoulli
+perturbation model, the misspecification theorem, and the identifiability
+result. <a href="#S4" title="4 Simulation Study ‣ Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Section</span> <span class="ltx_text ltx_ref_tag">4</span></a> presents the simulation sweep.
+<a href="#S5" title="5 Discussion ‣ Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Section</span> <span class="ltx_text ltx_ref_tag">5</span></a> discusses practical implications, and
+<a href="#S6" title="6 Conclusion ‣ Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Section</span> <span class="ltx_text ltx_ref_tag">6</span></a> concludes.</p>
+</div>
+</section>
+<section id="S2" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">2 </span>Background</h2>
+
+<section id="S2.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">2.1 </span>Series System Model</h3>
+
+<div id="S2.SS1.p1" class="ltx_para">
+<p class="ltx_p">Consider a series system composed of <math id="S2.SS1.p1.m1" class="ltx_Math" alttext="m" display="inline"><mi>m</mi></math> components. The lifetime of the
+<math id="S2.SS1.p1.m2" class="ltx_Math" alttext="i" display="inline"><mi>i</mi></math>-th system is</p>
+<table id="S2.E1" class="ltx_equation ltx_eqn_table">
+
+<tbody><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_eqn_cell ltx_align_center"><math id="S2.E1.m1" class="ltx_Math" alttext="T_{i}=\min\{T_{i1},T_{i2},\ldots,T_{im}\}," display="block"><mrow><mrow><msub><mi>T</mi><mi>i</mi></msub><mo>=</mo><mrow><mi>min</mi><mo>⁡</mo><mrow><mo stretchy="false">{</mo><msub><mi>T</mi><mrow><mi>i</mi><mo>⁢</mo><mn>1</mn></mrow></msub><mo>,</mo><msub><mi>T</mi><mrow><mi>i</mi><mo>⁢</mo><mn>2</mn></mrow></msub><mo>,</mo><mi mathvariant="normal">…</mi><mo>,</mo><msub><mi>T</mi><mrow><mi>i</mi><mo>⁢</mo><mi>m</mi></mrow></msub><mo stretchy="false">}</mo></mrow></mrow></mrow><mo>,</mo></mrow></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation ltx_align_right">(1)</span></td>
+</tr></tbody>
+</table>
+<p class="ltx_p">where <math id="S2.SS1.p1.m3" class="ltx_Math" alttext="T_{ij}" display="inline"><msub><mi>T</mi><mrow><mi>i</mi><mo>⁢</mo><mi>j</mi></mrow></msub></math> denotes the lifetime of the <math id="S2.SS1.p1.m4" class="ltx_Math" alttext="j" display="inline"><mi>j</mi></math>-th component in the <math id="S2.SS1.p1.m5" class="ltx_Math" alttext="i" display="inline"><mi>i</mi></math>-th
+system. Component lifetimes are assumed independent with parametric
+distributions indexed by <math id="S2.SS1.p1.m6" class="ltx_Math" alttext="\bm{\theta}_{j}" display="inline"><msub><mi>𝜽</mi><mi>j</mi></msub></math>; the full parameter vector is
+<math id="S2.SS1.p1.m7" class="ltx_Math" alttext="\bm{\theta}=(\bm{\theta}_{1},\ldots,\bm{\theta}_{m})\in\bm{\Omega}" display="inline"><mrow><mi>𝜽</mi><mo>=</mo><mrow><mo stretchy="false">(</mo><msub><mi>𝜽</mi><mn>1</mn></msub><mo>,</mo><mi mathvariant="normal">…</mi><mo>,</mo><msub><mi>𝜽</mi><mi>m</mi></msub><mo stretchy="false">)</mo></mrow><mo>∈</mo><mi>𝛀</mi></mrow></math>.</p>
+</div>
+<div id="S2.SS1.p2" class="ltx_para">
+<p class="ltx_p">For component <math id="S2.SS1.p2.m1" class="ltx_Math" alttext="j" display="inline"><mi>j</mi></math> with parameter <math id="S2.SS1.p2.m2" class="ltx_Math" alttext="\bm{\theta}_{j}" display="inline"><msub><mi>𝜽</mi><mi>j</mi></msub></math>, the reliability, density, and
+hazard functions are</p>
+<table id="S2.E2" class="ltx_equation ltx_eqn_table">
+
+<tbody><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_eqn_cell ltx_align_center"><math id="S2.E2.m1" class="ltx_Math" alttext="R_{j}(t;\bm{\theta}_{j})=\mathrm{Pr}\{T_{ij}&gt;t\},\quad f_{j}(t;\bm{\theta}_{j}%
+)=-R_{j}^{\prime}(t;\bm{\theta}_{j}),\quad h_{j}(t;\bm{\theta}_{j})=\frac{f_{j%
+}(t;\bm{\theta}_{j})}{R_{j}(t;\bm{\theta}_{j})}." display="block"><mrow><mrow><mrow><mrow><msub><mi>R</mi><mi>j</mi></msub><mo>⁢</mo><mrow><mo stretchy="false">(</mo><mi>t</mi><mo>;</mo><msub><mi>𝜽</mi><mi>j</mi></msub><mo stretchy="false">)</mo></mrow></mrow><mo>=</mo><mrow><mi>Pr</mi><mo>⁢</mo><mrow><mo stretchy="false">{</mo><mrow><msub><mi>T</mi><mrow><mi>i</mi><mo>⁢</mo><mi>j</mi></mrow></msub><mo>&gt;</mo><mi>t</mi></mrow><mo stretchy="false">}</mo></mrow></mrow></mrow><mo rspace="1.167em">,</mo><mrow><mrow><mrow><msub><mi>f</mi><mi>j</mi></msub><mo>⁢</mo><mrow><mo stretchy="false">(</mo><mi>t</mi><mo>;</mo><msub><mi>𝜽</mi><mi>j</mi></msub><mo stretchy="false">)</mo></mrow></mrow><mo>=</mo><mrow><mo>−</mo><mrow><msubsup><mi>R</mi><mi>j</mi><mo>′</mo></msubsup><mo>⁢</mo><mrow><mo stretchy="false">(</mo><mi>t</mi><mo>;</mo><msub><mi>𝜽</mi><mi>j</mi></msub><mo stretchy="false">)</mo></mrow></mrow></mrow></mrow><mo rspace="1.167em">,</mo><mrow><mrow><msub><mi>h</mi><mi>j</mi></msub><mo>⁢</mo><mrow><mo stretchy="false">(</mo><mi>t</mi><mo>;</mo><msub><mi>𝜽</mi><mi>j</mi></msub><mo stretchy="false">)</mo></mrow></mrow><mo>=</mo><mfrac><mrow><msub><mi>f</mi><mi>j</mi></msub><mo>⁢</mo><mrow><mo stretchy="false">(</mo><mi>t</mi><mo>;</mo><msub><mi>𝜽</mi><mi>j</mi></msub><mo stretchy="false">)</mo></mrow></mrow><mrow><msub><mi>R</mi><mi>j</mi></msub><mo>⁢</mo><mrow><mo stretchy="false">(</mo><mi>t</mi><mo>;</mo><msub><mi>𝜽</mi><mi>j</mi></msub><mo stretchy="false">)</mo></mrow></mrow></mfrac></mrow></mrow></mrow><mo lspace="0em">.</mo></mrow></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation ltx_align_right">(2)</span></td>
+</tr></tbody>
+</table>
+<p class="ltx_p">Independence yields the series system hazard
+<math id="S2.SS1.p2.m3" class="ltx_Math" alttext="h_{T}(t;\bm{\theta})=\sum_{j=1}^{m}h_{j}(t;\bm{\theta}_{j})" display="inline"><mrow><mrow><msub><mi>h</mi><mi>T</mi></msub><mo>⁢</mo><mrow><mo stretchy="false">(</mo><mi>t</mi><mo>;</mo><mi>𝜽</mi><mo stretchy="false">)</mo></mrow></mrow><mo rspace="0.111em">=</mo><mrow><msubsup><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mi>m</mi></msubsup><mrow><msub><mi>h</mi><mi>j</mi></msub><mo>⁢</mo><mrow><mo stretchy="false">(</mo><mi>t</mi><mo>;</mo><msub><mi>𝜽</mi><mi>j</mi></msub><mo stretchy="false">)</mo></mrow></mrow></mrow></mrow></math> and survival
+<math id="S2.SS1.p2.m4" class="ltx_Math" alttext="R_{T}(t;\bm{\theta})=\prod_{j=1}^{m}R_{j}(t;\bm{\theta}_{j})" display="inline"><mrow><mrow><msub><mi>R</mi><mi>T</mi></msub><mo>⁢</mo><mrow><mo stretchy="false">(</mo><mi>t</mi><mo>;</mo><mi>𝜽</mi><mo stretchy="false">)</mo></mrow></mrow><mo rspace="0.111em">=</mo><mrow><msubsup><mo>∏</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mi>m</mi></msubsup><mrow><msub><mi>R</mi><mi>j</mi></msub><mo>⁢</mo><mrow><mo stretchy="false">(</mo><mi>t</mi><mo>;</mo><msub><mi>𝜽</mi><mi>j</mi></msub><mo stretchy="false">)</mo></mrow></mrow></mrow></mrow></math>.</p>
+</div>
+<div id="S2.SS1.p3" class="ltx_para">
+<p class="ltx_p">Given that the system failed at time <math id="S2.SS1.p3.m1" class="ltx_Math" alttext="t" display="inline"><mi>t</mi></math>, the conditional probability that
+component <math id="S2.SS1.p3.m2" class="ltx_Math" alttext="j" display="inline"><mi>j</mi></math> caused the failure is</p>
+<table id="S2.E3" class="ltx_equation ltx_eqn_table">
+
+<tbody><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_eqn_cell ltx_align_center"><math id="S2.E3.m1" class="ltx_Math" alttext="\mathrm{Pr}\{K_{i}=j\mid T_{i}=t\}=\frac{h_{j}(t;\bm{\theta}_{j})}{\sum_{\ell=%
+1}^{m}h_{\ell}(t;\bm{\theta}_{\ell})}," display="block"><mrow><mrow><mrow><mi>Pr</mi><mo>⁢</mo><mrow><mo stretchy="false">{</mo><mrow><msub><mi>K</mi><mi>i</mi></msub><mo>=</mo><mi>j</mi></mrow><mo fence="true" lspace="0em" rspace="0em">∣</mo><mrow><msub><mi>T</mi><mi>i</mi></msub><mo>=</mo><mi>t</mi></mrow><mo stretchy="false">}</mo></mrow></mrow><mo>=</mo><mfrac><mrow><msub><mi>h</mi><mi>j</mi></msub><mo>⁢</mo><mrow><mo stretchy="false">(</mo><mi>t</mi><mo>;</mo><msub><mi>𝜽</mi><mi>j</mi></msub><mo stretchy="false">)</mo></mrow></mrow><mrow><msubsup><mo>∑</mo><mrow><mi mathvariant="normal">ℓ</mi><mo>=</mo><mn>1</mn></mrow><mi>m</mi></msubsup><mrow><msub><mi>h</mi><mi mathvariant="normal">ℓ</mi></msub><mo>⁢</mo><mrow><mo stretchy="false">(</mo><mi>t</mi><mo>;</mo><msub><mi>𝜽</mi><mi mathvariant="normal">ℓ</mi></msub><mo stretchy="false">)</mo></mrow></mrow></mrow></mfrac></mrow><mo>,</mo></mrow></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation ltx_align_right">(3)</span></td>
+</tr></tbody>
+</table>
+<p class="ltx_p">which follows from the joint density <math id="S2.SS1.p3.m3" class="ltx_Math" alttext="f_{T,K}(t,k)=h_{k}(t;\bm{\theta}_{k})\,R_{T}(t;\bm{\theta})" display="inline"><mrow><mrow><msub><mi>f</mi><mrow><mi>T</mi><mo>,</mo><mi>K</mi></mrow></msub><mo>⁢</mo><mrow><mo stretchy="false">(</mo><mi>t</mi><mo>,</mo><mi>k</mi><mo stretchy="false">)</mo></mrow></mrow><mo>=</mo><mrow><msub><mi>h</mi><mi>k</mi></msub><mo>⁢</mo><mrow><mo stretchy="false">(</mo><mi>t</mi><mo>;</mo><msub><mi>𝜽</mi><mi>k</mi></msub><mo stretchy="false">)</mo></mrow><mo lspace="0.170em">⁢</mo><msub><mi>R</mi><mi>T</mi></msub><mo>⁢</mo><mrow><mo stretchy="false">(</mo><mi>t</mi><mo>;</mo><mi>𝜽</mi><mo stretchy="false">)</mo></mrow></mrow></mrow></math> and Bayes’ theorem <cite class="ltx_cite ltx_citemacro_citep">[<a href="#bib.bib1" title="Reliability estimation in series systems: maximum likelihood techniques for right-censored and masked failure data" class="ltx_ref">13</a>]</cite>.</p>
+</div>
+</section>
+<section id="S2.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">2.2 </span>Masked Data</h3>
+
+<div id="S2.SS2.p1" class="ltx_para">
+<p class="ltx_p">For each system <math id="S2.SS2.p1.m1" class="ltx_Math" alttext="i" display="inline"><mi>i</mi></math>, we observe:</p>
+<ul id="S2.I1" class="ltx_itemize">
+<li id="S2.I1.i1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S2.I1.i1.p1" class="ltx_para">
+<p class="ltx_p"><math id="S2.I1.i1.p1.m1" class="ltx_Math" alttext="S_{i}=\min\{T_{i},\tau_{i}\}" display="inline"><mrow><msub><mi>S</mi><mi>i</mi></msub><mo>=</mo><mrow><mi>min</mi><mo>⁡</mo><mrow><mo stretchy="false">{</mo><msub><mi>T</mi><mi>i</mi></msub><mo>,</mo><msub><mi>τ</mi><mi>i</mi></msub><mo stretchy="false">}</mo></mrow></mrow></mrow></math>: right-censored system lifetime,</p>
+</div>
+</li>
+<li id="S2.I1.i2" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S2.I1.i2.p1" class="ltx_para">
+<p class="ltx_p"><math id="S2.I1.i2.p1.m1" class="ltx_Math" alttext="\delta_{i}=\mathbf{1}_{T_{i}\leq\tau_{i}}" display="inline"><mrow><msub><mi>δ</mi><mi>i</mi></msub><mo>=</mo><msub><mn>𝟏</mn><mrow><msub><mi>T</mi><mi>i</mi></msub><mo>≤</mo><msub><mi>τ</mi><mi>i</mi></msub></mrow></msub></mrow></math>: event indicator
+(<math id="S2.I1.i2.p1.m2" class="ltx_Math" alttext="1" display="inline"><mn>1</mn></math> if failure observed),</p>
+</div>
+</li>
+<li id="S2.I1.i3" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S2.I1.i3.p1" class="ltx_para">
+<p class="ltx_p"><math id="S2.I1.i3.p1.m1" class="ltx_Math" alttext="C_{i}\subseteq\{1,\ldots,m\}" display="inline"><mrow><msub><mi>C</mi><mi>i</mi></msub><mo>⊆</mo><mrow><mo stretchy="false">{</mo><mn>1</mn><mo>,</mo><mi mathvariant="normal">…</mi><mo>,</mo><mi>m</mi><mo stretchy="false">}</mo></mrow></mrow></math>: candidate set
+(only meaningful when <math id="S2.I1.i3.p1.m2" class="ltx_Math" alttext="\delta_{i}=1" display="inline"><mrow><msub><mi>δ</mi><mi>i</mi></msub><mo>=</mo><mn>1</mn></mrow></math>).</p>
+</div>
+</li>
+</ul>
+<p class="ltx_p">The true cause of failure <math id="S2.SS2.p1.m2" class="ltx_Math" alttext="K_{i}" display="inline"><msub><mi>K</mi><mi>i</mi></msub></math> and the individual component lifetimes
+<math id="S2.SS2.p1.m3" class="ltx_Math" alttext="(T_{i1},\ldots,T_{im})" display="inline"><mrow><mo stretchy="false">(</mo><msub><mi>T</mi><mrow><mi>i</mi><mo>⁢</mo><mn>1</mn></mrow></msub><mo>,</mo><mi mathvariant="normal">…</mi><mo>,</mo><msub><mi>T</mi><mrow><mi>i</mi><mo>⁢</mo><mi>m</mi></mrow></msub><mo stretchy="false">)</mo></mrow></math> are latent.</p>
+</div>
+</section>
+<section id="S2.SS3" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">2.3 </span>Conditions C1, C2, C3</h3>
+
+<div id="S2.SS3.p1" class="ltx_para">
+<p class="ltx_p">Tractable likelihood-based inference requires conditions on the relationship
+between the latent cause <math id="S2.SS3.p1.m1" class="ltx_Math" alttext="K_{i}" display="inline"><msub><mi>K</mi><mi>i</mi></msub></math> and the observed candidate set
+<math id="S2.SS3.p1.m2" class="ltx_Math" alttext="C_{i}" display="inline"><msub><mi>C</mi><mi>i</mi></msub></math> <cite class="ltx_cite ltx_citemacro_citep">[<a href="#bib.bib4" title="Maximum likelihood analysis of component reliability using masked system life-test data" class="ltx_ref">15</a>, <a href="#bib.bib5" title="Exact maximum likelihood estimation using masked system data" class="ltx_ref">16</a>, <a href="#bib.bib10" title="Estimating component reliabilities from incomplete system failure data" class="ltx_ref">5</a>]</cite>:</p>
+</div>
+<div id="Thmcondition1" class="ltx_theorem ltx_theorem_condition">
+<h6 class="ltx_title ltx_runin ltx_title_theorem">
+<span class="ltx_tag ltx_tag_theorem"><span class="ltx_text ltx_font_bold">Condition 1</span></span><span class="ltx_text ltx_font_bold"> </span>(C1: Failed Component in Candidate Set)<span class="ltx_text ltx_font_bold">.</span>
+</h6>
+<div id="Thmcondition1.p1" class="ltx_para">
+<p class="ltx_p"><math id="Thmcondition1.p1.m1" class="ltx_Math" alttext="\mathrm{Pr}\{K_{i}\in C_{i}\}=1" display="inline"><mrow><mrow><mi>Pr</mi><mo>⁢</mo><mrow><mo stretchy="false">{</mo><mrow><msub><mi>K</mi><mi>i</mi></msub><mo>∈</mo><msub><mi>C</mi><mi>i</mi></msub></mrow><mo stretchy="false">}</mo></mrow></mrow><mo>=</mo><mn>1</mn></mrow></math><span class="ltx_text ltx_font_italic">.</span></p>
+</div>
+</div>
+<div id="Thmcondition2" class="ltx_theorem ltx_theorem_condition">
+<h6 class="ltx_title ltx_runin ltx_title_theorem">
+<span class="ltx_tag ltx_tag_theorem"><span class="ltx_text ltx_font_bold">Condition 2</span></span><span class="ltx_text ltx_font_bold"> </span>(C2: Non-Informative Masking)<span class="ltx_text ltx_font_bold">.</span>
+</h6>
+<div id="Thmcondition2.p1" class="ltx_para">
+<p class="ltx_p"><span class="ltx_text ltx_font_italic">For all <math id="Thmcondition2.p1.m1" class="ltx_Math" alttext="j,j^{\prime}\in c" display="inline"><mrow><mrow><mi>j</mi><mo>,</mo><msup><mi>j</mi><mo>′</mo></msup></mrow><mo>∈</mo><mi>c</mi></mrow></math>:</span></p>
+<table id="S2.E4" class="ltx_equation ltx_eqn_table">
+
+<tbody><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_eqn_cell ltx_align_center"><math id="S2.E4.m1" class="ltx_Math" alttext="\mathrm{Pr}\{C_{i}=c\mid T_{i}=t,K_{i}=j\}=\mathrm{Pr}\{C_{i}=c\mid T_{i}=t,K_%
+{i}=j^{\prime}\}." display="block"><mrow><mrow><mrow><mi>Pr</mi><mo>⁢</mo><mrow><mo stretchy="false">{</mo><mrow><msub><mi>C</mi><mi>i</mi></msub><mo>=</mo><mi>c</mi></mrow><mo fence="true" lspace="0em" rspace="0em">∣</mo><mrow><mrow><msub><mi>T</mi><mi>i</mi></msub><mo>=</mo><mi>t</mi></mrow><mo>,</mo><mrow><msub><mi>K</mi><mi>i</mi></msub><mo>=</mo><mi>j</mi></mrow></mrow><mo stretchy="false">}</mo></mrow></mrow><mo>=</mo><mrow><mi>Pr</mi><mo>⁢</mo><mrow><mo stretchy="false">{</mo><mrow><msub><mi>C</mi><mi>i</mi></msub><mo>=</mo><mi>c</mi></mrow><mo fence="true" lspace="0em" rspace="0em">∣</mo><mrow><mrow><msub><mi>T</mi><mi>i</mi></msub><mo>=</mo><mi>t</mi></mrow><mo>,</mo><mrow><msub><mi>K</mi><mi>i</mi></msub><mo>=</mo><msup><mi>j</mi><mo>′</mo></msup></mrow></mrow><mo stretchy="false">}</mo></mrow></mrow></mrow><mo lspace="0em">.</mo></mrow></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation ltx_align_right">(4)</span></td>
+</tr></tbody>
+</table>
+</div>
+</div>
+<div id="Thmcondition3" class="ltx_theorem ltx_theorem_condition">
+<h6 class="ltx_title ltx_runin ltx_title_theorem">
+<span class="ltx_tag ltx_tag_theorem"><span class="ltx_text ltx_font_bold">Condition 3</span></span><span class="ltx_text ltx_font_bold"> </span>(C3: Parameter-Independent Masking)<span class="ltx_text ltx_font_bold">.</span>
+</h6>
+<div id="Thmcondition3.p1" class="ltx_para">
+<p class="ltx_p"><math id="Thmcondition3.p1.m1" class="ltx_Math" alttext="\mathrm{Pr}\{C_{i}=c\mid T_{i}=t,K_{i}=j\}" display="inline"><mrow><mi>Pr</mi><mo>⁢</mo><mrow><mo stretchy="false">{</mo><mrow><msub><mi>C</mi><mi>i</mi></msub><mo>=</mo><mi>c</mi></mrow><mo fence="true" lspace="0em" rspace="0em">∣</mo><mrow><mrow><msub><mi>T</mi><mi>i</mi></msub><mo>=</mo><mi>t</mi></mrow><mo>,</mo><mrow><msub><mi>K</mi><mi>i</mi></msub><mo>=</mo><mi>j</mi></mrow></mrow><mo stretchy="false">}</mo></mrow></mrow></math><span class="ltx_text ltx_font_italic"> does not depend on <math id="Thmcondition3.p1.m2" class="ltx_Math" alttext="\bm{\theta}" display="inline"><mi>𝛉</mi></math>.</span></p>
+</div>
+</div>
+<div id="S2.SS3.p2" class="ltx_para">
+<p class="ltx_p">C1 is a minimal correctness requirement. C3 is often reasonable when the
+diagnostic process is fixed independently of the reliability parameters. C2 is
+the strongest assumption: it requires that the diagnostic process which
+generates candidate sets reveals nothing about the failure cause beyond C1.
+This paper studies the consequences of C2 failure.</p>
+</div>
+</section>
+<section id="S2.SS4" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">2.4 </span>Likelihood Under C1-C2-C3</h3>
+
+<div id="S2.Thmtheorem1" class="ltx_theorem ltx_theorem_theorem">
+<h6 class="ltx_title ltx_runin ltx_title_theorem">
+<span class="ltx_tag ltx_tag_theorem"><span class="ltx_text ltx_font_bold">Theorem 2.1</span></span><span class="ltx_text ltx_font_bold"> </span>(Likelihood Under C1-C2-C3 <cite class="ltx_cite ltx_citemacro_citep">[<a href="#bib.bib1" title="Reliability estimation in series systems: maximum likelihood techniques for right-censored and masked failure data" class="ltx_ref">13</a>]</cite>)<span class="ltx_text ltx_font_bold">.</span>
+</h6>
+<div id="S2.Thmtheorem1.p1" class="ltx_para">
+<p class="ltx_p"><span class="ltx_text ltx_font_italic">Under Conditions C1, C2, and C3, the likelihood contribution from observation
+<math id="S2.Thmtheorem1.p1.m1" class="ltx_Math" alttext="i" display="inline"><mi>i</mi></math> is</span></p>
+<table id="S2.E5" class="ltx_equation ltx_eqn_table">
+
+<tbody><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_eqn_cell ltx_align_center"><math id="S2.E5.m1" class="ltx_Math" alttext="L_{i}(\bm{\theta})\propto\prod_{\ell=1}^{m}R_{\ell}(s_{i};\bm{\theta}_{\ell})%
+\cdot\left[\sum_{k\in c_{i}}h_{k}(s_{i};\bm{\theta}_{k})\right]^{\delta_{i}}." display="block"><mrow><mrow><mrow><msub><mi>L</mi><mi>i</mi></msub><mo>⁢</mo><mrow><mo stretchy="false">(</mo><mi>𝜽</mi><mo stretchy="false">)</mo></mrow></mrow><mo rspace="0.111em">∝</mo><mrow><munderover><mo movablelimits="false">∏</mo><mrow><mi mathvariant="normal">ℓ</mi><mo>=</mo><mn>1</mn></mrow><mi>m</mi></munderover><mrow><mrow><msub><mi>R</mi><mi mathvariant="normal">ℓ</mi></msub><mo>⁢</mo><mrow><mo stretchy="false">(</mo><msub><mi>s</mi><mi>i</mi></msub><mo>;</mo><msub><mi>𝜽</mi><mi mathvariant="normal">ℓ</mi></msub><mo rspace="0.055em" stretchy="false">)</mo></mrow></mrow><mo rspace="0.222em">⋅</mo><msup><mrow><mo>[</mo><mrow><munder><mo lspace="0em" movablelimits="false">∑</mo><mrow><mi>k</mi><mo>∈</mo><msub><mi>c</mi><mi>i</mi></msub></mrow></munder><mrow><msub><mi>h</mi><mi>k</mi></msub><mo>⁢</mo><mrow><mo stretchy="false">(</mo><msub><mi>s</mi><mi>i</mi></msub><mo>;</mo><msub><mi>𝜽</mi><mi>k</mi></msub><mo stretchy="false">)</mo></mrow></mrow></mrow><mo>]</mo></mrow><msub><mi>δ</mi><mi>i</mi></msub></msup></mrow></mrow></mrow><mo lspace="0em">.</mo></mrow></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation ltx_align_right">(5)</span></td>
+</tr></tbody>
+</table>
+</div>
+</div>
+<div id="S2.SS4.p1" class="ltx_para">
+<p class="ltx_p">The masking probability factors out and cancels from the likelihood, leaving a
+tractable expression for MLE. The complete log-likelihood for <math id="S2.SS4.p1.m1" class="ltx_Math" alttext="n" display="inline"><mi>n</mi></math> independent
+systems is</p>
+<table id="S2.E6" class="ltx_equation ltx_eqn_table">
+
+<tbody><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_eqn_cell ltx_align_center"><math id="S2.E6.m1" class="ltx_Math" alttext="\ell(\bm{\theta})=\sum_{i=1}^{n}\left[\sum_{j=1}^{m}\log R_{j}(s_{i};\bm{%
+\theta}_{j})+\delta_{i}\log\left(\sum_{k\in c_{i}}h_{k}(s_{i};\bm{\theta}_{k})%
+\right)\right]." display="block"><mrow><mrow><mrow><mi mathvariant="normal">ℓ</mi><mo>⁢</mo><mrow><mo stretchy="false">(</mo><mi>𝜽</mi><mo stretchy="false">)</mo></mrow></mrow><mo rspace="0.111em">=</mo><mrow><munderover><mo movablelimits="false" rspace="0em">∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover><mrow><mo>[</mo><mrow><mrow><munderover><mo lspace="0em" movablelimits="false">∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mi>m</mi></munderover><mrow><mrow><mi>log</mi><mo lspace="0.167em">⁡</mo><msub><mi>R</mi><mi>j</mi></msub></mrow><mo>⁢</mo><mrow><mo stretchy="false">(</mo><msub><mi>s</mi><mi>i</mi></msub><mo>;</mo><msub><mi>𝜽</mi><mi>j</mi></msub><mo stretchy="false">)</mo></mrow></mrow></mrow><mo>+</mo><mrow><msub><mi>δ</mi><mi>i</mi></msub><mo lspace="0.167em">⁢</mo><mrow><mi>log</mi><mo>⁡</mo><mrow><mo>(</mo><mrow><munder><mo lspace="0em" movablelimits="false">∑</mo><mrow><mi>k</mi><mo>∈</mo><msub><mi>c</mi><mi>i</mi></msub></mrow></munder><mrow><msub><mi>h</mi><mi>k</mi></msub><mo>⁢</mo><mrow><mo stretchy="false">(</mo><msub><mi>s</mi><mi>i</mi></msub><mo>;</mo><msub><mi>𝜽</mi><mi>k</mi></msub><mo stretchy="false">)</mo></mrow></mrow></mrow><mo>)</mo></mrow></mrow></mrow></mrow><mo>]</mo></mrow></mrow></mrow><mo lspace="0em">.</mo></mrow></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation ltx_align_right">(6)</span></td>
+</tr></tbody>
+</table>
+</div>
+<section id="S2.SS4.SSS0.Px1" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Exponential specialization.</h4>
+
+<div id="S2.SS4.SSS0.Px1.p1" class="ltx_para">
+<p class="ltx_p">When each component has exponential lifetime <math id="S2.SS4.SSS0.Px1.p1.m1" class="ltx_Math" alttext="T_{ij}\sim\text{Exp}(\theta_{j})" display="inline"><mrow><msub><mi>T</mi><mrow><mi>i</mi><mo>⁢</mo><mi>j</mi></mrow></msub><mo>∼</mo><mrow><mtext>Exp</mtext><mo>⁢</mo><mrow><mo stretchy="false">(</mo><msub><mi>θ</mi><mi>j</mi></msub><mo stretchy="false">)</mo></mrow></mrow></mrow></math>
+with rate <math id="S2.SS4.SSS0.Px1.p1.m2" class="ltx_Math" alttext="\theta_{j}&gt;0" display="inline"><mrow><msub><mi>θ</mi><mi>j</mi></msub><mo>&gt;</mo><mn>0</mn></mrow></math>, we have <math id="S2.SS4.SSS0.Px1.p1.m3" class="ltx_Math" alttext="h_{j}(t)=\theta_{j}" display="inline"><mrow><mrow><msub><mi>h</mi><mi>j</mi></msub><mo>⁢</mo><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo></mrow></mrow><mo>=</mo><msub><mi>θ</mi><mi>j</mi></msub></mrow></math> and
+<math id="S2.SS4.SSS0.Px1.p1.m4" class="ltx_Math" alttext="R_{j}(t)=e^{-\theta_{j}t}" display="inline"><mrow><mrow><msub><mi>R</mi><mi>j</mi></msub><mo>⁢</mo><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo></mrow></mrow><mo>=</mo><msup><mi>e</mi><mrow><mo>−</mo><mrow><msub><mi>θ</mi><mi>j</mi></msub><mo>⁢</mo><mi>t</mi></mrow></mrow></msup></mrow></math>, giving</p>
+<table id="S2.E7" class="ltx_equation ltx_eqn_table">
+
+<tbody><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_eqn_cell ltx_align_center"><math id="S2.E7.m1" class="ltx_Math" alttext="\ell(\bm{\theta})=\sum_{i=1}^{n}\left[-s_{i}\sum_{j=1}^{m}\theta_{j}+\delta_{i%
+}\log\left(\sum_{k\in c_{i}}\theta_{k}\right)\right]." display="block"><mrow><mrow><mrow><mi mathvariant="normal">ℓ</mi><mo>⁢</mo><mrow><mo stretchy="false">(</mo><mi>𝜽</mi><mo stretchy="false">)</mo></mrow></mrow><mo rspace="0.111em">=</mo><mrow><munderover><mo movablelimits="false" rspace="0em">∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover><mrow><mo>[</mo><mrow><mrow><mo>−</mo><mrow><msub><mi>s</mi><mi>i</mi></msub><mo>⁢</mo><mrow><munderover><mo movablelimits="false">∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mi>m</mi></munderover><msub><mi>θ</mi><mi>j</mi></msub></mrow></mrow></mrow><mo>+</mo><mrow><msub><mi>δ</mi><mi>i</mi></msub><mo lspace="0.167em">⁢</mo><mrow><mi>log</mi><mo>⁡</mo><mrow><mo>(</mo><mrow><munder><mo lspace="0em" movablelimits="false">∑</mo><mrow><mi>k</mi><mo>∈</mo><msub><mi>c</mi><mi>i</mi></msub></mrow></munder><msub><mi>θ</mi><mi>k</mi></msub></mrow><mo>)</mo></mrow></mrow></mrow></mrow><mo>]</mo></mrow></mrow></mrow><mo lspace="0em">.</mo></mrow></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation ltx_align_right">(7)</span></td>
+</tr></tbody>
+</table>
+</div>
+</section>
+<section id="S2.SS4.SSS0.Px2" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Weibull specialization.</h4>
+
+<div id="S2.SS4.SSS0.Px2.p1" class="ltx_para">
+<p class="ltx_p">When each component has Weibull lifetime with shape <math id="S2.SS4.SSS0.Px2.p1.m1" class="ltx_Math" alttext="k_{j}" display="inline"><msub><mi>k</mi><mi>j</mi></msub></math> and scale
+<math id="S2.SS4.SSS0.Px2.p1.m2" class="ltx_Math" alttext="\lambda_{j}" display="inline"><msub><mi>λ</mi><mi>j</mi></msub></math>, the hazard is <math id="S2.SS4.SSS0.Px2.p1.m3" class="ltx_Math" alttext="h_{j}(t)=(k_{j}/\lambda_{j})(t/\lambda_{j})^{k_{j}-1}" display="inline"><mrow><mrow><msub><mi>h</mi><mi>j</mi></msub><mo>⁢</mo><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo></mrow></mrow><mo>=</mo><mrow><mrow><mo stretchy="false">(</mo><mrow><msub><mi>k</mi><mi>j</mi></msub><mo>/</mo><msub><mi>λ</mi><mi>j</mi></msub></mrow><mo stretchy="false">)</mo></mrow><mo>⁢</mo><msup><mrow><mo stretchy="false">(</mo><mrow><mi>t</mi><mo>/</mo><msub><mi>λ</mi><mi>j</mi></msub></mrow><mo stretchy="false">)</mo></mrow><mrow><msub><mi>k</mi><mi>j</mi></msub><mo>−</mo><mn>1</mn></mrow></msup></mrow></mrow></math>
+and <math id="S2.SS4.SSS0.Px2.p1.m4" class="ltx_Math" alttext="R_{j}(t)=\exp[-(t/\lambda_{j})^{k_{j}}]" display="inline"><mrow><mrow><msub><mi>R</mi><mi>j</mi></msub><mo>⁢</mo><mrow><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo></mrow></mrow><mo>=</mo><mrow><mi>exp</mi><mo>⁡</mo><mrow><mo stretchy="false">[</mo><mrow><mo>−</mo><msup><mrow><mo stretchy="false">(</mo><mrow><mi>t</mi><mo>/</mo><msub><mi>λ</mi><mi>j</mi></msub></mrow><mo stretchy="false">)</mo></mrow><msub><mi>k</mi><mi>j</mi></msub></msup></mrow><mo stretchy="false">]</mo></mrow></mrow></mrow></math>. The log-likelihood becomes</p>
+<table id="S2.E8" class="ltx_equation ltx_eqn_table">
+
+<tbody><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_eqn_cell ltx_align_center"><math id="S2.E8.m1" class="ltx_Math" alttext="\ell(\bm{\theta})=\sum_{i=1}^{n}\left[-\sum_{j=1}^{m}\left(\frac{s_{i}}{%
+\lambda_{j}}\right)^{k_{j}}+\delta_{i}\log\left(\sum_{k\in c_{i}}h_{k}(s_{i})%
+\right)\right]," display="block"><mrow><mrow><mrow><mi mathvariant="normal">ℓ</mi><mo>⁢</mo><mrow><mo stretchy="false">(</mo><mi>𝜽</mi><mo stretchy="false">)</mo></mrow></mrow><mo rspace="0.111em">=</mo><mrow><munderover><mo movablelimits="false" rspace="0em">∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover><mrow><mo>[</mo><mrow><mrow><mo>−</mo><mrow><munderover><mo movablelimits="false" rspace="0em">∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mi>m</mi></munderover><msup><mrow><mo>(</mo><mfrac><msub><mi>s</mi><mi>i</mi></msub><msub><mi>λ</mi><mi>j</mi></msub></mfrac><mo>)</mo></mrow><msub><mi>k</mi><mi>j</mi></msub></msup></mrow></mrow><mo>+</mo><mrow><msub><mi>δ</mi><mi>i</mi></msub><mo lspace="0.167em">⁢</mo><mrow><mi>log</mi><mo>⁡</mo><mrow><mo>(</mo><mrow><munder><mo lspace="0em" movablelimits="false">∑</mo><mrow><mi>k</mi><mo>∈</mo><msub><mi>c</mi><mi>i</mi></msub></mrow></munder><mrow><msub><mi>h</mi><mi>k</mi></msub><mo>⁢</mo><mrow><mo stretchy="false">(</mo><msub><mi>s</mi><mi>i</mi></msub><mo stretchy="false">)</mo></mrow></mrow></mrow><mo>)</mo></mrow></mrow></mrow></mrow><mo>]</mo></mrow></mrow></mrow><mo>,</mo></mrow></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation ltx_align_right">(8)</span></td>
+</tr></tbody>
+</table>
+<p class="ltx_p">where <math id="S2.SS4.SSS0.Px2.p1.m5" class="ltx_Math" alttext="\bm{\theta}=(k_{1},\lambda_{1},\ldots,k_{m},\lambda_{m})" display="inline"><mrow><mi>𝜽</mi><mo>=</mo><mrow><mo stretchy="false">(</mo><msub><mi>k</mi><mn>1</mn></msub><mo>,</mo><msub><mi>λ</mi><mn>1</mn></msub><mo>,</mo><mi mathvariant="normal">…</mi><mo>,</mo><msub><mi>k</mi><mi>m</mi></msub><mo>,</mo><msub><mi>λ</mi><mi>m</mi></msub><mo stretchy="false">)</mo></mrow></mrow></math>.</p>
+</div>
+</section>
+</section>
+<section id="S2.SS5" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">2.5 </span>Prior Work on Dependent Masking</h3>
+
+<div id="S2.SS5.p1" class="ltx_para">
+<p class="ltx_p">Several authors have proposed models that relax C2 by explicitly specifying a
+masking mechanism that depends on the failure cause.</p>
+</div>
+<div id="S2.SS5.p2" class="ltx_para">
+<p class="ltx_p"><cite class="ltx_cite ltx_citemacro_citet">Lin and Guess [<a href="#bib.bib15" title="System life data analysis with dependent partial knowledge on the exact cause of system failure" class="ltx_ref">8</a>]</cite> introduced proportional masking probabilities for
+two-component systems, deriving closed-form MLEs under the assumption that the
+masking probability for the true cause exceeds that for the non-failed
+component by a fixed ratio. <cite class="ltx_cite ltx_citemacro_citet">Guttman<span class="ltx_text ltx_bib_etal"> et al.</span> [<a href="#bib.bib16" title="Dependent masking and system life data analysis: Bayesian inference for two-component systems" class="ltx_ref">6</a>]</cite> extended two-component
+dependent masking to a Bayesian framework with conjugate priors.
+<cite class="ltx_cite ltx_citemacro_citet">Craiu and Duchesne [<a href="#bib.bib46" title="Inference based on the EM algorithm for the competing risks model with masked causes of failure" class="ltx_ref">2</a>]</cite> developed EM-based inference for the competing risks
+model with masked causes, deriving conditions under which the EM algorithm
+converges to consistent estimators. <cite class="ltx_cite ltx_citemacro_citet">Mukhopadhyay and Basu [<a href="#bib.bib17" title="Bayesian analysis of incomplete time and cause of failure data" class="ltx_ref">10</a>]</cite> extended
+Bayesian analysis to general <math id="S2.SS5.p2.m1" class="ltx_Math" alttext="m" display="inline"><mi>m</mi></math>-component systems where masking probabilities
+depend on the cause of failure. <cite class="ltx_cite ltx_citemacro_citet">Craiu and Reiser [<a href="#bib.bib18" title="Inference for the dependent competing risks model with masked causes of failure" class="ltx_ref">1</a>]</cite> studied conditional
+masking probability models and proved identifiability results under specific
+structural assumptions on the masking mechanism. <cite class="ltx_cite ltx_citemacro_citet">Flehinger<span class="ltx_text ltx_bib_etal"> et al.</span> [<a href="#bib.bib47" title="Parametric modeling for survival with competing risks and masked failure causes" class="ltx_ref">4</a>]</cite>
+developed parametric Weibull models for masked competing risks with two-stage
+diagnostic procedures.</p>
+</div>
+<div id="S2.SS5.p3" class="ltx_para">
+<p class="ltx_p">These approaches share a common strategy: they replace C2 with a specific
+parametric masking model and estimate its parameters jointly with the
+component reliability parameters. The implicit assumption is that the masking
+model is correctly specified. However, the masking mechanism is itself a
+diagnostic process that is rarely known in detail.</p>
+</div>
+<div id="S2.SS5.p4" class="ltx_para">
+<p class="ltx_p">Our approach is instead inspired by sensitivity analysis methodology in causal
+inference <cite class="ltx_cite ltx_citemacro_citep">[<a href="#bib.bib43" title="Observational studies" class="ltx_ref">11</a>]</cite>, where the strength of an
+unverifiable assumption is parameterized and conclusions are examined as the
+assumption is relaxed. <cite class="ltx_cite ltx_citemacro_citet">VanderWeele and Ding [<a href="#bib.bib44" title="Sensitivity analysis in observational research: introducing the E-value" class="ltx_ref">17</a>]</cite> formalize this via the
+E-value, quantifying the minimum confounding strength needed to overturn a
+finding; <cite class="ltx_cite ltx_citemacro_citet">Siannis [<a href="#bib.bib45" title="Applications of a parametric model for informative censoring" class="ltx_ref">12</a>]</cite> apply the same principle to informative
+censoring in survival analysis. We adapt this paradigm to masked data: rather
+than proposing an alternative masking model, we ask <em class="ltx_emph ltx_font_italic">how sensitive is the
+standard C1-C2-C3 estimator to violations of C2?</em></p>
+</div>
+</section>
+</section>
+<section id="S3" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">3 </span>Sensitivity Framework</h2>
+
+<div id="S3.p1" class="ltx_para">
+<p class="ltx_p">We now develop the tools needed to study the sensitivity of C1-C2-C3 inference
+to C2 violations. We proceed in four steps: the general likelihood under C1
+alone (<a href="#S3.SS1" title="3.1 Likelihood Under C1 Alone ‣ 3 Sensitivity Framework ‣ Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Section</span> <span class="ltx_text ltx_ref_tag">3.1</span></a>), a Bernoulli model for generating controlled C2
+violations (<a href="#S3.SS2" title="3.2 The Bernoulli Perturbation Model ‣ 3 Sensitivity Framework ‣ Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Section</span> <span class="ltx_text ltx_ref_tag">3.2</span></a>), a misspecification theorem characterizing
+the resulting bias (<a href="#S3.SS3" title="3.3 Misspecification Under C2 Violation ‣ 3 Sensitivity Framework ‣ Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Section</span> <span class="ltx_text ltx_ref_tag">3.3</span></a>), and a non-identifiability result that
+motivates sensitivity analysis over model estimation (<a href="#S3.SS4" title="3.4 The Identifiability Trap ‣ 3 Sensitivity Framework ‣ Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Section</span> <span class="ltx_text ltx_ref_tag">3.4</span></a>).</p>
+</div>
+<section id="S3.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">3.1 </span>Likelihood Under C1 Alone</h3>
+
+<div id="S3.SS1.p1" class="ltx_para">
+<p class="ltx_p">When only C1 holds, the masking probability enters the likelihood and cannot
+be eliminated.</p>
+</div>
+<div id="S3.Thmtheorem1" class="ltx_theorem ltx_theorem_theorem">
+<h6 class="ltx_title ltx_runin ltx_title_theorem">
+<span class="ltx_tag ltx_tag_theorem"><span class="ltx_text ltx_font_bold">Theorem 3.1</span></span><span class="ltx_text ltx_font_bold"> </span>(Likelihood Under C1 Alone)<span class="ltx_text ltx_font_bold">.</span>
+</h6>
+<div id="S3.Thmtheorem1.p1" class="ltx_para">
+<p class="ltx_p"><span class="ltx_text ltx_font_italic">Under Condition C1 alone, the likelihood contribution from an uncensored
+observation <math id="S3.Thmtheorem1.p1.m1" class="ltx_Math" alttext="(s_{i},c_{i})" display="inline"><mrow><mo stretchy="false">(</mo><msub><mi>s</mi><mi>i</mi></msub><mo>,</mo><msub><mi>c</mi><mi>i</mi></msub><mo stretchy="false">)</mo></mrow></math> is:</span></p>
+<table id="S3.E9" class="ltx_equation ltx_eqn_table">
+
+<tbody><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_eqn_cell ltx_align_center"><math id="S3.E9.m1" class="ltx_Math" alttext="L_{i}(\bm{\theta})=\prod_{\ell=1}^{m}R_{\ell}(s_{i};\bm{\theta}_{\ell})\cdot%
+\sum_{k\in c_{i}}h_{k}(s_{i};\bm{\theta}_{k})\cdot\mathrm{Pr}\{C_{i}=c_{i}\mid
+T%
+_{i}=s_{i},K_{i}=k\}." display="block"><mrow><mrow><mrow><msub><mi>L</mi><mi>i</mi></msub><mo>⁢</mo><mrow><mo stretchy="false">(</mo><mi>𝜽</mi><mo stretchy="false">)</mo></mrow></mrow><mo rspace="0.111em">=</mo><mrow><munderover><mo movablelimits="false">∏</mo><mrow><mi mathvariant="normal">ℓ</mi><mo>=</mo><mn>1</mn></mrow><mi>m</mi></munderover><mrow><mrow><msub><mi>R</mi><mi mathvariant="normal">ℓ</mi></msub><mo>⁢</mo><mrow><mo stretchy="false">(</mo><msub><mi>s</mi><mi>i</mi></msub><mo>;</mo><msub><mi>𝜽</mi><mi mathvariant="normal">ℓ</mi></msub><mo rspace="0.055em" stretchy="false">)</mo></mrow></mrow><mo rspace="0.055em">⋅</mo><mrow><munder><mo movablelimits="false">∑</mo><mrow><mi>k</mi><mo>∈</mo><msub><mi>c</mi><mi>i</mi></msub></mrow></munder><mrow><mrow><mrow><msub><mi>h</mi><mi>k</mi></msub><mo>⁢</mo><mrow><mo stretchy="false">(</mo><msub><mi>s</mi><mi>i</mi></msub><mo>;</mo><msub><mi>𝜽</mi><mi>k</mi></msub><mo rspace="0.055em" stretchy="false">)</mo></mrow></mrow><mo rspace="0.222em">⋅</mo><mi>Pr</mi></mrow><mo>⁢</mo><mrow><mo stretchy="false">{</mo><mrow><msub><mi>C</mi><mi>i</mi></msub><mo>=</mo><msub><mi>c</mi><mi>i</mi></msub></mrow><mo fence="true" lspace="0em" rspace="0em">∣</mo><mrow><mrow><msub><mi>T</mi><mi>i</mi></msub><mo>=</mo><msub><mi>s</mi><mi>i</mi></msub></mrow><mo>,</mo><mrow><msub><mi>K</mi><mi>i</mi></msub><mo>=</mo><mi>k</mi></mrow></mrow><mo stretchy="false">}</mo></mrow></mrow></mrow></mrow></mrow></mrow><mo lspace="0em">.</mo></mrow></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation ltx_align_right">(9)</span></td>
+</tr></tbody>
+</table>
+</div>
+</div>
+<div class="ltx_proof">
+<h6 class="ltx_title ltx_runin ltx_font_italic ltx_title_proof">Proof.</h6>
+<div id="S3.SS1.p2" class="ltx_para">
+<p class="ltx_p">Under C1, <math id="S3.SS1.p2.m1" class="ltx_Math" alttext="\mathrm{Pr}\{C_{i}=c\mid T_{i}=t,K_{i}=k\}=0" display="inline"><mrow><mrow><mi>Pr</mi><mo>⁢</mo><mrow><mo stretchy="false">{</mo><mrow><msub><mi>C</mi><mi>i</mi></msub><mo>=</mo><mi>c</mi></mrow><mo fence="true" lspace="0em" rspace="0em">∣</mo><mrow><mrow><msub><mi>T</mi><mi>i</mi></msub><mo>=</mo><mi>t</mi></mrow><mo>,</mo><mrow><msub><mi>K</mi><mi>i</mi></msub><mo>=</mo><mi>k</mi></mrow></mrow><mo stretchy="false">}</mo></mrow></mrow><mo>=</mo><mn>0</mn></mrow></math> when <math id="S3.SS1.p2.m2" class="ltx_Math" alttext="k\notin c" display="inline"><mrow><mi>k</mi><mo>∉</mo><mi>c</mi></mrow></math>.
+Summing over <math id="S3.SS1.p2.m3" class="ltx_Math" alttext="K_{i}" display="inline"><msub><mi>K</mi><mi>i</mi></msub></math>:</p>
+<table id="A3.EGx1" class="ltx_equationgroup ltx_eqn_align ltx_eqn_table">
+
+<tbody id="S3.Ex1"><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right ltx_eqn_cell"><math id="S3.Ex1.m1" class="ltx_Math" alttext="\displaystyle f_{T_{i},C_{i}}(t,c;\bm{\theta})" display="inline"><mrow><msub><mi>f</mi><mrow><msub><mi>T</mi><mi>i</mi></msub><mo>,</mo><msub><mi>C</mi><mi>i</mi></msub></mrow></msub><mo>⁢</mo><mrow><mo stretchy="false">(</mo><mi>t</mi><mo>,</mo><mi>c</mi><mo>;</mo><mi>𝜽</mi><mo stretchy="false">)</mo></mrow></mrow></math></td>
+<td class="ltx_td ltx_align_left ltx_eqn_cell"><math id="S3.Ex1.m2" class="ltx_Math" alttext="\displaystyle=\sum_{k=1}^{m}h_{k}(t;\bm{\theta}_{k})\prod_{\ell=1}^{m}R_{\ell}%
+(t;\bm{\theta}_{\ell})\cdot\mathrm{Pr}\{C_{i}=c\mid T_{i}=t,K_{i}=k\}" display="inline"><mrow><mi></mi><mo>=</mo><mrow><mstyle displaystyle="true"><munderover><mo movablelimits="false">∑</mo><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><mi>m</mi></munderover></mstyle><mrow><msub><mi>h</mi><mi>k</mi></msub><mo>⁢</mo><mrow><mo stretchy="false">(</mo><mi>t</mi><mo>;</mo><msub><mi>𝜽</mi><mi>k</mi></msub><mo stretchy="false">)</mo></mrow><mo>⁢</mo><mrow><mstyle displaystyle="true"><munderover><mo movablelimits="false">∏</mo><mrow><mi mathvariant="normal">ℓ</mi><mo>=</mo><mn>1</mn></mrow><mi>m</mi></munderover></mstyle><mrow><mrow><mrow><msub><mi>R</mi><mi mathvariant="normal">ℓ</mi></msub><mo>⁢</mo><mrow><mo stretchy="false">(</mo><mi>t</mi><mo>;</mo><msub><mi>𝜽</mi><mi mathvariant="normal">ℓ</mi></msub><mo rspace="0.055em" stretchy="false">)</mo></mrow></mrow><mo rspace="0.222em">⋅</mo><mi>Pr</mi></mrow><mo>⁢</mo><mrow><mo stretchy="false">{</mo><mrow><msub><mi>C</mi><mi>i</mi></msub><mo>=</mo><mi>c</mi></mrow><mo fence="true" lspace="0em" rspace="0em">∣</mo><mrow><mrow><msub><mi>T</mi><mi>i</mi></msub><mo>=</mo><mi>t</mi></mrow><mo>,</mo><mrow><msub><mi>K</mi><mi>i</mi></msub><mo>=</mo><mi>k</mi></mrow></mrow><mo stretchy="false">}</mo></mrow></mrow></mrow></mrow></mrow></mrow></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+</tr></tbody>
+<tbody id="S3.E10"><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_eqn_cell"></td>
+<td class="ltx_td ltx_align_left ltx_eqn_cell"><math id="S3.E10.m1" class="ltx_Math" alttext="\displaystyle=\prod_{\ell=1}^{m}R_{\ell}(t;\bm{\theta}_{\ell})\cdot\sum_{k\in c%
+}h_{k}(t;\bm{\theta}_{k})\,\mathrm{Pr}\{C_{i}=c\mid T_{i}=t,K_{i}=k\}.\qed" display="inline"><mrow><mrow><mi></mi><mo>=</mo><mrow><mstyle displaystyle="true"><munderover><mo movablelimits="false">∏</mo><mrow><mi mathvariant="normal">ℓ</mi><mo>=</mo><mn>1</mn></mrow><mi>m</mi></munderover></mstyle><mrow><mrow><msub><mi>R</mi><mi mathvariant="normal">ℓ</mi></msub><mo>⁢</mo><mrow><mo stretchy="false">(</mo><mi>t</mi><mo>;</mo><msub><mi>𝜽</mi><mi mathvariant="normal">ℓ</mi></msub><mo rspace="0.055em" stretchy="false">)</mo></mrow></mrow><mo rspace="0.222em">⋅</mo><mrow><mstyle displaystyle="true"><munder><mo movablelimits="false">∑</mo><mrow><mi>k</mi><mo>∈</mo><mi>c</mi></mrow></munder></mstyle><mrow><msub><mi>h</mi><mi>k</mi></msub><mo>⁢</mo><mrow><mo stretchy="false">(</mo><mi>t</mi><mo>;</mo><msub><mi>𝜽</mi><mi>k</mi></msub><mo stretchy="false">)</mo></mrow><mo lspace="0.170em">⁢</mo><mi>Pr</mi><mo>⁢</mo><mrow><mo stretchy="false">{</mo><mrow><msub><mi>C</mi><mi>i</mi></msub><mo>=</mo><mi>c</mi></mrow><mo fence="true" lspace="0em" rspace="0em">∣</mo><mrow><mrow><msub><mi>T</mi><mi>i</mi></msub><mo>=</mo><mi>t</mi></mrow><mo>,</mo><mrow><msub><mi>K</mi><mi>i</mi></msub><mo>=</mo><mi>k</mi></mrow></mrow><mo stretchy="false">}</mo></mrow></mrow></mrow></mrow></mrow></mrow><mo lspace="0em" rspace="0.0835em">.</mo><mo class="ltx_mathvariant_italic" lspace="0.0835em" mathvariant="italic" separator="true">∎</mo></mrow></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation ltx_align_right">(10)</span></td>
+</tr></tbody>
+</table>
+</div>
+</div>
+<div id="S3.SS1.p3" class="ltx_para">
+<p class="ltx_p">Under C2, the masking probability <math id="S3.SS1.p3.m1" class="ltx_Math" alttext="\mathrm{Pr}\{C_{i}=c\mid T_{i}=t,K_{i}=k\}" display="inline"><mrow><mi>Pr</mi><mo>⁢</mo><mrow><mo stretchy="false">{</mo><mrow><msub><mi>C</mi><mi>i</mi></msub><mo>=</mo><mi>c</mi></mrow><mo fence="true" lspace="0em" rspace="0em">∣</mo><mrow><mrow><msub><mi>T</mi><mi>i</mi></msub><mo>=</mo><mi>t</mi></mrow><mo>,</mo><mrow><msub><mi>K</mi><mi>i</mi></msub><mo>=</mo><mi>k</mi></mrow></mrow><mo stretchy="false">}</mo></mrow></mrow></math> is
+constant over <math id="S3.SS1.p3.m2" class="ltx_Math" alttext="k\in c" display="inline"><mrow><mi>k</mi><mo>∈</mo><mi>c</mi></mrow></math> and factors out of the sum. Under C3, it does not
+depend on <math id="S3.SS1.p3.m3" class="ltx_Math" alttext="\bm{\theta}" display="inline"><mi>𝜽</mi></math> and can be dropped from the likelihood. When either
+condition fails, the masking probability remains inside the sum, coupling the
+inference about <math id="S3.SS1.p3.m4" class="ltx_Math" alttext="\bm{\theta}" display="inline"><mi>𝜽</mi></math> to the unknown masking mechanism.</p>
+</div>
+</section>
+<section id="S3.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">3.2 </span>The Bernoulli Perturbation Model</h3>
+
+<div id="S3.SS2.p1" class="ltx_para">
+<p class="ltx_p">To generate data with controlled C2 violations, we use a Bernoulli candidate
+set model. We do not claim this model describes how masking works in practice.
+Rather, it provides a device for producing data whose departure from C2 is
+known and calibrated.</p>
+</div>
+<div id="S3.Thmtheorem2" class="ltx_theorem ltx_theorem_definition">
+<h6 class="ltx_title ltx_runin ltx_title_theorem">
+<span class="ltx_tag ltx_tag_theorem"><span class="ltx_text ltx_font_bold">Definition 3.2</span></span><span class="ltx_text ltx_font_bold"> </span>(Bernoulli Masking Model)<span class="ltx_text ltx_font_bold">.</span>
+</h6>
+<div id="S3.Thmtheorem2.p1" class="ltx_para">
+<p class="ltx_p"><span class="ltx_text ltx_font_italic">Let <math id="S3.Thmtheorem2.p1.m1" class="ltx_Math" alttext="p_{j}(k)=\mathrm{Pr}\{j\in C_{i}\mid K_{i}=k\}" display="inline"><mrow><mrow><msub><mi>p</mi><mi>j</mi></msub><mo>⁢</mo><mrow><mo stretchy="false">(</mo><mi>k</mi><mo stretchy="false">)</mo></mrow></mrow><mo>=</mo><mrow><mi>Pr</mi><mo>⁢</mo><mrow><mo stretchy="false">{</mo><mrow><mi>j</mi><mo>∈</mo><msub><mi>C</mi><mi>i</mi></msub></mrow><mo fence="true" lspace="0em" rspace="0em">∣</mo><mrow><msub><mi>K</mi><mi>i</mi></msub><mo>=</mo><mi>k</mi></mrow><mo stretchy="false">}</mo></mrow></mrow></mrow></math> denote the probability that
+component <math id="S3.Thmtheorem2.p1.m2" class="ltx_Math" alttext="j" display="inline"><mi>j</mi></math> is included in the candidate set given that component <math id="S3.Thmtheorem2.p1.m3" class="ltx_Math" alttext="k" display="inline"><mi>k</mi></math>
+failed. Under C1, <math id="S3.Thmtheorem2.p1.m4" class="ltx_Math" alttext="p_{j}(j)=1" display="inline"><mrow><mrow><msub><mi>p</mi><mi>j</mi></msub><mo>⁢</mo><mrow><mo stretchy="false">(</mo><mi>j</mi><mo stretchy="false">)</mo></mrow></mrow><mo>=</mo><mn>1</mn></mrow></math> for all <math id="S3.Thmtheorem2.p1.m5" class="ltx_Math" alttext="j" display="inline"><mi>j</mi></math>. These probabilities form an
+<math id="S3.Thmtheorem2.p1.m6" class="ltx_Math" alttext="m\times m" display="inline"><mrow><mi>m</mi><mo lspace="0.222em" rspace="0.222em">×</mo><mi>m</mi></mrow></math> matrix:</span></p>
+<table id="S3.E11" class="ltx_equation ltx_eqn_table">
+
+<tbody><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_eqn_cell ltx_align_center"><math id="S3.E11.m1" class="ltx_Math" alttext="\mathbf{P}=\begin{pmatrix}1&amp;p_{1}(2)&amp;\cdots&amp;p_{1}(m)\\
+p_{2}(1)&amp;1&amp;\cdots&amp;p_{2}(m)\\
+\vdots&amp;\vdots&amp;\ddots&amp;\vdots\\
+p_{m}(1)&amp;p_{m}(2)&amp;\cdots&amp;1\end{pmatrix}," display="block"><mrow><mrow><mi>𝐏</mi><mo>=</mo><mrow><mo>(</mo><mtable columnspacing="5pt" displaystyle="true" rowspacing="0pt"><mtr><mtd><mn>1</mn></mtd><mtd><mrow><msub><mi>p</mi><mn>1</mn></msub><mo>⁢</mo><mrow><mo stretchy="false">(</mo><mn>2</mn><mo stretchy="false">)</mo></mrow></mrow></mtd><mtd><mi mathvariant="normal">⋯</mi></mtd><mtd><mrow><msub><mi>p</mi><mn>1</mn></msub><mo>⁢</mo><mrow><mo stretchy="false">(</mo><mi>m</mi><mo stretchy="false">)</mo></mrow></mrow></mtd></mtr><mtr><mtd><mrow><msub><mi>p</mi><mn>2</mn></msub><mo>⁢</mo><mrow><mo stretchy="false">(</mo><mn>1</mn><mo stretchy="false">)</mo></mrow></mrow></mtd><mtd><mn>1</mn></mtd><mtd><mi mathvariant="normal">⋯</mi></mtd><mtd><mrow><msub><mi>p</mi><mn>2</mn></msub><mo>⁢</mo><mrow><mo stretchy="false">(</mo><mi>m</mi><mo stretchy="false">)</mo></mrow></mrow></mtd></mtr><mtr><mtd><mi mathvariant="normal">⋮</mi></mtd><mtd><mi mathvariant="normal">⋮</mi></mtd><mtd><mi mathvariant="normal">⋱</mi></mtd><mtd><mi mathvariant="normal">⋮</mi></mtd></mtr><mtr><mtd><mrow><msub><mi>p</mi><mi>m</mi></msub><mo>⁢</mo><mrow><mo stretchy="false">(</mo><mn>1</mn><mo stretchy="false">)</mo></mrow></mrow></mtd><mtd><mrow><msub><mi>p</mi><mi>m</mi></msub><mo>⁢</mo><mrow><mo stretchy="false">(</mo><mn>2</mn><mo stretchy="false">)</mo></mrow></mrow></mtd><mtd><mi mathvariant="normal">⋯</mi></mtd><mtd><mn>1</mn></mtd></mtr></mtable><mo>)</mo></mrow></mrow><mo>,</mo></mrow></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation ltx_align_right">(11)</span></td>
+</tr></tbody>
+</table>
+<p class="ltx_p"><span class="ltx_text ltx_font_italic">where each component is included independently. The probability of observing
+candidate set <math id="S3.Thmtheorem2.p1.m7" class="ltx_Math" alttext="c" display="inline"><mi>c</mi></math> given <math id="S3.Thmtheorem2.p1.m8" class="ltx_Math" alttext="K_{i}=k" display="inline"><mrow><msub><mi>K</mi><mi>i</mi></msub><mo>=</mo><mi>k</mi></mrow></math> is</span></p>
+<table id="S3.E12" class="ltx_equation ltx_eqn_table">
+
+<tbody><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_eqn_cell ltx_align_center"><math id="S3.E12.m1" class="ltx_Math" alttext="\pi_{k}(c)=\mathbf{1}_{k\in c}\prod_{j\in c\setminus\{k\}}p_{j}(k)\prod_{j%
+\notin c}(1-p_{j}(k))." display="block"><mrow><mrow><mrow><msub><mi>π</mi><mi>k</mi></msub><mo>⁢</mo><mrow><mo stretchy="false">(</mo><mi>c</mi><mo stretchy="false">)</mo></mrow></mrow><mo>=</mo><mrow><msub><mn>𝟏</mn><mrow><mi>k</mi><mo>∈</mo><mi>c</mi></mrow></msub><mo>⁢</mo><mrow><munder><mo movablelimits="false">∏</mo><mrow><mi>j</mi><mo>∈</mo><mrow><mi>c</mi><mo>∖</mo><mrow><mo stretchy="false">{</mo><mi>k</mi><mo stretchy="false">}</mo></mrow></mrow></mrow></munder><mrow><msub><mi>p</mi><mi>j</mi></msub><mo>⁢</mo><mrow><mo stretchy="false">(</mo><mi>k</mi><mo stretchy="false">)</mo></mrow><mo>⁢</mo><mrow><munder><mo movablelimits="false" rspace="0em">∏</mo><mrow><mi>j</mi><mo>∉</mo><mi>c</mi></mrow></munder><mrow><mo stretchy="false">(</mo><mrow><mn>1</mn><mo>−</mo><mrow><msub><mi>p</mi><mi>j</mi></msub><mo>⁢</mo><mrow><mo stretchy="false">(</mo><mi>k</mi><mo stretchy="false">)</mo></mrow></mrow></mrow><mo stretchy="false">)</mo></mrow></mrow></mrow></mrow></mrow></mrow><mo lspace="0em">.</mo></mrow></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation ltx_align_right">(12)</span></td>
+</tr></tbody>
+</table>
+</div>
+</div>
+<div id="S3.Thmremark1" class="ltx_theorem ltx_theorem_remark">
+<h6 class="ltx_title ltx_runin ltx_title_theorem">
+<span class="ltx_tag ltx_tag_theorem"><span class="ltx_text ltx_font_italic">Remark 3.1</span></span><span class="ltx_text ltx_font_italic"> </span>(C2 in Terms of <math id="S3.Thmremark1.m1" class="ltx_Math" alttext="\mathbf{P}" display="inline"><mi>𝐏</mi></math>)<span class="ltx_text ltx_font_italic">.</span>
+</h6>
+<div id="S3.Thmremark1.p1" class="ltx_para">
+<p class="ltx_p">Condition C2 holds if and only if each row of <math id="S3.Thmremark1.p1.m1" class="ltx_Math" alttext="\mathbf{P}" display="inline"><mi>𝐏</mi></math> has constant
+off-diagonal entries: <math id="S3.Thmremark1.p1.m2" class="ltx_Math" alttext="p_{j}(k)=p_{j}" display="inline"><mrow><mrow><msub><mi>p</mi><mi>j</mi></msub><mo>⁢</mo><mrow><mo stretchy="false">(</mo><mi>k</mi><mo stretchy="false">)</mo></mrow></mrow><mo>=</mo><msub><mi>p</mi><mi>j</mi></msub></mrow></math> for all <math id="S3.Thmremark1.p1.m3" class="ltx_Math" alttext="k\neq j" display="inline"><mrow><mi>k</mi><mo>≠</mo><mi>j</mi></mrow></math>. When the columns of
+<math id="S3.Thmremark1.p1.m4" class="ltx_Math" alttext="\mathbf{P}" display="inline"><mi>𝐏</mi></math> differ, the masking mechanism “knows” which component failed,
+violating C2.</p>
+</div>
+</div>
+<div id="S3.SS2.p2" class="ltx_para">
+<p class="ltx_p">The likelihood under this model follows immediately from
+<a href="#S3.Thmtheorem1" title="Theorem 3.1 (Likelihood Under C1 Alone). ‣ 3.1 Likelihood Under C1 Alone ‣ 3 Sensitivity Framework ‣ Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Theorem</span> <span class="ltx_text ltx_ref_tag">3.1</span></a>:</p>
+</div>
+<div id="S3.Thmtheorem3" class="ltx_theorem ltx_theorem_corollary">
+<h6 class="ltx_title ltx_runin ltx_title_theorem">
+<span class="ltx_tag ltx_tag_theorem"><span class="ltx_text ltx_font_bold">Corollary 3.3</span></span><span class="ltx_text ltx_font_bold"> </span>(Likelihood Under the Bernoulli Model)<span class="ltx_text ltx_font_bold">.</span>
+</h6>
+<div id="S3.Thmtheorem3.p1" class="ltx_para">
+<p class="ltx_p"><span class="ltx_text ltx_font_italic">Under the Bernoulli masking model with known <math id="S3.Thmtheorem3.p1.m1" class="ltx_Math" alttext="\mathbf{P}" display="inline"><mi>𝐏</mi></math>, the likelihood
+contribution from an uncensored observation <math id="S3.Thmtheorem3.p1.m2" class="ltx_Math" alttext="(s_{i},c_{i})" display="inline"><mrow><mo stretchy="false">(</mo><msub><mi>s</mi><mi>i</mi></msub><mo>,</mo><msub><mi>c</mi><mi>i</mi></msub><mo stretchy="false">)</mo></mrow></math> is:</span></p>
+<table id="S3.E13" class="ltx_equation ltx_eqn_table">
+
+<tbody><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_eqn_cell ltx_align_center"><math id="S3.E13.m1" class="ltx_Math" alttext="L_{i}(\bm{\theta})=\prod_{\ell=1}^{m}R_{\ell}(s_{i};\bm{\theta}_{\ell})\cdot%
+\sum_{k\in c_{i}}h_{k}(s_{i};\bm{\theta}_{k})\cdot\pi_{k}(c_{i})." display="block"><mrow><mrow><mrow><msub><mi>L</mi><mi>i</mi></msub><mo>⁢</mo><mrow><mo stretchy="false">(</mo><mi>𝜽</mi><mo stretchy="false">)</mo></mrow></mrow><mo rspace="0.111em">=</mo><mrow><munderover><mo movablelimits="false">∏</mo><mrow><mi mathvariant="normal">ℓ</mi><mo>=</mo><mn>1</mn></mrow><mi>m</mi></munderover><mrow><mrow><msub><mi>R</mi><mi mathvariant="normal">ℓ</mi></msub><mo>⁢</mo><mrow><mo stretchy="false">(</mo><msub><mi>s</mi><mi>i</mi></msub><mo>;</mo><msub><mi>𝜽</mi><mi mathvariant="normal">ℓ</mi></msub><mo rspace="0.055em" stretchy="false">)</mo></mrow></mrow><mo rspace="0.055em">⋅</mo><mrow><munder><mo movablelimits="false">∑</mo><mrow><mi>k</mi><mo>∈</mo><msub><mi>c</mi><mi>i</mi></msub></mrow></munder><mrow><mrow><mrow><msub><mi>h</mi><mi>k</mi></msub><mo>⁢</mo><mrow><mo stretchy="false">(</mo><msub><mi>s</mi><mi>i</mi></msub><mo>;</mo><msub><mi>𝜽</mi><mi>k</mi></msub><mo rspace="0.055em" stretchy="false">)</mo></mrow></mrow><mo rspace="0.222em">⋅</mo><msub><mi>π</mi><mi>k</mi></msub></mrow><mo>⁢</mo><mrow><mo stretchy="false">(</mo><msub><mi>c</mi><mi>i</mi></msub><mo stretchy="false">)</mo></mrow></mrow></mrow></mrow></mrow></mrow><mo lspace="0em">.</mo></mrow></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation ltx_align_right">(13)</span></td>
+</tr></tbody>
+</table>
+</div>
+</div>
+<section id="S3.SS2.SSS0.Px1" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Parameterizing violation severity.</h4>
+
+<div id="S3.SS2.SSS0.Px1.p1" class="ltx_para">
+<p class="ltx_p">We generate a family of <math id="S3.SS2.SSS0.Px1.p1.m1" class="ltx_Math" alttext="\mathbf{P}" display="inline"><mi>𝐏</mi></math> matrices indexed by a scalar severity
+parameter <math id="S3.SS2.SSS0.Px1.p1.m2" class="ltx_Math" alttext="s\in[0,1]" display="inline"><mrow><mi>s</mi><mo>∈</mo><mrow><mo stretchy="false">[</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo stretchy="false">]</mo></mrow></mrow></math>:</p>
+<table id="S3.E14" class="ltx_equation ltx_eqn_table">
+
+<tbody><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_eqn_cell ltx_align_center"><math id="S3.E14.m1" class="ltx_Math" alttext="\mathbf{P}(s)=\mathbf{P}_{0}+s\,\mathbf{D}," display="block"><mrow><mrow><mrow><mi>𝐏</mi><mo>⁢</mo><mrow><mo stretchy="false">(</mo><mi>s</mi><mo stretchy="false">)</mo></mrow></mrow><mo>=</mo><mrow><msub><mi>𝐏</mi><mn>0</mn></msub><mo>+</mo><mrow><mi>s</mi><mo lspace="0.170em">⁢</mo><mi>𝐃</mi></mrow></mrow></mrow><mo>,</mo></mrow></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation ltx_align_right">(14)</span></td>
+</tr></tbody>
+</table>
+<p class="ltx_p">where <math id="S3.SS2.SSS0.Px1.p1.m3" class="ltx_Math" alttext="\mathbf{P}_{0}" display="inline"><msub><mi>𝐏</mi><mn>0</mn></msub></math> is the uniform (C2-satisfying) matrix with all
+off-diagonal entries equal to a base probability <math id="S3.SS2.SSS0.Px1.p1.m4" class="ltx_Math" alttext="p_{0}" display="inline"><msub><mi>p</mi><mn>0</mn></msub></math>, and <math id="S3.SS2.SSS0.Px1.p1.m5" class="ltx_Math" alttext="\mathbf{D}" display="inline"><mi>𝐃</mi></math> is a
+fixed “direction” matrix with zero diagonal, whose off-diagonal entries
+create column-wise asymmetry. Off-diagonal entries of <math id="S3.SS2.SSS0.Px1.p1.m6" class="ltx_Math" alttext="\mathbf{P}(s)" display="inline"><mrow><mi>𝐏</mi><mo>⁢</mo><mrow><mo stretchy="false">(</mo><mi>s</mi><mo stretchy="false">)</mo></mrow></mrow></math> are
+clamped to <math id="S3.SS2.SSS0.Px1.p1.m7" class="ltx_Math" alttext="[0.05,0.95]" display="inline"><mrow><mo stretchy="false">[</mo><mn>0.05</mn><mo>,</mo><mn>0.95</mn><mo stretchy="false">]</mo></mrow></math> to maintain valid probabilities. At <math id="S3.SS2.SSS0.Px1.p1.m8" class="ltx_Math" alttext="s=0" display="inline"><mrow><mi>s</mi><mo>=</mo><mn>0</mn></mrow></math>, C2
+holds exactly; as <math id="S3.SS2.SSS0.Px1.p1.m9" class="ltx_Math" alttext="s" display="inline"><mi>s</mi></math> increases, the columns of <math id="S3.SS2.SSS0.Px1.p1.m10" class="ltx_Math" alttext="\mathbf{P}" display="inline"><mi>𝐏</mi></math> diverge and the
+masking becomes increasingly informative.</p>
+</div>
+</section>
+</section>
+<section id="S3.SS3" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">3.3 </span>Misspecification Under C2 Violation</h3>
+
+<div id="S3.SS3.p1" class="ltx_para">
+<p class="ltx_p">We now characterize what happens when the standard C1-C2-C3 model is fitted
+to data generated under C2 violation.</p>
+</div>
+<div id="S3.Thmtheorem4" class="ltx_theorem ltx_theorem_theorem">
+<h6 class="ltx_title ltx_runin ltx_title_theorem">
+<span class="ltx_tag ltx_tag_theorem"><span class="ltx_text ltx_font_bold">Theorem 3.4</span></span><span class="ltx_text ltx_font_bold"> </span>(Bias from C2 Misspecification)<span class="ltx_text ltx_font_bold">.</span>
+</h6>
+<div id="S3.Thmtheorem4.p1" class="ltx_para">
+<p class="ltx_p"><span class="ltx_text ltx_font_italic">Suppose data is generated under C1 and C3 with informative masking weights
+<math id="S3.Thmtheorem4.p1.m1" class="ltx_Math" alttext="\pi_{k,c}" display="inline"><msub><mi>π</mi><mrow><mi>k</mi><mo>,</mo><mi>c</mi></mrow></msub></math>, but estimation is performed under C1-C2-C3 (assuming
+non-informative masking). By the general theory of misspecified
+MLEs <cite class="ltx_cite ltx_citemacro_citep">[<a href="#bib.bib37" title="Maximum likelihood estimation of misspecified models" class="ltx_ref">18</a>, <a href="#bib.bib38" title="The behavior of maximum likelihood estimates under nonstandard conditions" class="ltx_ref">7</a>]</cite>, the MLE under the
+misspecified model converges in probability to a pseudo-true parameter
+<math id="S3.Thmtheorem4.p1.m2" class="ltx_Math" alttext="\bm{\theta}^{\dagger}" display="inline"><msup><mi>𝛉</mi><mo>†</mo></msup></math> satisfying</span></p>
+<table id="S3.E15" class="ltx_equation ltx_eqn_table">
+
+<tbody><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_eqn_cell ltx_align_center"><math id="S3.E15.m1" class="ltx_Math" alttext="\mathbb{E}_{\bm{\theta}^{*}}\left[\frac{\partial\ell^{\mathrm{wrong}}}{%
+\partial\theta_{j}}\bigg{|}_{\bm{\theta}=\bm{\theta}^{\dagger}}\right]=0," display="block"><mrow><mrow><mrow><msub><mi>𝔼</mi><msup><mi>𝜽</mi><mo>∗</mo></msup></msub><mo>⁢</mo><mrow><mo>[</mo><msub><mrow><mfrac><mrow><mo rspace="0em">∂</mo><msup><mi mathvariant="normal">ℓ</mi><mi>wrong</mi></msup></mrow><mrow><mo rspace="0em">∂</mo><msub><mi>θ</mi><mi>j</mi></msub></mrow></mfrac><mo maxsize="210%" minsize="210%">|</mo></mrow><mrow><mi>𝜽</mi><mo>=</mo><msup><mi>𝜽</mi><mo>†</mo></msup></mrow></msub><mo>]</mo></mrow></mrow><mo>=</mo><mn>0</mn></mrow><mo>,</mo></mrow></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation ltx_align_right">(15)</span></td>
+</tr></tbody>
+</table>
+<p class="ltx_p"><span class="ltx_text ltx_font_italic">where the expectation is taken under the true data-generating process with
+parameter <math id="S3.Thmtheorem4.p1.m3" class="ltx_Math" alttext="\bm{\theta}^{*}" display="inline"><msup><mi>𝛉</mi><mo>∗</mo></msup></math>. The pseudo-true parameter differs from <math id="S3.Thmtheorem4.p1.m4" class="ltx_Math" alttext="\bm{\theta}^{*}" display="inline"><msup><mi>𝛉</mi><mo>∗</mo></msup></math>
+unless C2 holds.</span></p>
+</div>
+<div id="S3.Thmtheorem4.p2" class="ltx_para">
+<p class="ltx_p"><span class="ltx_text ltx_font_italic">For exponential components with rates <math id="S3.Thmtheorem4.p2.m1" class="ltx_Math" alttext="\bm{\theta}=(\theta_{1},\ldots,\theta_{m})" display="inline"><mrow><mi>𝛉</mi><mo>=</mo><mrow><mo stretchy="false">(</mo><msub><mi>θ</mi><mn>1</mn></msub><mo>,</mo><mi mathvariant="normal">…</mi><mo>,</mo><msub><mi>θ</mi><mi>m</mi></msub><mo stretchy="false">)</mo></mrow></mrow></math>:</span></p>
+<ol id="S3.I1" class="ltx_enumerate">
+<li id="S3.I1.ix1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">(a)</span> 
+<div id="S3.I1.ix1.p1" class="ltx_para">
+<p class="ltx_p"><span class="ltx_text ltx_font_italic">The total system hazard is approximately preserved:
+</span><math id="S3.I1.ix1.p1.m1" class="ltx_Math" alttext="\sum_{j}\theta_{j}^{\dagger}\approx\sum_{j}\theta_{j}^{*}" display="inline"><mrow><mrow><msub><mo>∑</mo><mi>j</mi></msub><msubsup><mi>θ</mi><mi>j</mi><mo>†</mo></msubsup></mrow><mo rspace="0.111em">≈</mo><mrow><msub><mo>∑</mo><mi>j</mi></msub><msubsup><mi>θ</mi><mi>j</mi><mo>∗</mo></msubsup></mrow></mrow></math><span class="ltx_text ltx_font_italic">.</span></p>
+</div>
+</li>
+<li id="S3.I1.ix2" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">(b)</span> 
+<div id="S3.I1.ix2.p1" class="ltx_para">
+<p class="ltx_p"><span class="ltx_text ltx_font_italic">Individual rates absorb the masking asymmetry:
+components that are over-represented in candidate sets
+(due to asymmetric </span><math id="S3.I1.ix2.p1.m1" class="ltx_Math" alttext="\mathbf{P}" display="inline"><mi>𝐏</mi></math><span class="ltx_text ltx_font_italic">) have inflated </span><math id="S3.I1.ix2.p1.m2" class="ltx_Math" alttext="\theta_{j}^{\dagger}" display="inline"><msubsup><mi>θ</mi><mi>j</mi><mo>†</mo></msubsup></math><span class="ltx_text ltx_font_italic">,
+while under-represented components have deflated estimates.</span></p>
+</div>
+</li>
+</ol>
+</div>
+</div>
+<div class="ltx_proof">
+<h6 class="ltx_title ltx_runin ltx_font_italic ltx_title_proof">Proof.</h6>
+<div id="S3.SS3.p2" class="ltx_para">
+<p class="ltx_p">The misspecified score for exponential component <math id="S3.SS3.p2.m1" class="ltx_Math" alttext="j" display="inline"><mi>j</mi></math> is</p>
+<table id="S3.E16" class="ltx_equation ltx_eqn_table">
+
+<tbody><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_eqn_cell ltx_align_center"><math id="S3.E16.m1" class="ltx_Math" alttext="\frac{\partial\ell_{i}^{\mathrm{wrong}}}{\partial\theta_{j}}=-s_{i}+\delta_{i}%
+\frac{\mathbf{1}_{j\in c_{i}}}{\sum_{k\in c_{i}}\theta_{k}}." display="block"><mrow><mrow><mfrac><mrow><mo rspace="0em">∂</mo><msubsup><mi mathvariant="normal">ℓ</mi><mi>i</mi><mi>wrong</mi></msubsup></mrow><mrow><mo rspace="0em">∂</mo><msub><mi>θ</mi><mi>j</mi></msub></mrow></mfrac><mo>=</mo><mrow><mrow><mo>−</mo><msub><mi>s</mi><mi>i</mi></msub></mrow><mo>+</mo><mrow><msub><mi>δ</mi><mi>i</mi></msub><mo>⁢</mo><mfrac><msub><mn>𝟏</mn><mrow><mi>j</mi><mo>∈</mo><msub><mi>c</mi><mi>i</mi></msub></mrow></msub><mrow><msub><mo>∑</mo><mrow><mi>k</mi><mo>∈</mo><msub><mi>c</mi><mi>i</mi></msub></mrow></msub><msub><mi>θ</mi><mi>k</mi></msub></mrow></mfrac></mrow></mrow></mrow><mo lspace="0em">.</mo></mrow></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation ltx_align_right">(16)</span></td>
+</tr></tbody>
+</table>
+<p class="ltx_p">The true score under C1-C3 (with masking weights <math id="S3.SS3.p2.m2" class="ltx_Math" alttext="\pi_{k,c}" display="inline"><msub><mi>π</mi><mrow><mi>k</mi><mo>,</mo><mi>c</mi></mrow></msub></math>) is</p>
+<table id="S3.E17" class="ltx_equation ltx_eqn_table">
+
+<tbody><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_eqn_cell ltx_align_center"><math id="S3.E17.m1" class="ltx_Math" alttext="\frac{\partial\ell_{i}^{\mathrm{true}}}{\partial\theta_{j}}=-s_{i}+\delta_{i}%
+\frac{\pi_{j,c_{i}}\,\mathbf{1}_{j\in c_{i}}}{\sum_{k\in c_{i}}\theta_{k}\,\pi%
+_{k,c_{i}}}." display="block"><mrow><mrow><mfrac><mrow><mo rspace="0em">∂</mo><msubsup><mi mathvariant="normal">ℓ</mi><mi>i</mi><mi>true</mi></msubsup></mrow><mrow><mo rspace="0em">∂</mo><msub><mi>θ</mi><mi>j</mi></msub></mrow></mfrac><mo>=</mo><mrow><mrow><mo>−</mo><msub><mi>s</mi><mi>i</mi></msub></mrow><mo>+</mo><mrow><msub><mi>δ</mi><mi>i</mi></msub><mo>⁢</mo><mfrac><mrow><msub><mi>π</mi><mrow><mi>j</mi><mo>,</mo><msub><mi>c</mi><mi>i</mi></msub></mrow></msub><mo>⁢</mo><msub><mn class="ltx_mathvariant_bold" mathvariant="bold"> 1</mn><mrow><mi>j</mi><mo>∈</mo><msub><mi>c</mi><mi>i</mi></msub></mrow></msub></mrow><mrow><msub><mo>∑</mo><mrow><mi>k</mi><mo>∈</mo><msub><mi>c</mi><mi>i</mi></msub></mrow></msub><mrow><msub><mi>θ</mi><mi>k</mi></msub><mo>⁢</mo><msub><mi>π</mi><mrow><mi>k</mi><mo>,</mo><msub><mi>c</mi><mi>i</mi></msub></mrow></msub></mrow></mrow></mfrac></mrow></mrow></mrow><mo lspace="0em">.</mo></mrow></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation ltx_align_right">(17)</span></td>
+</tr></tbody>
+</table>
+<p class="ltx_p">At <math id="S3.SS3.p2.m3" class="ltx_Math" alttext="\bm{\theta}^{*}" display="inline"><msup><mi>𝜽</mi><mo>∗</mo></msup></math>, the true score has expectation zero. The misspecified score
+replaces <math id="S3.SS3.p2.m4" class="ltx_Math" alttext="\pi_{k,c}" display="inline"><msub><mi>π</mi><mrow><mi>k</mi><mo>,</mo><mi>c</mi></mrow></msub></math> with uniform weights <math id="S3.SS3.p2.m5" class="ltx_Math" alttext="1/|c|" display="inline"><mrow><mn>1</mn><mo>/</mo><mrow><mo stretchy="false">|</mo><mi>c</mi><mo stretchy="false">|</mo></mrow></mrow></math>. Setting
+<math id="S3.SS3.p2.m6" class="ltx_Math" alttext="\mathbb{E}[\partial\ell^{\mathrm{wrong}}/\partial\theta_{j}]=0" display="inline"><mrow><mrow><mi>𝔼</mi><mo>⁢</mo><mrow><mo stretchy="false">[</mo><mrow><mo lspace="0em" rspace="0em">∂</mo><mrow><msup><mi mathvariant="normal">ℓ</mi><mi>wrong</mi></msup><mo>/</mo><mrow><mo lspace="0em" rspace="0em">∂</mo><msub><mi>θ</mi><mi>j</mi></msub></mrow></mrow></mrow><mo stretchy="false">]</mo></mrow></mrow><mo>=</mo><mn>0</mn></mrow></math> at
+<math id="S3.SS3.p2.m7" class="ltx_Math" alttext="\bm{\theta}^{\dagger}" display="inline"><msup><mi>𝜽</mi><mo>†</mo></msup></math> yields a system whose solution differs from <math id="S3.SS3.p2.m8" class="ltx_Math" alttext="\bm{\theta}^{*}" display="inline"><msup><mi>𝜽</mi><mo>∗</mo></msup></math>
+whenever the masking weights <math id="S3.SS3.p2.m9" class="ltx_Math" alttext="\pi_{k,c}" display="inline"><msub><mi>π</mi><mrow><mi>k</mi><mo>,</mo><mi>c</mi></mrow></msub></math> vary with <math id="S3.SS3.p2.m10" class="ltx_Math" alttext="k" display="inline"><mi>k</mi></math>.</p>
+</div>
+<div id="S3.SS3.p3" class="ltx_para">
+<p class="ltx_p">For part (a), summing the misspecified score over all <math id="S3.SS3.p3.m1" class="ltx_Math" alttext="j" display="inline"><mi>j</mi></math> yields the total
+hazard score</p>
+<table id="S3.E18" class="ltx_equation ltx_eqn_table">
+
+<tbody><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_eqn_cell ltx_align_center"><math id="S3.E18.m1" class="ltx_Math" alttext="\sum_{j}\frac{\partial\ell_{i}^{\mathrm{wrong}}}{\partial\theta_{j}}=-ms_{i}+%
+\delta_{i}\frac{|c_{i}|}{\sum_{k\in c_{i}}\theta_{k}}." display="block"><mrow><mrow><mrow><munder><mo movablelimits="false">∑</mo><mi>j</mi></munder><mfrac><mrow><mo rspace="0em">∂</mo><msubsup><mi mathvariant="normal">ℓ</mi><mi>i</mi><mi>wrong</mi></msubsup></mrow><mrow><mo rspace="0em">∂</mo><msub><mi>θ</mi><mi>j</mi></msub></mrow></mfrac></mrow><mo>=</mo><mrow><mrow><mo>−</mo><mrow><mi>m</mi><mo>⁢</mo><msub><mi>s</mi><mi>i</mi></msub></mrow></mrow><mo>+</mo><mrow><msub><mi>δ</mi><mi>i</mi></msub><mo>⁢</mo><mfrac><mrow><mo stretchy="false">|</mo><msub><mi>c</mi><mi>i</mi></msub><mo stretchy="false">|</mo></mrow><mrow><msub><mo>∑</mo><mrow><mi>k</mi><mo>∈</mo><msub><mi>c</mi><mi>i</mi></msub></mrow></msub><msub><mi>θ</mi><mi>k</mi></msub></mrow></mfrac></mrow></mrow></mrow><mo lspace="0em">.</mo></mrow></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation ltx_align_right">(18)</span></td>
+</tr></tbody>
+</table>
+<p class="ltx_p">The analogous sum for the true score is</p>
+<table id="S3.E19" class="ltx_equation ltx_eqn_table">
+
+<tbody><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_eqn_cell ltx_align_center"><math id="S3.E19.m1" class="ltx_Math" alttext="\sum_{j}\frac{\partial\ell_{i}^{\mathrm{true}}}{\partial\theta_{j}}=-ms_{i}+%
+\delta_{i}\frac{\sum_{k\in c_{i}}\pi_{k,c_{i}}}{\sum_{k\in c_{i}}\theta_{k}\,%
+\pi_{k,c_{i}}}." display="block"><mrow><mrow><mrow><munder><mo movablelimits="false">∑</mo><mi>j</mi></munder><mfrac><mrow><mo rspace="0em">∂</mo><msubsup><mi mathvariant="normal">ℓ</mi><mi>i</mi><mi>true</mi></msubsup></mrow><mrow><mo rspace="0em">∂</mo><msub><mi>θ</mi><mi>j</mi></msub></mrow></mfrac></mrow><mo>=</mo><mrow><mrow><mo>−</mo><mrow><mi>m</mi><mo>⁢</mo><msub><mi>s</mi><mi>i</mi></msub></mrow></mrow><mo>+</mo><mrow><msub><mi>δ</mi><mi>i</mi></msub><mo>⁢</mo><mfrac><mrow><msub><mo>∑</mo><mrow><mi>k</mi><mo>∈</mo><msub><mi>c</mi><mi>i</mi></msub></mrow></msub><msub><mi>π</mi><mrow><mi>k</mi><mo>,</mo><msub><mi>c</mi><mi>i</mi></msub></mrow></msub></mrow><mrow><msub><mo>∑</mo><mrow><mi>k</mi><mo>∈</mo><msub><mi>c</mi><mi>i</mi></msub></mrow></msub><mrow><msub><mi>θ</mi><mi>k</mi></msub><mo>⁢</mo><msub><mi>π</mi><mrow><mi>k</mi><mo>,</mo><msub><mi>c</mi><mi>i</mi></msub></mrow></msub></mrow></mrow></mfrac></mrow></mrow></mrow><mo lspace="0em">.</mo></mrow></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation ltx_align_right">(19)</span></td>
+</tr></tbody>
+</table>
+<p class="ltx_p">When the masking weights satisfy
+<math id="S3.SS3.p3.m2" class="ltx_Math" alttext="\sum_{k\in c}\pi_{k,c}/\sum_{k\in c}\theta_{k}\pi_{k,c}\approx|c|/\sum_{k\in c%
+}\theta_{k}" display="inline"><mrow><mrow><msub><mo>∑</mo><mrow><mi>k</mi><mo>∈</mo><mi>c</mi></mrow></msub><mrow><msub><mi>π</mi><mrow><mi>k</mi><mo>,</mo><mi>c</mi></mrow></msub><mo rspace="0.055em">/</mo><mrow><msub><mo>∑</mo><mrow><mi>k</mi><mo>∈</mo><mi>c</mi></mrow></msub><mrow><msub><mi>θ</mi><mi>k</mi></msub><mo>⁢</mo><msub><mi>π</mi><mrow><mi>k</mi><mo>,</mo><mi>c</mi></mrow></msub></mrow></mrow></mrow></mrow><mo>≈</mo><mrow><mrow><mo stretchy="false">|</mo><mi>c</mi><mo stretchy="false">|</mo></mrow><mo rspace="0.055em">/</mo><mrow><msub><mo>∑</mo><mrow><mi>k</mi><mo>∈</mo><mi>c</mi></mrow></msub><msub><mi>θ</mi><mi>k</mi></msub></mrow></mrow></mrow></math>, the total hazard score equations agree and
+<math id="S3.SS3.p3.m3" class="ltx_Math" alttext="\sum_{j}\theta_{j}^{\dagger}\approx\sum_{j}\theta_{j}^{*}" display="inline"><mrow><mrow><msub><mo>∑</mo><mi>j</mi></msub><msubsup><mi>θ</mi><mi>j</mi><mo>†</mo></msubsup></mrow><mo rspace="0.111em">≈</mo><mrow><msub><mo>∑</mo><mi>j</mi></msub><msubsup><mi>θ</mi><mi>j</mi><mo>∗</mo></msubsup></mrow></mrow></math>. This holds exactly
+when C2 is satisfied and approximately when the masking asymmetry is
+moderate.
+∎</p>
+</div>
+</div>
+<div id="S3.Thmremark2" class="ltx_theorem ltx_theorem_remark">
+<h6 class="ltx_title ltx_runin ltx_title_theorem">
+<span class="ltx_tag ltx_tag_theorem"><span class="ltx_text ltx_font_italic">Remark 3.2</span></span><span class="ltx_text ltx_font_italic"> </span>(Interpretation)<span class="ltx_text ltx_font_italic">.</span>
+</h6>
+<div id="S3.Thmremark2.p1" class="ltx_para">
+<p class="ltx_p">The misspecified estimator acts as if each candidate in <math id="S3.Thmremark2.p1.m1" class="ltx_Math" alttext="c_{i}" display="inline"><msub><mi>c</mi><mi>i</mi></msub></math> contributes
+equally to the observed failure, regardless of the actual masking weights. When
+a component is over-included in candidate sets (its column of <math id="S3.Thmremark2.p1.m2" class="ltx_Math" alttext="\mathbf{P}" display="inline"><mi>𝐏</mi></math> has
+higher off-diagonal values), it “claims credit” for more failures than it
+actually caused, inflating its estimated rate.</p>
+</div>
+</div>
+</section>
+<section id="S3.SS4" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">3.4 </span>The Identifiability Trap</h3>
+
+<div id="S3.SS4.p1" class="ltx_para">
+<p class="ltx_p">A natural response to C2 uncertainty would be to estimate <math id="S3.SS4.p1.m1" class="ltx_Math" alttext="\mathbf{P}" display="inline"><mi>𝐏</mi></math> jointly
+with <math id="S3.SS4.p1.m2" class="ltx_Math" alttext="\bm{\theta}" display="inline"><mi>𝜽</mi></math> from the data. This fails.</p>
+</div>
+<div id="S3.Thmtheorem5" class="ltx_theorem ltx_theorem_theorem">
+<h6 class="ltx_title ltx_runin ltx_title_theorem">
+<span class="ltx_tag ltx_tag_theorem"><span class="ltx_text ltx_font_bold">Theorem 3.5</span></span><span class="ltx_text ltx_font_bold"> </span>(Non-Identifiability of <math id="S3.Thmtheorem5.m1" class="ltx_Math" alttext="(\bm{\theta},\mathbf{P})" display="inline"><mrow><mo stretchy="false">(</mo><mi>𝜽</mi><mo>,</mo><mi>𝐏</mi><mo stretchy="false">)</mo></mrow></math>)<span class="ltx_text ltx_font_bold">.</span>
+</h6>
+<div id="S3.Thmtheorem5.p1" class="ltx_para">
+<p class="ltx_p"><span class="ltx_text ltx_font_italic">For exponential series systems with masked data, the joint parameter
+<math id="S3.Thmtheorem5.p1.m1" class="ltx_Math" alttext="(\bm{\theta},\mathbf{P})" display="inline"><mrow><mo stretchy="false">(</mo><mi>𝛉</mi><mo>,</mo><mi>𝐏</mi><mo stretchy="false">)</mo></mrow></math> is not identifiable from the observed data
+<math id="S3.Thmtheorem5.p1.m2" class="ltx_Math" alttext="(s_{i},c_{i},\delta_{i})_{i=1}^{n}" display="inline"><msubsup><mrow><mo stretchy="false">(</mo><msub><mi>s</mi><mi>i</mi></msub><mo>,</mo><msub><mi>c</mi><mi>i</mi></msub><mo>,</mo><msub><mi>δ</mi><mi>i</mi></msub><mo stretchy="false">)</mo></mrow><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></msubsup></math>. Different combinations of <math id="S3.Thmtheorem5.p1.m3" class="ltx_Math" alttext="(\bm{\theta},\mathbf{P})" display="inline"><mrow><mo stretchy="false">(</mo><mi>𝛉</mi><mo>,</mo><mi>𝐏</mi><mo stretchy="false">)</mo></mrow></math> can yield equivalent likelihoods.</span></p>
+</div>
+<div id="S3.Thmtheorem5.p2" class="ltx_para">
+<p class="ltx_p"><span class="ltx_text ltx_font_italic">However, the total system hazard <math id="S3.Thmtheorem5.p2.m1" class="ltx_Math" alttext="\sum_{j=1}^{m}\theta_{j}" display="inline"><mrow><msubsup><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mi>m</mi></msubsup><msub><mi>θ</mi><mi>j</mi></msub></mrow></math> remains identifiable
+from the marginal system lifetime data.</span></p>
+</div>
+</div>
+<div id="S3.SS4.p2" class="ltx_para">
+<p class="ltx_p">This extends the classical non-identifiability result for competing risks
+<cite class="ltx_cite ltx_citemacro_citep">[<a href="#bib.bib40" title="A nonidentifiability aspect of the problem of competing risks" class="ltx_ref">14</a>, <a href="#bib.bib41" title="Classical competing risks" class="ltx_ref">3</a>]</cite> to the masked data
+setting: the masking mechanism and component parameters play analogous roles to
+the dependence structure and marginal distributions in the competing risks
+framework.</p>
+</div>
+<div id="S3.SS4.p3" class="ltx_para">
+<p class="ltx_p">This result is supported by both theoretical argument and simulation evidence.
+Even with <math id="S3.SS4.p3.m1" class="ltx_Math" alttext="n=2000" display="inline"><mrow><mi>n</mi><mo>=</mo><mn>2000</mn></mrow></math> observations, the joint MLE of <math id="S3.SS4.p3.m2" class="ltx_Math" alttext="(\bm{\theta},\mathbf{P})" display="inline"><mrow><mo stretchy="false">(</mo><mi>𝜽</mi><mo>,</mo><mi>𝐏</mi><mo stretchy="false">)</mo></mrow></math>
+exhibits persistent bias with individual component rates confounded with the
+off-diagonal entries of <math id="S3.SS4.p3.m3" class="ltx_Math" alttext="\mathbf{P}" display="inline"><mi>𝐏</mi></math>, while the total hazard
+<math id="S3.SS4.p3.m4" class="ltx_Math" alttext="\sum_{j}\hat{\theta}_{j}" display="inline"><mrow><msub><mo>∑</mo><mi>j</mi></msub><msub><mover accent="true"><mi>θ</mi><mo>^</mo></mover><mi>j</mi></msub></mrow></math> converges to the true value
+(see <a href="#A2" title="Appendix B Non-Identifiability Evidence ‣ Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Appendix</span> <span class="ltx_text ltx_ref_tag">B</span></a>).</p>
+</div>
+<div id="S3.Thmremark3" class="ltx_theorem ltx_theorem_remark">
+<h6 class="ltx_title ltx_runin ltx_title_theorem">
+<span class="ltx_tag ltx_tag_theorem"><span class="ltx_text ltx_font_italic">Remark 3.3</span></span><span class="ltx_text ltx_font_italic"> </span>(Implications)<span class="ltx_text ltx_font_italic">.</span>
+</h6>
+<div id="S3.Thmremark3.p1" class="ltx_para">
+<p class="ltx_p">Since <math id="S3.Thmremark3.p1.m1" class="ltx_Math" alttext="\bm{\theta}" display="inline"><mi>𝜽</mi></math> and <math id="S3.Thmremark3.p1.m2" class="ltx_Math" alttext="\mathbf{P}" display="inline"><mi>𝐏</mi></math> cannot be disentangled from the data, we
+cannot “just estimate” the masking mechanism. This makes sensitivity
+analysis the appropriate tool: fit the standard C1-C2-C3 model, then assess
+how conclusions change under plausible perturbations of the masking structure
+via different <math id="S3.Thmremark3.p1.m3" class="ltx_Math" alttext="\mathbf{P}" display="inline"><mi>𝐏</mi></math> matrices. If the substantive conclusions are stable,
+C2 violations are not a concern for the application at hand.</p>
+</div>
+</div>
+</section>
+</section>
+<section id="S4" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">4 </span>Simulation Study</h2>
+
+<div id="S4.p1" class="ltx_para">
+<p class="ltx_p">We conduct a systematic sweep of C2 violation severity for a 5-component
+Weibull series system, fitting the standard C1-C2-C3 model throughout. This
+quantifies the practical impact of C2 misspecification as a function of the
+departure from non-informative masking.</p>
+</div>
+<section id="S4.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.1 </span>Design</h3>
+
+<section id="S4.SS1.SSS0.Px1" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">System configuration.</h4>
+
+<div id="S4.SS1.SSS0.Px1.p1" class="ltx_para">
+<p class="ltx_p">We consider an <math id="S4.SS1.SSS0.Px1.p1.m1" class="ltx_Math" alttext="m=5" display="inline"><mrow><mi>m</mi><mo>=</mo><mn>5</mn></mrow></math> component Weibull series system with shapes
+<math id="S4.SS1.SSS0.Px1.p1.m2" class="ltx_Math" alttext="\mathbf{k}^{*}=(2.0,1.5,1.2,1.8,1.0)" display="inline"><mrow><msup><mi>𝐤</mi><mo>∗</mo></msup><mo>=</mo><mrow><mo stretchy="false">(</mo><mn>2.0</mn><mo>,</mo><mn>1.5</mn><mo>,</mo><mn>1.2</mn><mo>,</mo><mn>1.8</mn><mo>,</mo><mn>1.0</mn><mo stretchy="false">)</mo></mrow></mrow></math> and scales
+<math id="S4.SS1.SSS0.Px1.p1.m3" class="ltx_Math" alttext="\bm{\lambda}^{*}=(3.0,4.0,5.0,3.5,4.5)" display="inline"><mrow><msup><mi>𝝀</mi><mo>∗</mo></msup><mo>=</mo><mrow><mo stretchy="false">(</mo><mn>3.0</mn><mo>,</mo><mn>4.0</mn><mo>,</mo><mn>5.0</mn><mo>,</mo><mn>3.5</mn><mo>,</mo><mn>4.5</mn><mo stretchy="false">)</mo></mrow></mrow></math>. The fifth component (<math id="S4.SS1.SSS0.Px1.p1.m4" class="ltx_Math" alttext="k_{5}=1.0" display="inline"><mrow><msub><mi>k</mi><mn>5</mn></msub><mo>=</mo><mn>1.0</mn></mrow></math>)
+is exponential, providing a natural point of comparison within the system.
+Right-censoring time is <math id="S4.SS1.SSS0.Px1.p1.m5" class="ltx_Math" alttext="\tau=5" display="inline"><mrow><mi>τ</mi><mo>=</mo><mn>5</mn></mrow></math>, sample size <math id="S4.SS1.SSS0.Px1.p1.m6" class="ltx_Math" alttext="n=500" display="inline"><mrow><mi>n</mi><mo>=</mo><mn>500</mn></mrow></math>, and <math id="S4.SS1.SSS0.Px1.p1.m7" class="ltx_Math" alttext="B=200" display="inline"><mrow><mi>B</mi><mo>=</mo><mn>200</mn></mrow></math>
+replications per severity level. The true system hazard at reference time
+<math id="S4.SS1.SSS0.Px1.p1.m8" class="ltx_Math" alttext="t_{0}=2.0" display="inline"><mrow><msub><mi>t</mi><mn>0</mn></msub><mo>=</mo><mn>2.0</mn></mrow></math> is <math id="S4.SS1.SSS0.Px1.p1.m9" class="ltx_Math" alttext="h_{T}^{*}(2.0)=1.460" display="inline"><mrow><mrow><msubsup><mi>h</mi><mi>T</mi><mo>∗</mo></msubsup><mo>⁢</mo><mrow><mo stretchy="false">(</mo><mn>2.0</mn><mo stretchy="false">)</mo></mrow></mrow><mo>=</mo><mn>1.460</mn></mrow></math>.</p>
+</div>
+</section>
+<section id="S4.SS1.SSS0.Px2" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Severity sweep.</h4>
+
+<div id="S4.SS1.SSS0.Px2.p1" class="ltx_para">
+<p class="ltx_p">We sweep the severity parameter <math id="S4.SS1.SSS0.Px2.p1.m1" class="ltx_Math" alttext="s" display="inline"><mi>s</mi></math> over <math id="S4.SS1.SSS0.Px2.p1.m2" class="ltx_Math" alttext="\{0,0.1,0.2,\ldots,1.0\}" display="inline"><mrow><mo stretchy="false">{</mo><mn>0</mn><mo>,</mo><mn>0.1</mn><mo>,</mo><mn>0.2</mn><mo>,</mo><mi mathvariant="normal">…</mi><mo>,</mo><mn>1.0</mn><mo stretchy="false">}</mo></mrow></math>
+(11 levels). At each level, data is generated from the Bernoulli model with
+<math id="S4.SS1.SSS0.Px2.p1.m3" class="ltx_Math" alttext="\mathbf{P}(s)" display="inline"><mrow><mi>𝐏</mi><mo>⁢</mo><mrow><mo stretchy="false">(</mo><mi>s</mi><mo stretchy="false">)</mo></mrow></mrow></math> as defined in (<a href="#S3.E14" title="Equation 14 ‣ Parameterizing violation severity. ‣ 3.2 The Bernoulli Perturbation Model ‣ 3 Sensitivity Framework ‣ Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14</span></a>), using base probability
+<math id="S4.SS1.SSS0.Px2.p1.m4" class="ltx_Math" alttext="p_{0}=0.5" display="inline"><mrow><msub><mi>p</mi><mn>0</mn></msub><mo>=</mo><mn>0.5</mn></mrow></math>. The direction matrix has a cyclic structure with rows summing
+to zero:</p>
+<table id="S4.E20" class="ltx_equation ltx_eqn_table">
+
+<tbody><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_eqn_cell ltx_align_center"><math id="S4.E20.m1" class="ltx_Math" alttext="\mathbf{D}=\begin{pmatrix}0&amp;0.3&amp;-0.2&amp;0.1&amp;-0.2\\
+-0.2&amp;0&amp;0.3&amp;-0.2&amp;0.1\\
+0.1&amp;-0.2&amp;0&amp;0.3&amp;-0.2\\
+-0.2&amp;0.1&amp;-0.2&amp;0&amp;0.3\\
+0.3&amp;-0.2&amp;0.1&amp;-0.2&amp;0\end{pmatrix}." display="block"><mrow><mrow><mi>𝐃</mi><mo>=</mo><mrow><mo>(</mo><mtable columnspacing="5pt" displaystyle="true" rowspacing="0pt"><mtr><mtd><mn>0</mn></mtd><mtd><mn>0.3</mn></mtd><mtd><mrow><mo>−</mo><mn>0.2</mn></mrow></mtd><mtd><mn>0.1</mn></mtd><mtd><mrow><mo>−</mo><mn>0.2</mn></mrow></mtd></mtr><mtr><mtd><mrow><mo>−</mo><mn>0.2</mn></mrow></mtd><mtd><mn>0</mn></mtd><mtd><mn>0.3</mn></mtd><mtd><mrow><mo>−</mo><mn>0.2</mn></mrow></mtd><mtd><mn>0.1</mn></mtd></mtr><mtr><mtd><mn>0.1</mn></mtd><mtd><mrow><mo>−</mo><mn>0.2</mn></mrow></mtd><mtd><mn>0</mn></mtd><mtd><mn>0.3</mn></mtd><mtd><mrow><mo>−</mo><mn>0.2</mn></mrow></mtd></mtr><mtr><mtd><mrow><mo>−</mo><mn>0.2</mn></mrow></mtd><mtd><mn>0.1</mn></mtd><mtd><mrow><mo>−</mo><mn>0.2</mn></mrow></mtd><mtd><mn>0</mn></mtd><mtd><mn>0.3</mn></mtd></mtr><mtr><mtd><mn>0.3</mn></mtd><mtd><mrow><mo>−</mo><mn>0.2</mn></mrow></mtd><mtd><mn>0.1</mn></mtd><mtd><mrow><mo>−</mo><mn>0.2</mn></mrow></mtd><mtd><mn>0</mn></mtd></mtr></mtable><mo>)</mo></mrow></mrow><mo lspace="0em">.</mo></mrow></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation ltx_align_right">(20)</span></td>
+</tr></tbody>
+</table>
+<p class="ltx_p">The cyclic structure ensures that each component is equally affected in
+aggregate, so the bias pattern is driven by the interaction between masking
+asymmetry and the heterogeneous Weibull parameters rather than the direction
+matrix itself.</p>
+</div>
+</section>
+<section id="S4.SS1.SSS0.Px3" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Estimation.</h4>
+
+<div id="S4.SS1.SSS0.Px3.p1" class="ltx_para">
+<p class="ltx_p">At each severity level, all <math id="S4.SS1.SSS0.Px3.p1.m1" class="ltx_Math" alttext="B" display="inline"><mi>B</mi></math> datasets are fitted with the standard
+<em class="ltx_emph ltx_font_italic">C1-C2-C3</em> Weibull series MLE from (<a href="#S2.E8" title="Equation 8 ‣ Weibull specialization. ‣ 2.4 Likelihood Under C1-C2-C3 ‣ 2 Background ‣ Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption" class="ltx_ref"><span class="ltx_text ltx_ref_tag">8</span></a>), ignoring the
+informative masking. Optimization uses L-BFGS-B with starting values at 90%
+of true parameters. Convergence was 100% across all conditions.</p>
+</div>
+</section>
+<section id="S4.SS1.SSS0.Px4" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Metrics.</h4>
+
+<div id="S4.SS1.SSS0.Px4.p1" class="ltx_para">
+<p class="ltx_p">For each parameter and severity level, we report:</p>
+<ul id="S4.I1" class="ltx_itemize">
+<li id="S4.I1.i1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S4.I1.i1.p1" class="ltx_para">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Bias</span>: <math id="S4.I1.i1.p1.m1" class="ltx_Math" alttext="\bar{\hat{\theta}}_{j}-\theta_{j}^{*}" display="inline"><mrow><msub><mover accent="true"><mover accent="true"><mi>θ</mi><mo>^</mo></mover><mo>¯</mo></mover><mi>j</mi></msub><mo>−</mo><msubsup><mi>θ</mi><mi>j</mi><mo>∗</mo></msubsup></mrow></math>,</p>
+</div>
+</li>
+<li id="S4.I1.i2" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S4.I1.i2.p1" class="ltx_para">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">RMSE</span>: <math id="S4.I1.i2.p1.m1" class="ltx_Math" alttext="\sqrt{B^{-1}\sum_{b}(\hat{\theta}_{j}^{(b)}-\theta_{j}^{*})^{2}}" display="inline"><msqrt><mrow><msup><mi>B</mi><mrow><mo>−</mo><mn>1</mn></mrow></msup><mo>⁢</mo><mrow><msub><mo rspace="0em">∑</mo><mi>b</mi></msub><msup><mrow><mo stretchy="false">(</mo><mrow><msubsup><mover accent="true"><mi>θ</mi><mo>^</mo></mover><mi>j</mi><mrow><mo stretchy="false">(</mo><mi>b</mi><mo stretchy="false">)</mo></mrow></msubsup><mo>−</mo><msubsup><mi>θ</mi><mi>j</mi><mo>∗</mo></msubsup></mrow><mo stretchy="false">)</mo></mrow><mn>2</mn></msup></mrow></mrow></msqrt></math>,</p>
+</div>
+</li>
+<li id="S4.I1.i3" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S4.I1.i3.p1" class="ltx_para">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Coverage</span>: proportion of 95% Wald confidence intervals
+<math id="S4.I1.i3.p1.m1" class="ltx_Math" alttext="\hat{\theta}_{j}\pm 1.96\,\hat{\text{se}}_{j}" display="inline"><mrow><msub><mover accent="true"><mi>θ</mi><mo>^</mo></mover><mi>j</mi></msub><mo>±</mo><mrow><mn>1.96</mn><mo lspace="0.170em">⁢</mo><msub><mover accent="true"><mtext>se</mtext><mo>^</mo></mover><mi>j</mi></msub></mrow></mrow></math> that contain <math id="S4.I1.i3.p1.m2" class="ltx_Math" alttext="\theta_{j}^{*}" display="inline"><msubsup><mi>θ</mi><mi>j</mi><mo>∗</mo></msubsup></math>.</p>
+</div>
+</li>
+</ul>
+<p class="ltx_p">We additionally track the system hazard <math id="S4.SS1.SSS0.Px4.p1.m1" class="ltx_Math" alttext="\hat{h}_{T}(t_{0})" display="inline"><mrow><msub><mover accent="true"><mi>h</mi><mo>^</mo></mover><mi>T</mi></msub><mo>⁢</mo><mrow><mo stretchy="false">(</mo><msub><mi>t</mi><mn>0</mn></msub><mo stretchy="false">)</mo></mrow></mrow></math> evaluated at
+<math id="S4.SS1.SSS0.Px4.p1.m2" class="ltx_Math" alttext="t_{0}=2.0" display="inline"><mrow><msub><mi>t</mi><mn>0</mn></msub><mo>=</mo><mn>2.0</mn></mrow></math>.</p>
+</div>
+</section>
+</section>
+<section id="S4.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.2 </span>Results</h3>
+
+<div id="S4.SS2.p1" class="ltx_para">
+<p class="ltx_p"><a href="#S4.F1" title="In 4.2 Results ‣ 4 Simulation Study ‣ Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Figures</span> <span class="ltx_text ltx_ref_tag">1</span></a>, <a href="#S4.F2" title="Figure 2 ‣ 4.2 Results ‣ 4 Simulation Study ‣ Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a> and <a href="#S4.F3" title="Figure 3 ‣ 4.2 Results ‣ 4 Simulation Study ‣ Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3</span></a> display the three metrics as a function
+of severity.</p>
+</div>
+<figure id="S4.F1" class="ltx_figure"><img src="x1.png" id="S4.F1.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="706" height="530" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text" style="font-size:90%;">Figure 1</span>: </span><span class="ltx_text" style="font-size:90%;">Bias as a function of C2 violation severity for a 5-component
+Weibull series system. Individual component parameters show increasing bias
+with severity, while the system hazard (triangle markers) remains
+approximately unbiased.</span></figcaption>
+</figure>
+<figure id="S4.F2" class="ltx_figure"><img src="x2.png" id="S4.F2.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="706" height="530" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text" style="font-size:90%;">Figure 2</span>: </span><span class="ltx_text" style="font-size:90%;">Root mean squared error as a function of C2 violation severity.
+The RMSE for individual parameters grows with severity; the system hazard
+RMSE remains stable near 0.10 throughout.</span></figcaption>
+</figure>
+<figure id="S4.F3" class="ltx_figure"><img src="x3.png" id="S4.F3.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="706" height="530" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text" style="font-size:90%;">Figure 3</span>: </span><span class="ltx_text" style="font-size:90%;">95% confidence interval coverage as a function of C2 violation
+severity. The dashed line marks the nominal 95% level. Coverage for the
+most affected shape parameters (<math id="S4.F3.m5" class="ltx_Math" alttext="k_{2}" display="inline"><msub><mi>k</mi><mn>2</mn></msub></math>, <math id="S4.F3.m6" class="ltx_Math" alttext="k_{3}" display="inline"><msub><mi>k</mi><mn>3</mn></msub></math>, <math id="S4.F3.m7" class="ltx_Math" alttext="k_{4}" display="inline"><msub><mi>k</mi><mn>4</mn></msub></math>) drops below 70%
+at <math id="S4.F3.m8" class="ltx_Math" alttext="s=1.0" display="inline"><mrow><mi>s</mi><mo>=</mo><mn>1.0</mn></mrow></math>.</span></figcaption>
+</figure>
+<div id="S4.SS2.p2" class="ltx_para">
+<p class="ltx_p"><a href="#S4.T1" title="In 4.2 Results ‣ 4 Simulation Study ‣ Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Table</span> <span class="ltx_text ltx_ref_tag">1</span></a> provides numerical summaries at selected severity levels
+for a representative subset of parameters. The full results for all 10
+component parameters are shown in the figures.</p>
+</div>
+<figure id="S4.T1" class="ltx_table">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table"><span class="ltx_text" style="font-size:90%;">Table 1</span>: </span><span class="ltx_text" style="font-size:90%;">Weibull sensitivity sweep (<math id="S4.T1.m5" class="ltx_Math" alttext="m=5" display="inline"><mrow><mi>m</mi><mo>=</mo><mn>5</mn></mrow></math>, <math id="S4.T1.m6" class="ltx_Math" alttext="n=500" display="inline"><mrow><mi>n</mi><mo>=</mo><mn>500</mn></mrow></math>, <math id="S4.T1.m7" class="ltx_Math" alttext="B=200" display="inline"><mrow><mi>B</mi><mo>=</mo><mn>200</mn></mrow></math>). Selected
+parameters illustrating the range of misspecification effects. True system
+hazard <math id="S4.T1.m8" class="ltx_Math" alttext="h_{T}^{*}(2.0)=1.460" display="inline"><mrow><mrow><msubsup><mi>h</mi><mi>T</mi><mo>∗</mo></msubsup><mo>⁢</mo><mrow><mo stretchy="false">(</mo><mn>2.0</mn><mo stretchy="false">)</mo></mrow></mrow><mo>=</mo><mn>1.460</mn></mrow></math>.</span></figcaption>
+<table class="ltx_tabular ltx_centering ltx_guessed_headers ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt"><math id="S4.T1.m9" class="ltx_Math" alttext="s" display="inline"><mi mathsize="90%">s</mi></math></th>
+<th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt"><span class="ltx_text" style="font-size:90%;">Parameter</span></th>
+<th class="ltx_td ltx_align_right ltx_th ltx_th_column ltx_border_tt"><span class="ltx_text" style="font-size:90%;">Bias</span></th>
+<th class="ltx_td ltx_align_right ltx_th ltx_th_column ltx_border_tt"><span class="ltx_text" style="font-size:90%;">RMSE</span></th>
+<th class="ltx_td ltx_align_right ltx_th ltx_th_column ltx_border_tt"><span class="ltx_text" style="font-size:90%;">Coverage</span></th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_center ltx_border_t"><span class="ltx_text" style="font-size:90%;">0.0</span></td>
+<td class="ltx_td ltx_align_left ltx_border_t">
+<math id="S4.T1.m10" class="ltx_Math" alttext="k_{2}" display="inline"><msub><mi mathsize="90%">k</mi><mn mathsize="90%">2</mn></msub></math><span class="ltx_text" style="font-size:90%;"> (</span><math id="S4.T1.m11" class="ltx_Math" alttext="1.5" display="inline"><mn mathsize="90%">1.5</mn></math><span class="ltx_text" style="font-size:90%;">)</span>
+</td>
+<td class="ltx_td ltx_align_right ltx_border_t"><math id="S4.T1.m12" class="ltx_Math" alttext="+0.032" display="inline"><mrow><mo mathsize="90%">+</mo><mn mathsize="90%">0.032</mn></mrow></math></td>
+<td class="ltx_td ltx_align_right ltx_border_t"><span class="ltx_text" style="font-size:90%;">0.259</span></td>
+<td class="ltx_td ltx_align_right ltx_border_t"><span class="ltx_text" style="font-size:90%;">0.960</span></td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td"></td>
+<td class="ltx_td ltx_align_left">
+<math id="S4.T1.m13" class="ltx_Math" alttext="\lambda_{3}" display="inline"><msub><mi mathsize="90%">λ</mi><mn mathsize="90%">3</mn></msub></math><span class="ltx_text" style="font-size:90%;"> (</span><math id="S4.T1.m14" class="ltx_Math" alttext="5.0" display="inline"><mn mathsize="90%">5.0</mn></math><span class="ltx_text" style="font-size:90%;">)</span>
+</td>
+<td class="ltx_td ltx_align_right"><math id="S4.T1.m15" class="ltx_Math" alttext="+0.231" display="inline"><mrow><mo mathsize="90%">+</mo><mn mathsize="90%">0.231</mn></mrow></math></td>
+<td class="ltx_td ltx_align_right"><span class="ltx_text" style="font-size:90%;">1.538</span></td>
+<td class="ltx_td ltx_align_right"><span class="ltx_text" style="font-size:90%;">0.905</span></td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td"></td>
+<td class="ltx_td ltx_align_left">
+<math id="S4.T1.m16" class="ltx_Math" alttext="k_{4}" display="inline"><msub><mi mathsize="90%">k</mi><mn mathsize="90%">4</mn></msub></math><span class="ltx_text" style="font-size:90%;"> (</span><math id="S4.T1.m17" class="ltx_Math" alttext="1.8" display="inline"><mn mathsize="90%">1.8</mn></math><span class="ltx_text" style="font-size:90%;">)</span>
+</td>
+<td class="ltx_td ltx_align_right"><math id="S4.T1.m18" class="ltx_Math" alttext="-0.001" display="inline"><mrow><mo mathsize="90%">−</mo><mn mathsize="90%">0.001</mn></mrow></math></td>
+<td class="ltx_td ltx_align_right"><span class="ltx_text" style="font-size:90%;">0.268</span></td>
+<td class="ltx_td ltx_align_right"><span class="ltx_text" style="font-size:90%;">0.930</span></td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td"></td>
+<td class="ltx_td ltx_align_left">
+<math id="S4.T1.m19" class="ltx_Math" alttext="k_{5}" display="inline"><msub><mi mathsize="90%">k</mi><mn mathsize="90%">5</mn></msub></math><span class="ltx_text" style="font-size:90%;"> (</span><math id="S4.T1.m20" class="ltx_Math" alttext="1.0" display="inline"><mn mathsize="90%">1.0</mn></math><span class="ltx_text" style="font-size:90%;">)</span>
+</td>
+<td class="ltx_td ltx_align_right"><math id="S4.T1.m21" class="ltx_Math" alttext="+0.018" display="inline"><mrow><mo mathsize="90%">+</mo><mn mathsize="90%">0.018</mn></mrow></math></td>
+<td class="ltx_td ltx_align_right"><span class="ltx_text" style="font-size:90%;">0.111</span></td>
+<td class="ltx_td ltx_align_right"><span class="ltx_text" style="font-size:90%;">0.945</span></td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td"></td>
+<td class="ltx_td ltx_align_left"><math id="S4.T1.m22" class="ltx_Math" alttext="h_{T}(2.0)" display="inline"><mrow><msub><mi mathsize="90%">h</mi><mi mathsize="90%">T</mi></msub><mo>⁢</mo><mrow><mo maxsize="90%" minsize="90%">(</mo><mn mathsize="90%">2.0</mn><mo maxsize="90%" minsize="90%">)</mo></mrow></mrow></math></td>
+<td class="ltx_td ltx_align_right"><math id="S4.T1.m23" class="ltx_Math" alttext="+0.024" display="inline"><mrow><mo mathsize="90%">+</mo><mn mathsize="90%">0.024</mn></mrow></math></td>
+<td class="ltx_td ltx_align_right"><span class="ltx_text" style="font-size:90%;">0.108</span></td>
+<td class="ltx_td ltx_align_right"><span class="ltx_text" style="font-size:90%;">—</span></td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_center"><span class="ltx_text" style="font-size:90%;">0.2</span></td>
+<td class="ltx_td ltx_align_left">
+<math id="S4.T1.m24" class="ltx_Math" alttext="k_{2}" display="inline"><msub><mi mathsize="90%">k</mi><mn mathsize="90%">2</mn></msub></math><span class="ltx_text" style="font-size:90%;"> (</span><math id="S4.T1.m25" class="ltx_Math" alttext="1.5" display="inline"><mn mathsize="90%">1.5</mn></math><span class="ltx_text" style="font-size:90%;">)</span>
+</td>
+<td class="ltx_td ltx_align_right"><math id="S4.T1.m26" class="ltx_Math" alttext="-0.064" display="inline"><mrow><mo mathsize="90%">−</mo><mn mathsize="90%">0.064</mn></mrow></math></td>
+<td class="ltx_td ltx_align_right"><span class="ltx_text" style="font-size:90%;">0.251</span></td>
+<td class="ltx_td ltx_align_right"><span class="ltx_text" style="font-size:90%;">0.905</span></td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td"></td>
+<td class="ltx_td ltx_align_left">
+<math id="S4.T1.m27" class="ltx_Math" alttext="\lambda_{3}" display="inline"><msub><mi mathsize="90%">λ</mi><mn mathsize="90%">3</mn></msub></math><span class="ltx_text" style="font-size:90%;"> (</span><math id="S4.T1.m28" class="ltx_Math" alttext="5.0" display="inline"><mn mathsize="90%">5.0</mn></math><span class="ltx_text" style="font-size:90%;">)</span>
+</td>
+<td class="ltx_td ltx_align_right"><math id="S4.T1.m29" class="ltx_Math" alttext="+0.366" display="inline"><mrow><mo mathsize="90%">+</mo><mn mathsize="90%">0.366</mn></mrow></math></td>
+<td class="ltx_td ltx_align_right"><span class="ltx_text" style="font-size:90%;">3.449</span></td>
+<td class="ltx_td ltx_align_right"><span class="ltx_text" style="font-size:90%;">—</span></td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td"></td>
+<td class="ltx_td ltx_align_left">
+<math id="S4.T1.m30" class="ltx_Math" alttext="k_{4}" display="inline"><msub><mi mathsize="90%">k</mi><mn mathsize="90%">4</mn></msub></math><span class="ltx_text" style="font-size:90%;"> (</span><math id="S4.T1.m31" class="ltx_Math" alttext="1.8" display="inline"><mn mathsize="90%">1.8</mn></math><span class="ltx_text" style="font-size:90%;">)</span>
+</td>
+<td class="ltx_td ltx_align_right"><math id="S4.T1.m32" class="ltx_Math" alttext="+0.000" display="inline"><mrow><mo mathsize="90%">+</mo><mn mathsize="90%">0.000</mn></mrow></math></td>
+<td class="ltx_td ltx_align_right"><span class="ltx_text" style="font-size:90%;">0.303</span></td>
+<td class="ltx_td ltx_align_right"><span class="ltx_text" style="font-size:90%;">0.930</span></td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td"></td>
+<td class="ltx_td ltx_align_left">
+<math id="S4.T1.m33" class="ltx_Math" alttext="k_{5}" display="inline"><msub><mi mathsize="90%">k</mi><mn mathsize="90%">5</mn></msub></math><span class="ltx_text" style="font-size:90%;"> (</span><math id="S4.T1.m34" class="ltx_Math" alttext="1.0" display="inline"><mn mathsize="90%">1.0</mn></math><span class="ltx_text" style="font-size:90%;">)</span>
+</td>
+<td class="ltx_td ltx_align_right"><math id="S4.T1.m35" class="ltx_Math" alttext="+0.028" display="inline"><mrow><mo mathsize="90%">+</mo><mn mathsize="90%">0.028</mn></mrow></math></td>
+<td class="ltx_td ltx_align_right"><span class="ltx_text" style="font-size:90%;">0.125</span></td>
+<td class="ltx_td ltx_align_right"><span class="ltx_text" style="font-size:90%;">0.930</span></td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td"></td>
+<td class="ltx_td ltx_align_left"><math id="S4.T1.m36" class="ltx_Math" alttext="h_{T}(2.0)" display="inline"><mrow><msub><mi mathsize="90%">h</mi><mi mathsize="90%">T</mi></msub><mo>⁢</mo><mrow><mo maxsize="90%" minsize="90%">(</mo><mn mathsize="90%">2.0</mn><mo maxsize="90%" minsize="90%">)</mo></mrow></mrow></math></td>
+<td class="ltx_td ltx_align_right"><math id="S4.T1.m37" class="ltx_Math" alttext="+0.031" display="inline"><mrow><mo mathsize="90%">+</mo><mn mathsize="90%">0.031</mn></mrow></math></td>
+<td class="ltx_td ltx_align_right"><span class="ltx_text" style="font-size:90%;">0.105</span></td>
+<td class="ltx_td ltx_align_right"><span class="ltx_text" style="font-size:90%;">—</span></td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_center"><span class="ltx_text" style="font-size:90%;">0.5</span></td>
+<td class="ltx_td ltx_align_left">
+<math id="S4.T1.m38" class="ltx_Math" alttext="k_{2}" display="inline"><msub><mi mathsize="90%">k</mi><mn mathsize="90%">2</mn></msub></math><span class="ltx_text" style="font-size:90%;"> (</span><math id="S4.T1.m39" class="ltx_Math" alttext="1.5" display="inline"><mn mathsize="90%">1.5</mn></math><span class="ltx_text" style="font-size:90%;">)</span>
+</td>
+<td class="ltx_td ltx_align_right"><math id="S4.T1.m40" class="ltx_Math" alttext="-0.194" display="inline"><mrow><mo mathsize="90%">−</mo><mn mathsize="90%">0.194</mn></mrow></math></td>
+<td class="ltx_td ltx_align_right"><span class="ltx_text" style="font-size:90%;">0.305</span></td>
+<td class="ltx_td ltx_align_right"><span class="ltx_text" style="font-size:90%;">0.790</span></td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td"></td>
+<td class="ltx_td ltx_align_left">
+<math id="S4.T1.m41" class="ltx_Math" alttext="\lambda_{3}" display="inline"><msub><mi mathsize="90%">λ</mi><mn mathsize="90%">3</mn></msub></math><span class="ltx_text" style="font-size:90%;"> (</span><math id="S4.T1.m42" class="ltx_Math" alttext="5.0" display="inline"><mn mathsize="90%">5.0</mn></math><span class="ltx_text" style="font-size:90%;">)</span>
+</td>
+<td class="ltx_td ltx_align_right"><math id="S4.T1.m43" class="ltx_Math" alttext="-0.287" display="inline"><mrow><mo mathsize="90%">−</mo><mn mathsize="90%">0.287</mn></mrow></math></td>
+<td class="ltx_td ltx_align_right"><span class="ltx_text" style="font-size:90%;">1.465</span></td>
+<td class="ltx_td ltx_align_right"><span class="ltx_text" style="font-size:90%;">0.800</span></td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td"></td>
+<td class="ltx_td ltx_align_left">
+<math id="S4.T1.m44" class="ltx_Math" alttext="k_{4}" display="inline"><msub><mi mathsize="90%">k</mi><mn mathsize="90%">4</mn></msub></math><span class="ltx_text" style="font-size:90%;"> (</span><math id="S4.T1.m45" class="ltx_Math" alttext="1.8" display="inline"><mn mathsize="90%">1.8</mn></math><span class="ltx_text" style="font-size:90%;">)</span>
+</td>
+<td class="ltx_td ltx_align_right"><math id="S4.T1.m46" class="ltx_Math" alttext="-0.117" display="inline"><mrow><mo mathsize="90%">−</mo><mn mathsize="90%">0.117</mn></mrow></math></td>
+<td class="ltx_td ltx_align_right"><span class="ltx_text" style="font-size:90%;">0.322</span></td>
+<td class="ltx_td ltx_align_right"><span class="ltx_text" style="font-size:90%;">0.875</span></td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td"></td>
+<td class="ltx_td ltx_align_left">
+<math id="S4.T1.m47" class="ltx_Math" alttext="k_{5}" display="inline"><msub><mi mathsize="90%">k</mi><mn mathsize="90%">5</mn></msub></math><span class="ltx_text" style="font-size:90%;"> (</span><math id="S4.T1.m48" class="ltx_Math" alttext="1.0" display="inline"><mn mathsize="90%">1.0</mn></math><span class="ltx_text" style="font-size:90%;">)</span>
+</td>
+<td class="ltx_td ltx_align_right"><math id="S4.T1.m49" class="ltx_Math" alttext="+0.027" display="inline"><mrow><mo mathsize="90%">+</mo><mn mathsize="90%">0.027</mn></mrow></math></td>
+<td class="ltx_td ltx_align_right"><span class="ltx_text" style="font-size:90%;">0.129</span></td>
+<td class="ltx_td ltx_align_right"><span class="ltx_text" style="font-size:90%;">0.940</span></td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td"></td>
+<td class="ltx_td ltx_align_left"><math id="S4.T1.m50" class="ltx_Math" alttext="h_{T}(2.0)" display="inline"><mrow><msub><mi mathsize="90%">h</mi><mi mathsize="90%">T</mi></msub><mo>⁢</mo><mrow><mo maxsize="90%" minsize="90%">(</mo><mn mathsize="90%">2.0</mn><mo maxsize="90%" minsize="90%">)</mo></mrow></mrow></math></td>
+<td class="ltx_td ltx_align_right"><math id="S4.T1.m51" class="ltx_Math" alttext="+0.028" display="inline"><mrow><mo mathsize="90%">+</mo><mn mathsize="90%">0.028</mn></mrow></math></td>
+<td class="ltx_td ltx_align_right"><span class="ltx_text" style="font-size:90%;">0.108</span></td>
+<td class="ltx_td ltx_align_right"><span class="ltx_text" style="font-size:90%;">—</span></td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_center"><span class="ltx_text" style="font-size:90%;">0.8</span></td>
+<td class="ltx_td ltx_align_left">
+<math id="S4.T1.m52" class="ltx_Math" alttext="k_{2}" display="inline"><msub><mi mathsize="90%">k</mi><mn mathsize="90%">2</mn></msub></math><span class="ltx_text" style="font-size:90%;"> (</span><math id="S4.T1.m53" class="ltx_Math" alttext="1.5" display="inline"><mn mathsize="90%">1.5</mn></math><span class="ltx_text" style="font-size:90%;">)</span>
+</td>
+<td class="ltx_td ltx_align_right"><math id="S4.T1.m54" class="ltx_Math" alttext="-0.302" display="inline"><mrow><mo mathsize="90%">−</mo><mn mathsize="90%">0.302</mn></mrow></math></td>
+<td class="ltx_td ltx_align_right"><span class="ltx_text" style="font-size:90%;">0.346</span></td>
+<td class="ltx_td ltx_align_right"><span class="ltx_text" style="font-size:90%;">0.540</span></td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td"></td>
+<td class="ltx_td ltx_align_left">
+<math id="S4.T1.m55" class="ltx_Math" alttext="\lambda_{3}" display="inline"><msub><mi mathsize="90%">λ</mi><mn mathsize="90%">3</mn></msub></math><span class="ltx_text" style="font-size:90%;"> (</span><math id="S4.T1.m56" class="ltx_Math" alttext="5.0" display="inline"><mn mathsize="90%">5.0</mn></math><span class="ltx_text" style="font-size:90%;">)</span>
+</td>
+<td class="ltx_td ltx_align_right"><math id="S4.T1.m57" class="ltx_Math" alttext="-0.596" display="inline"><mrow><mo mathsize="90%">−</mo><mn mathsize="90%">0.596</mn></mrow></math></td>
+<td class="ltx_td ltx_align_right"><span class="ltx_text" style="font-size:90%;">1.720</span></td>
+<td class="ltx_td ltx_align_right"><span class="ltx_text" style="font-size:90%;">0.670</span></td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td"></td>
+<td class="ltx_td ltx_align_left">
+<math id="S4.T1.m58" class="ltx_Math" alttext="k_{4}" display="inline"><msub><mi mathsize="90%">k</mi><mn mathsize="90%">4</mn></msub></math><span class="ltx_text" style="font-size:90%;"> (</span><math id="S4.T1.m59" class="ltx_Math" alttext="1.8" display="inline"><mn mathsize="90%">1.8</mn></math><span class="ltx_text" style="font-size:90%;">)</span>
+</td>
+<td class="ltx_td ltx_align_right"><math id="S4.T1.m60" class="ltx_Math" alttext="-0.251" display="inline"><mrow><mo mathsize="90%">−</mo><mn mathsize="90%">0.251</mn></mrow></math></td>
+<td class="ltx_td ltx_align_right"><span class="ltx_text" style="font-size:90%;">0.378</span></td>
+<td class="ltx_td ltx_align_right"><span class="ltx_text" style="font-size:90%;">0.730</span></td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td"></td>
+<td class="ltx_td ltx_align_left">
+<math id="S4.T1.m61" class="ltx_Math" alttext="k_{5}" display="inline"><msub><mi mathsize="90%">k</mi><mn mathsize="90%">5</mn></msub></math><span class="ltx_text" style="font-size:90%;"> (</span><math id="S4.T1.m62" class="ltx_Math" alttext="1.0" display="inline"><mn mathsize="90%">1.0</mn></math><span class="ltx_text" style="font-size:90%;">)</span>
+</td>
+<td class="ltx_td ltx_align_right"><math id="S4.T1.m63" class="ltx_Math" alttext="+0.080" display="inline"><mrow><mo mathsize="90%">+</mo><mn mathsize="90%">0.080</mn></mrow></math></td>
+<td class="ltx_td ltx_align_right"><span class="ltx_text" style="font-size:90%;">0.155</span></td>
+<td class="ltx_td ltx_align_right"><span class="ltx_text" style="font-size:90%;">0.935</span></td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td"></td>
+<td class="ltx_td ltx_align_left"><math id="S4.T1.m64" class="ltx_Math" alttext="h_{T}(2.0)" display="inline"><mrow><msub><mi mathsize="90%">h</mi><mi mathsize="90%">T</mi></msub><mo>⁢</mo><mrow><mo maxsize="90%" minsize="90%">(</mo><mn mathsize="90%">2.0</mn><mo maxsize="90%" minsize="90%">)</mo></mrow></mrow></math></td>
+<td class="ltx_td ltx_align_right"><math id="S4.T1.m65" class="ltx_Math" alttext="+0.012" display="inline"><mrow><mo mathsize="90%">+</mo><mn mathsize="90%">0.012</mn></mrow></math></td>
+<td class="ltx_td ltx_align_right"><span class="ltx_text" style="font-size:90%;">0.103</span></td>
+<td class="ltx_td ltx_align_right"><span class="ltx_text" style="font-size:90%;">—</span></td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_center"><span class="ltx_text" style="font-size:90%;">1.0</span></td>
+<td class="ltx_td ltx_align_left">
+<math id="S4.T1.m66" class="ltx_Math" alttext="k_{2}" display="inline"><msub><mi mathsize="90%">k</mi><mn mathsize="90%">2</mn></msub></math><span class="ltx_text" style="font-size:90%;"> (</span><math id="S4.T1.m67" class="ltx_Math" alttext="1.5" display="inline"><mn mathsize="90%">1.5</mn></math><span class="ltx_text" style="font-size:90%;">)</span>
+</td>
+<td class="ltx_td ltx_align_right"><math id="S4.T1.m68" class="ltx_Math" alttext="-0.338" display="inline"><mrow><mo mathsize="90%">−</mo><mn mathsize="90%">0.338</mn></mrow></math></td>
+<td class="ltx_td ltx_align_right"><span class="ltx_text" style="font-size:90%;">0.384</span></td>
+<td class="ltx_td ltx_align_right"><span class="ltx_text" style="font-size:90%;">—</span></td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td"></td>
+<td class="ltx_td ltx_align_left">
+<math id="S4.T1.m69" class="ltx_Math" alttext="\lambda_{3}" display="inline"><msub><mi mathsize="90%">λ</mi><mn mathsize="90%">3</mn></msub></math><span class="ltx_text" style="font-size:90%;"> (</span><math id="S4.T1.m70" class="ltx_Math" alttext="5.0" display="inline"><mn mathsize="90%">5.0</mn></math><span class="ltx_text" style="font-size:90%;">)</span>
+</td>
+<td class="ltx_td ltx_align_right"><math id="S4.T1.m71" class="ltx_Math" alttext="-0.712" display="inline"><mrow><mo mathsize="90%">−</mo><mn mathsize="90%">0.712</mn></mrow></math></td>
+<td class="ltx_td ltx_align_right"><span class="ltx_text" style="font-size:90%;">1.385</span></td>
+<td class="ltx_td ltx_align_right"><span class="ltx_text" style="font-size:90%;">0.665</span></td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td"></td>
+<td class="ltx_td ltx_align_left">
+<math id="S4.T1.m72" class="ltx_Math" alttext="k_{4}" display="inline"><msub><mi mathsize="90%">k</mi><mn mathsize="90%">4</mn></msub></math><span class="ltx_text" style="font-size:90%;"> (</span><math id="S4.T1.m73" class="ltx_Math" alttext="1.8" display="inline"><mn mathsize="90%">1.8</mn></math><span class="ltx_text" style="font-size:90%;">)</span>
+</td>
+<td class="ltx_td ltx_align_right"><math id="S4.T1.m74" class="ltx_Math" alttext="-0.315" display="inline"><mrow><mo mathsize="90%">−</mo><mn mathsize="90%">0.315</mn></mrow></math></td>
+<td class="ltx_td ltx_align_right"><span class="ltx_text" style="font-size:90%;">0.401</span></td>
+<td class="ltx_td ltx_align_right"><span class="ltx_text" style="font-size:90%;">0.650</span></td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td"></td>
+<td class="ltx_td ltx_align_left">
+<math id="S4.T1.m75" class="ltx_Math" alttext="k_{5}" display="inline"><msub><mi mathsize="90%">k</mi><mn mathsize="90%">5</mn></msub></math><span class="ltx_text" style="font-size:90%;"> (</span><math id="S4.T1.m76" class="ltx_Math" alttext="1.0" display="inline"><mn mathsize="90%">1.0</mn></math><span class="ltx_text" style="font-size:90%;">)</span>
+</td>
+<td class="ltx_td ltx_align_right"><math id="S4.T1.m77" class="ltx_Math" alttext="+0.084" display="inline"><mrow><mo mathsize="90%">+</mo><mn mathsize="90%">0.084</mn></mrow></math></td>
+<td class="ltx_td ltx_align_right"><span class="ltx_text" style="font-size:90%;">0.160</span></td>
+<td class="ltx_td ltx_align_right"><span class="ltx_text" style="font-size:90%;">0.930</span></td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_border_bb"></td>
+<td class="ltx_td ltx_align_left ltx_border_bb"><math id="S4.T1.m78" class="ltx_Math" alttext="h_{T}(2.0)" display="inline"><mrow><msub><mi mathsize="90%">h</mi><mi mathsize="90%">T</mi></msub><mo>⁢</mo><mrow><mo maxsize="90%" minsize="90%">(</mo><mn mathsize="90%">2.0</mn><mo maxsize="90%" minsize="90%">)</mo></mrow></mrow></math></td>
+<td class="ltx_td ltx_align_right ltx_border_bb"><math id="S4.T1.m79" class="ltx_Math" alttext="+0.038" display="inline"><mrow><mo mathsize="90%">+</mo><mn mathsize="90%">0.038</mn></mrow></math></td>
+<td class="ltx_td ltx_align_right ltx_border_bb"><span class="ltx_text" style="font-size:90%;">0.109</span></td>
+<td class="ltx_td ltx_align_right ltx_border_bb"><span class="ltx_text" style="font-size:90%;">—</span></td>
+</tr>
+</tbody>
+</table>
+</figure>
+</section>
+<section id="S4.SS3" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.3 </span>Interpretation</h3>
+
+<section id="S4.SS3.SSS0.Px1" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">System-level robustness.</h4>
+
+<div id="S4.SS3.SSS0.Px1.p1" class="ltx_para">
+<p class="ltx_p">The most striking finding is the stability of the system hazard. Across all
+severity levels from <math id="S4.SS3.SSS0.Px1.p1.m1" class="ltx_Math" alttext="s=0" display="inline"><mrow><mi>s</mi><mo>=</mo><mn>0</mn></mrow></math> to <math id="S4.SS3.SSS0.Px1.p1.m2" class="ltx_Math" alttext="s=1.0" display="inline"><mrow><mi>s</mi><mo>=</mo><mn>1.0</mn></mrow></math>, the system hazard bias remains
+between <math id="S4.SS3.SSS0.Px1.p1.m3" class="ltx_Math" alttext="+0.012" display="inline"><mrow><mo>+</mo><mn>0.012</mn></mrow></math> and <math id="S4.SS3.SSS0.Px1.p1.m4" class="ltx_Math" alttext="+0.038" display="inline"><mrow><mo>+</mo><mn>0.038</mn></mrow></math> (at most 2.6% relative error), and the RMSE
+is virtually constant near 0.10. This confirms part (a) of
+<a href="#S3.Thmtheorem4" title="Theorem 3.4 (Bias from C2 Misspecification). ‣ 3.3 Misspecification Under C2 Violation ‣ 3 Sensitivity Framework ‣ Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Theorem</span> <span class="ltx_text ltx_ref_tag">3.4</span></a>: the misspecified estimator preserves the system hazard
+even when individual component parameters are severely biased. The robustness
+holds despite the system having 10 free parameters (five shape-scale pairs)
+and substantial heterogeneity across components.</p>
+</div>
+</section>
+<section id="S4.SS3.SSS0.Px2" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Component-level degradation.</h4>
+
+<div id="S4.SS3.SSS0.Px2.p1" class="ltx_para">
+<p class="ltx_p">Individual parameter estimates degrade with severity. The shape parameter
+<math id="S4.SS3.SSS0.Px2.p1.m1" class="ltx_Math" alttext="k_{2}" display="inline"><msub><mi>k</mi><mn>2</mn></msub></math> (true value 1.5) shows bias growing from <math id="S4.SS3.SSS0.Px2.p1.m2" class="ltx_Math" alttext="+0.03" display="inline"><mrow><mo>+</mo><mn>0.03</mn></mrow></math> at <math id="S4.SS3.SSS0.Px2.p1.m3" class="ltx_Math" alttext="s=0" display="inline"><mrow><mi>s</mi><mo>=</mo><mn>0</mn></mrow></math> to <math id="S4.SS3.SSS0.Px2.p1.m4" class="ltx_Math" alttext="-0.34" display="inline"><mrow><mo>−</mo><mn>0.34</mn></mrow></math>
+at <math id="S4.SS3.SSS0.Px2.p1.m5" class="ltx_Math" alttext="s=1.0" display="inline"><mrow><mi>s</mi><mo>=</mo><mn>1.0</mn></mrow></math> (23% relative), with coverage dropping from 0.96 to below
+nominal. The shape parameters <math id="S4.SS3.SSS0.Px2.p1.m6" class="ltx_Math" alttext="k_{3}" display="inline"><msub><mi>k</mi><mn>3</mn></msub></math> and <math id="S4.SS3.SSS0.Px2.p1.m7" class="ltx_Math" alttext="k_{4}" display="inline"><msub><mi>k</mi><mn>4</mn></msub></math> show similar degradation, with
+coverage falling to 0.70 and 0.65 respectively at full severity.</p>
+</div>
+</section>
+<section id="S4.SS3.SSS0.Px3" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">The exponential component.</h4>
+
+<div id="S4.SS3.SSS0.Px3.p1" class="ltx_para">
+<p class="ltx_p">Component 5 (<math id="S4.SS3.SSS0.Px3.p1.m1" class="ltx_Math" alttext="k_{5}=1.0" display="inline"><mrow><msub><mi>k</mi><mn>5</mn></msub><mo>=</mo><mn>1.0</mn></mrow></math>, exponential) is notably resistant to
+misspecification: its shape bias reaches only <math id="S4.SS3.SSS0.Px3.p1.m2" class="ltx_Math" alttext="+0.08" display="inline"><mrow><mo>+</mo><mn>0.08</mn></mrow></math> at <math id="S4.SS3.SSS0.Px3.p1.m3" class="ltx_Math" alttext="s=1.0" display="inline"><mrow><mi>s</mi><mo>=</mo><mn>1.0</mn></mrow></math> (8%
+relative) with coverage of 0.93, near the nominal level. This suggests that
+the exponential case is a natural “robustness baseline” within the Weibull
+family, consistent with the theoretical analysis in <a href="#S3.SS3" title="3.3 Misspecification Under C2 Violation ‣ 3 Sensitivity Framework ‣ Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Section</span> <span class="ltx_text ltx_ref_tag">3.3</span></a> where
+the exponential score is simpler and less susceptible to masking weight
+distortion.</p>
+</div>
+</section>
+<section id="S4.SS3.SSS0.Px4" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">The breakdown boundary.</h4>
+
+<div id="S4.SS3.SSS0.Px4.p1" class="ltx_para">
+<p class="ltx_p">For practitioners concerned with individual component estimates, the simulation
+results suggest a rough breakdown boundary around <math id="S4.SS3.SSS0.Px4.p1.m1" class="ltx_Math" alttext="s\approx 0.3" display="inline"><mrow><mi>s</mi><mo>≈</mo><mn>0.3</mn></mrow></math>: below this
+threshold, component-level biases remain within typical estimation uncertainty
+and coverage stays above 90%. Above this threshold, the standard model
+increasingly misattributes masking effects to component failure rates. For
+system-level inference (system hazard, mean time to failure), the standard
+model remains reliable across the full severity range.</p>
+</div>
+</section>
+</section>
+</section>
+<section id="S5" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">5 </span>Discussion</h2>
+
+<section id="S5.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">5.1 </span>When Does C2 Matter?</h3>
+
+<div id="S5.SS1.p1" class="ltx_para">
+<p class="ltx_p">Our results delineate two distinct regimes for masked series system inference:</p>
+</div>
+<section id="S5.SS1.SSS0.Px1" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">System-level inference: C2 rarely matters.</h4>
+
+<div id="S5.SS1.SSS0.Px1.p1" class="ltx_para">
+<p class="ltx_p">If the goal is to estimate the system hazard rate, the mean time to failure,
+or the system reliability function, the standard C1-C2-C3 model is robust to
+C2 violations. The system hazard remained approximately unbiased across all
+severity levels in our 5-component Weibull system. This robustness arises from
+the structure of the misspecified score: summing over components eliminates the
+masking weights, so the total hazard estimating equation is approximately
+correct regardless of the masking mechanism (<a href="#S3.Thmtheorem4" title="Theorem 3.4 (Bias from C2 Misspecification). ‣ 3.3 Misspecification Under C2 Violation ‣ 3 Sensitivity Framework ‣ Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Theorem</span> <span class="ltx_text ltx_ref_tag">3.4</span></a>).</p>
+</div>
+</section>
+<section id="S5.SS1.SSS0.Px2" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Component-level inference: C2 matters.</h4>
+
+<div id="S5.SS1.SSS0.Px2.p1" class="ltx_para">
+<p class="ltx_p">If the goal is to estimate individual component parameters—for example,
+to identify the most unreliable component or to plan component-specific
+maintenance—the standard model can produce substantially biased estimates
+when C2 is violated. The bias grows with violation severity, and coverage
+degrades to the point where confidence intervals are misleading. Scale
+parameters are particularly affected, with the Weibull shape-scale interaction
+amplifying misspecification bias nonlinearly.</p>
+</div>
+</section>
+</section>
+<section id="S5.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">5.2 </span>Practical Guidance</h3>
+
+<div id="S5.SS2.p1" class="ltx_para">
+<p class="ltx_p">Since the masking mechanism is a diagnostic process that is rarely known in
+detail, the practitioner typically cannot determine whether C2 holds. We
+recommend the following approach:</p>
+</div>
+<div id="S5.SS2.p2" class="ltx_para">
+<ol id="S5.I1" class="ltx_enumerate">
+<li id="S5.I1.i1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">1.</span> 
+<div id="S5.I1.i1.p1" class="ltx_para">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Fit the standard model.</span> The C1-C2-C3 MLE is well-understood,
+computationally straightforward, and yields reliable system-level
+estimates regardless of C2 status.</p>
+</div>
+</li>
+<li id="S5.I1.i2" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">2.</span> 
+<div id="S5.I1.i2.p1" class="ltx_para">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Assess the inferential target.</span> If only system-level
+quantities are needed, the standard model suffices and no further
+action is required.</p>
+</div>
+</li>
+<li id="S5.I1.i3" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">3.</span> 
+<div id="S5.I1.i3.p1" class="ltx_para">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Run sensitivity analysis for component-level inference.</span>
+Construct a family of plausible <math id="S5.I1.i3.p1.m1" class="ltx_Math" alttext="\mathbf{P}" display="inline"><mi>𝐏</mi></math> matrices representing
+different degrees and directions of masking asymmetry. Refit the
+model with known <math id="S5.I1.i3.p1.m2" class="ltx_Math" alttext="\mathbf{P}" display="inline"><mi>𝐏</mi></math> under each scenario. If
+the component-level conclusions are stable across the family,
+C2 violations are not a concern.</p>
+</div>
+</li>
+<li id="S5.I1.i4" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">4.</span> 
+<div id="S5.I1.i4.p1" class="ltx_para">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Report sensitivity bounds.</span> When conclusions are sensitive to
+the assumed masking structure, report the range of estimates across the
+<math id="S5.I1.i4.p1.m1" class="ltx_Math" alttext="\mathbf{P}" display="inline"><mi>𝐏</mi></math> family as sensitivity bounds. This parallels the partial
+identification approach <cite class="ltx_cite ltx_citemacro_citep">[<a href="#bib.bib42" title="Partial identification of probability distributions" class="ltx_ref">9</a>]</cite>, where the data
+identify a set of possible parameter values rather than a point
+estimate, and reporting the identified set is more honest than
+reporting a single estimate under an unverifiable assumption.</p>
+</div>
+</li>
+</ol>
+</div>
+</section>
+<section id="S5.SS3" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">5.3 </span>Limitations</h3>
+
+<div id="S5.SS3.p1" class="ltx_para">
+<p class="ltx_p">Several limitations should be acknowledged:</p>
+</div>
+<div id="S5.SS3.p2" class="ltx_para">
+<ul id="S5.I2" class="ltx_itemize">
+<li id="S5.I2.i1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S5.I2.i1.p1" class="ltx_para">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Perturbation family.</span> Our simulation sweep uses the Bernoulli
+<math id="S5.I2.i1.p1.m1" class="ltx_Math" alttext="\mathbf{P}(s)" display="inline"><mrow><mi>𝐏</mi><mo>⁢</mo><mrow><mo stretchy="false">(</mo><mi>s</mi><mo stretchy="false">)</mo></mrow></mrow></math> model as the sole perturbation device. Other violation
+structures—for example, time-dependent masking where <math id="S5.I2.i1.p1.m2" class="ltx_Math" alttext="\mathbf{P}" display="inline"><mi>𝐏</mi></math>
+varies with <math id="S5.I2.i1.p1.m3" class="ltx_Math" alttext="t" display="inline"><mi>t</mi></math>—could behave differently.</p>
+</div>
+</li>
+<li id="S5.I2.i2" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S5.I2.i2.p1" class="ltx_para">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Lifetime distributions.</span> We study Weibull components, which
+subsume exponential as a special case (<math id="S5.I2.i2.p1.m1" class="ltx_Math" alttext="k=1" display="inline"><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow></math>). Other parametric
+families (e.g., log-normal, Gompertz) may exhibit different sensitivity
+profiles.</p>
+</div>
+</li>
+<li id="S5.I2.i3" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S5.I2.i3.p1" class="ltx_para">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Direction dependence.</span> The specific direction matrix
+<math id="S5.I2.i3.p1.m1" class="ltx_Math" alttext="\mathbf{D}" display="inline"><mi>𝐃</mi></math> determines which parameters are over- or under-estimated.
+Different <math id="S5.I2.i3.p1.m2" class="ltx_Math" alttext="\mathbf{D}" display="inline"><mi>𝐃</mi></math> matrices would produce different bias patterns,
+though the system-hazard robustness should persist by
+<a href="#S3.Thmtheorem4" title="Theorem 3.4 (Bias from C2 Misspecification). ‣ 3.3 Misspecification Under C2 Violation ‣ 3 Sensitivity Framework ‣ Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Theorem</span> <span class="ltx_text ltx_ref_tag">3.4</span></a>.</p>
+</div>
+</li>
+<li id="S5.I2.i4" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S5.I2.i4.p1" class="ltx_para">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Sample size.</span> Our simulations use <math id="S5.I2.i4.p1.m1" class="ltx_Math" alttext="n=500" display="inline"><mrow><mi>n</mi><mo>=</mo><mn>500</mn></mrow></math>. The relative
+bias would be similar at larger sample sizes (misspecification bias
+does not shrink with <math id="S5.I2.i4.p1.m2" class="ltx_Math" alttext="n" display="inline"><mi>n</mi></math>), but coverage degradation would be more
+pronounced as confidence intervals narrow.</p>
+</div>
+</li>
+</ul>
+</div>
+</section>
+</section>
+<section id="S6" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">6 </span>Conclusion</h2>
+
+<div id="S6.p1" class="ltx_para">
+<p class="ltx_p">We have studied the sensitivity of maximum likelihood estimation in masked
+series systems to violations of the non-informative masking assumption (C2).
+Three contributions emerge:</p>
+</div>
+<div id="S6.p2" class="ltx_para">
+<ol id="S6.I1" class="ltx_enumerate">
+<li id="S6.I1.i1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">1.</span> 
+<div id="S6.I1.i1.p1" class="ltx_para">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Misspecification characterization.</span> When C2 is violated but
+assumed to hold, the MLE converges to a pseudo-true parameter whose
+individual component parameters absorb the masking asymmetry, while the
+system hazard remains consistently estimated
+(<a href="#S3.Thmtheorem4" title="Theorem 3.4 (Bias from C2 Misspecification). ‣ 3.3 Misspecification Under C2 Violation ‣ 3 Sensitivity Framework ‣ Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Theorem</span> <span class="ltx_text ltx_ref_tag">3.4</span></a>). Joint estimation of the masking mechanism
+and the reliability parameters is not possible due to fundamental
+non-identifiability (<a href="#S3.Thmtheorem5" title="Theorem 3.5 (Non-Identifiability of (𝜽,𝐏)). ‣ 3.4 The Identifiability Trap ‣ 3 Sensitivity Framework ‣ Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Theorem</span> <span class="ltx_text ltx_ref_tag">3.5</span></a>).</p>
+</div>
+</li>
+<li id="S6.I1.i2" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">2.</span> 
+<div id="S6.I1.i2.p1" class="ltx_para">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Quantitative sensitivity map.</span> A systematic simulation sweep
+across 11 severity levels for a 5-component Weibull series system
+reveals that system-level quantities (system hazard) are robust to C2
+violations across the full range (bias <math id="S6.I1.i2.p1.m1" class="ltx_Math" alttext="&lt;3\%" display="inline"><mrow><mi></mi><mo>&lt;</mo><mrow><mn>3</mn><mo>%</mo></mrow></mrow></math>), while individual
+component estimates degrade with severity. The exponential
+component within the system shows notable resistance to
+misspecification.</p>
+</div>
+</li>
+<li id="S6.I1.i3" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">3.</span> 
+<div id="S6.I1.i3.p1" class="ltx_para">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Practical guidance.</span> Since the masking mechanism is
+unknowable from the data alone, sensitivity analysis over plausible
+masking structures is the appropriate response. For system-level
+inference, the standard C1-C2-C3 model suffices. For component-level
+inference, we recommend reporting results under multiple masking
+scenarios.</p>
+</div>
+</li>
+</ol>
+</div>
+<div id="S6.p3" class="ltx_para">
+<p class="ltx_p">All methods are implemented in the <span class="ltx_text ltx_font_typewriter">mdrelax</span> R package, available at
+<a href="https://github.com/queelius/mdrelax" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://github.com/queelius/mdrelax</a>.</p>
+</div>
+</section>
+<section id="bib" class="ltx_bibliography">
+<h2 class="ltx_title ltx_title_bibliography">References</h2>
+
+<ul id="bib.L1" class="ltx_biblist">
+<li id="bib.bib18" class="ltx_bibitem ltx_bib_article">
+<span class="ltx_tag ltx_bib_key ltx_role_refnum ltx_tag_bibitem">[1]</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_author">R. V. Craiu and B. Reiser</span><span class="ltx_text ltx_bib_year"> (2006)</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Inference for the dependent competing risks model with masked causes of failure</span>.
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_journal">Lifetime Data Analysis</span> <span class="ltx_text ltx_bib_volume">12</span> (<span class="ltx_text ltx_bib_number">1</span>), <span class="ltx_text ltx_bib_pages"> pp. 21–33</span>.
+</span>
+<span class="ltx_bibblock">External Links: <span class="ltx_text ltx_bib_links"><a href="https://dx.doi.org/10.1007/s10985-005-7217-9" title="" class="ltx_ref doi ltx_bib_external">Document</a></span>
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S1.p3" title="1 Introduction ‣ Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§1</span></a>,
+<a href="#S2.SS5.p2" title="2.5 Prior Work on Dependent Masking ‣ 2 Background ‣ Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§2.5</span></a>.
+</span>
+</li>
+<li id="bib.bib46" class="ltx_bibitem ltx_bib_article">
+<span class="ltx_tag ltx_bib_key ltx_role_refnum ltx_tag_bibitem">[2]</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_author">R. V. Craiu and T. Duchesne</span><span class="ltx_text ltx_bib_year"> (2004)</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Inference based on the EM algorithm for the competing risks model with masked causes of failure</span>.
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_journal">Biometrika</span> <span class="ltx_text ltx_bib_volume">91</span> (<span class="ltx_text ltx_bib_number">3</span>), <span class="ltx_text ltx_bib_pages"> pp. 543–558</span>.
+</span>
+<span class="ltx_bibblock">External Links: <span class="ltx_text ltx_bib_links"><a href="https://dx.doi.org/10.1093/biomet/91.3.543" title="" class="ltx_ref doi ltx_bib_external">Document</a></span>
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S2.SS5.p2" title="2.5 Prior Work on Dependent Masking ‣ 2 Background ‣ Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§2.5</span></a>.
+</span>
+</li>
+<li id="bib.bib41" class="ltx_bibitem ltx_bib_book">
+<span class="ltx_tag ltx_bib_key ltx_role_refnum ltx_tag_bibitem">[3]</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_author">M. J. Crowder</span><span class="ltx_text ltx_bib_year"> (2001)</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Classical competing risks</span>.
+</span>
+<span class="ltx_bibblock"> <span class="ltx_text ltx_bib_publisher">Chapman and Hall/CRC</span>, <span class="ltx_text ltx_bib_place">Boca Raton, FL</span>.
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S3.SS4.p2" title="3.4 The Identifiability Trap ‣ 3 Sensitivity Framework ‣ Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§3.4</span></a>.
+</span>
+</li>
+<li id="bib.bib47" class="ltx_bibitem ltx_bib_article">
+<span class="ltx_tag ltx_bib_key ltx_role_refnum ltx_tag_bibitem">[4]</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_author">B. J. Flehinger, B. Reiser, and E. Yashchin</span><span class="ltx_text ltx_bib_year"> (2002)</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Parametric modeling for survival with competing risks and masked failure causes</span>.
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_journal">Lifetime Data Analysis</span> <span class="ltx_text ltx_bib_volume">8</span>, <span class="ltx_text ltx_bib_pages"> pp. 177–203</span>.
+</span>
+<span class="ltx_bibblock">External Links: <span class="ltx_text ltx_bib_links"><a href="https://dx.doi.org/10.1023/A%3A1014891707936" title="" class="ltx_ref doi ltx_bib_external">Document</a></span>
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S2.SS5.p2" title="2.5 Prior Work on Dependent Masking ‣ 2 Background ‣ Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§2.5</span></a>.
+</span>
+</li>
+<li id="bib.bib10" class="ltx_bibitem ltx_bib_inproceedings">
+<span class="ltx_tag ltx_bib_key ltx_role_refnum ltx_tag_bibitem">[5]</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_author">H. Guo, P. Niu, and F. Szidarovszky</span><span class="ltx_text ltx_bib_year"> (2013)</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Estimating component reliabilities from incomplete system failure data</span>.
+</span>
+<span class="ltx_bibblock">In <span class="ltx_text ltx_bib_inbook">Proceedings of the Annual Reliability and Maintainability
+Symposium (RAMS)</span>,
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_pages"> pp. 1–6</span>.
+</span>
+<span class="ltx_bibblock">External Links: <span class="ltx_text ltx_bib_links"><a href="https://dx.doi.org/10.1109/rams.2013.6517765" title="" class="ltx_ref doi ltx_bib_external">Document</a></span>
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S2.SS3.p1" title="2.3 Conditions C1, C2, C3 ‣ 2 Background ‣ Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§2.3</span></a>.
+</span>
+</li>
+<li id="bib.bib16" class="ltx_bibitem ltx_bib_article">
+<span class="ltx_tag ltx_bib_key ltx_role_refnum ltx_tag_bibitem">[6]</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_author">I. Guttman, D. K. J. Lin, B. Reiser, and J. S. Usher</span><span class="ltx_text ltx_bib_year"> (1995)</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Dependent masking and system life data analysis: Bayesian inference for two-component systems</span>.
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_journal">Lifetime Data Analysis</span> <span class="ltx_text ltx_bib_volume">1</span> (<span class="ltx_text ltx_bib_number">1</span>), <span class="ltx_text ltx_bib_pages"> pp. 87–100</span>.
+</span>
+<span class="ltx_bibblock">External Links: <span class="ltx_text ltx_bib_links"><a href="https://dx.doi.org/10.1007/BF00985260" title="" class="ltx_ref doi ltx_bib_external">Document</a></span>
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S1.p3" title="1 Introduction ‣ Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§1</span></a>,
+<a href="#S2.SS5.p2" title="2.5 Prior Work on Dependent Masking ‣ 2 Background ‣ Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§2.5</span></a>.
+</span>
+</li>
+<li id="bib.bib38" class="ltx_bibitem ltx_bib_inproceedings">
+<span class="ltx_tag ltx_bib_key ltx_role_refnum ltx_tag_bibitem">[7]</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_author">P. J. Huber</span><span class="ltx_text ltx_bib_year"> (1967)</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">The behavior of maximum likelihood estimates under nonstandard conditions</span>.
+</span>
+<span class="ltx_bibblock">In <span class="ltx_text ltx_bib_inbook">Proceedings of the Fifth Berkeley Symposium on Mathematical
+Statistics and Probability</span>,
+</span>
+<span class="ltx_bibblock">Vol. <span class="ltx_text ltx_bib_volume">1</span>, <span class="ltx_text ltx_bib_place">Berkeley</span>, <span class="ltx_text ltx_bib_pages"> pp. 221–233</span>.
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S3.Thmtheorem4.p1" title="Theorem 3.4 (Bias from C2 Misspecification). ‣ 3.3 Misspecification Under C2 Violation ‣ 3 Sensitivity Framework ‣ Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Theorem 3.4</span></a>.
+</span>
+</li>
+<li id="bib.bib15" class="ltx_bibitem ltx_bib_article">
+<span class="ltx_tag ltx_bib_key ltx_role_refnum ltx_tag_bibitem">[8]</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_author">D. K. J. Lin and F. M. Guess</span><span class="ltx_text ltx_bib_year"> (1994)</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">System life data analysis with dependent partial knowledge on the exact cause of system failure</span>.
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_journal">Microelectronics and Reliability</span> <span class="ltx_text ltx_bib_volume">34</span> (<span class="ltx_text ltx_bib_number">3</span>), <span class="ltx_text ltx_bib_pages"> pp. 535–544</span>.
+</span>
+<span class="ltx_bibblock">External Links: <span class="ltx_text ltx_bib_links"><a href="https://dx.doi.org/10.1016/0026-2714%2894%2990090-6" title="" class="ltx_ref doi ltx_bib_external">Document</a></span>
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S1.p3" title="1 Introduction ‣ Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§1</span></a>,
+<a href="#S2.SS5.p2" title="2.5 Prior Work on Dependent Masking ‣ 2 Background ‣ Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§2.5</span></a>.
+</span>
+</li>
+<li id="bib.bib42" class="ltx_bibitem ltx_bib_book">
+<span class="ltx_tag ltx_bib_key ltx_role_refnum ltx_tag_bibitem">[9]</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_author">C. F. Manski</span><span class="ltx_text ltx_bib_year"> (2003)</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Partial identification of probability distributions</span>.
+</span>
+<span class="ltx_bibblock"> <span class="ltx_text ltx_bib_publisher">Springer-Verlag</span>, <span class="ltx_text ltx_bib_place">New York</span>.
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S5.I1.i4.p1" title="In 5.2 Practical Guidance ‣ 5 Discussion ‣ Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption" class="ltx_ref"><span class="ltx_text ltx_ref_tag">item 4</span></a>.
+</span>
+</li>
+<li id="bib.bib17" class="ltx_bibitem ltx_bib_article">
+<span class="ltx_tag ltx_bib_key ltx_role_refnum ltx_tag_bibitem">[10]</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_author">C. Mukhopadhyay and A. P. Basu</span><span class="ltx_text ltx_bib_year"> (2006)</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Bayesian analysis of incomplete time and cause of failure data</span>.
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_journal">Journal of Statistical Planning and Inference</span> <span class="ltx_text ltx_bib_volume">136</span> (<span class="ltx_text ltx_bib_number">3</span>), <span class="ltx_text ltx_bib_pages"> pp. 803–838</span>.
+</span>
+<span class="ltx_bibblock">External Links: <span class="ltx_text ltx_bib_links"><a href="https://dx.doi.org/10.1016/j.jspi.2004.08.005" title="" class="ltx_ref doi ltx_bib_external">Document</a></span>
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S1.p3" title="1 Introduction ‣ Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§1</span></a>,
+<a href="#S2.SS5.p2" title="2.5 Prior Work on Dependent Masking ‣ 2 Background ‣ Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§2.5</span></a>.
+</span>
+</li>
+<li id="bib.bib43" class="ltx_bibitem ltx_bib_book">
+<span class="ltx_tag ltx_bib_key ltx_role_refnum ltx_tag_bibitem">[11]</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_author">P. R. Rosenbaum</span><span class="ltx_text ltx_bib_year"> (2002)</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Observational studies</span>.
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_edition">2nd edition</span>,  <span class="ltx_text ltx_bib_publisher">Springer</span>, <span class="ltx_text ltx_bib_place">New York</span>.
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S2.SS5.p4" title="2.5 Prior Work on Dependent Masking ‣ 2 Background ‣ Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§2.5</span></a>.
+</span>
+</li>
+<li id="bib.bib45" class="ltx_bibitem ltx_bib_article">
+<span class="ltx_tag ltx_bib_key ltx_role_refnum ltx_tag_bibitem">[12]</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_author">F. Siannis</span><span class="ltx_text ltx_bib_year"> (2004)</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Applications of a parametric model for informative censoring</span>.
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_journal">Biometrics</span> <span class="ltx_text ltx_bib_volume">60</span> (<span class="ltx_text ltx_bib_number">3</span>), <span class="ltx_text ltx_bib_pages"> pp. 704–714</span>.
+</span>
+<span class="ltx_bibblock">External Links: <span class="ltx_text ltx_bib_links"><a href="https://dx.doi.org/10.1111/j.0006-341X.2004.00220.x" title="" class="ltx_ref doi ltx_bib_external">Document</a></span>
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S2.SS5.p4" title="2.5 Prior Work on Dependent Masking ‣ 2 Background ‣ Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§2.5</span></a>.
+</span>
+</li>
+<li id="bib.bib1" class="ltx_bibitem ltx_bib_misc">
+<span class="ltx_tag ltx_bib_key ltx_role_refnum ltx_tag_bibitem">[13]</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_author">A. Towell</span><span class="ltx_text ltx_bib_year"> (2023)</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Reliability estimation in series systems: maximum likelihood techniques for right-censored and masked failure data</span>.
+</span>
+<span class="ltx_bibblock">Note: <span class="ltx_text ltx_bib_note">Master’s thesis. Available: <span class="ltx_ref ltx_nolink ltx_url ltx_font_typewriter ltx_ref_self">https://github.com/queelius/reliability-estimation-in-series-systems</span></span>
+</span>
+<span class="ltx_bibblock">External Links: <span class="ltx_text ltx_bib_links"><a href="https://github.com/queelius/reliability-estimation-in-series-systems" title="" class="ltx_ref ltx_bib_external">Link</a></span>
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S1.p1" title="1 Introduction ‣ Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§1</span></a>,
+<a href="#S2.SS1.p3" title="2.1 Series System Model ‣ 2 Background ‣ Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§2.1</span></a>,
+<a href="#S2.Thmtheorem1" title="Theorem 2.1 (Likelihood Under C1-C2-C3 [13]). ‣ 2.4 Likelihood Under C1-C2-C3 ‣ 2 Background ‣ Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Theorem 2.1</span></a>.
+</span>
+</li>
+<li id="bib.bib40" class="ltx_bibitem ltx_bib_article">
+<span class="ltx_tag ltx_bib_key ltx_role_refnum ltx_tag_bibitem">[14]</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_author">A. Tsiatis</span><span class="ltx_text ltx_bib_year"> (1975)</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">A nonidentifiability aspect of the problem of competing risks</span>.
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_journal">Proceedings of the National Academy of Sciences</span> <span class="ltx_text ltx_bib_volume">72</span> (<span class="ltx_text ltx_bib_number">1</span>), <span class="ltx_text ltx_bib_pages"> pp. 20–22</span>.
+</span>
+<span class="ltx_bibblock">External Links: <span class="ltx_text ltx_bib_links"><a href="https://dx.doi.org/10.1073/pnas.72.1.20" title="" class="ltx_ref doi ltx_bib_external">Document</a></span>
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S3.SS4.p2" title="3.4 The Identifiability Trap ‣ 3 Sensitivity Framework ‣ Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§3.4</span></a>.
+</span>
+</li>
+<li id="bib.bib4" class="ltx_bibitem ltx_bib_article">
+<span class="ltx_tag ltx_bib_key ltx_role_refnum ltx_tag_bibitem">[15]</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_author">J. S. Usher and T. J. Hodgson</span><span class="ltx_text ltx_bib_year"> (1988)</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Maximum likelihood analysis of component reliability using masked system life-test data</span>.
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_journal">IEEE Transactions on Reliability</span> <span class="ltx_text ltx_bib_volume">37</span> (<span class="ltx_text ltx_bib_number">5</span>), <span class="ltx_text ltx_bib_pages"> pp. 550–555</span>.
+</span>
+<span class="ltx_bibblock">External Links: <span class="ltx_text ltx_bib_links"><a href="https://dx.doi.org/10.1109/24.9880" title="" class="ltx_ref doi ltx_bib_external">Document</a></span>
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S1.p1" title="1 Introduction ‣ Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§1</span></a>,
+<a href="#S2.SS3.p1" title="2.3 Conditions C1, C2, C3 ‣ 2 Background ‣ Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§2.3</span></a>.
+</span>
+</li>
+<li id="bib.bib5" class="ltx_bibitem ltx_bib_article">
+<span class="ltx_tag ltx_bib_key ltx_role_refnum ltx_tag_bibitem">[16]</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_author">J. S. Usher, D. K. J. Lin, and F. M. Guess</span><span class="ltx_text ltx_bib_year"> (1993)</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Exact maximum likelihood estimation using masked system data</span>.
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_journal">IEEE Transactions on Reliability</span> <span class="ltx_text ltx_bib_volume">42</span> (<span class="ltx_text ltx_bib_number">4</span>), <span class="ltx_text ltx_bib_pages"> pp. 631–635</span>.
+</span>
+<span class="ltx_bibblock">External Links: <span class="ltx_text ltx_bib_links"><a href="https://dx.doi.org/10.1109/24.273596" title="" class="ltx_ref doi ltx_bib_external">Document</a></span>
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S1.p1" title="1 Introduction ‣ Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§1</span></a>,
+<a href="#S2.SS3.p1" title="2.3 Conditions C1, C2, C3 ‣ 2 Background ‣ Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§2.3</span></a>.
+</span>
+</li>
+<li id="bib.bib44" class="ltx_bibitem ltx_bib_article">
+<span class="ltx_tag ltx_bib_key ltx_role_refnum ltx_tag_bibitem">[17]</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_author">T. J. VanderWeele and P. Ding</span><span class="ltx_text ltx_bib_year"> (2017)</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Sensitivity analysis in observational research: introducing the E-value</span>.
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_journal">Annals of Internal Medicine</span> <span class="ltx_text ltx_bib_volume">167</span>, <span class="ltx_text ltx_bib_pages"> pp. 268–274</span>.
+</span>
+<span class="ltx_bibblock">External Links: <span class="ltx_text ltx_bib_links"><a href="https://dx.doi.org/10.7326/M16-2607" title="" class="ltx_ref doi ltx_bib_external">Document</a></span>
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S2.SS5.p4" title="2.5 Prior Work on Dependent Masking ‣ 2 Background ‣ Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§2.5</span></a>.
+</span>
+</li>
+<li id="bib.bib37" class="ltx_bibitem ltx_bib_article">
+<span class="ltx_tag ltx_bib_key ltx_role_refnum ltx_tag_bibitem">[18]</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_author">H. White</span><span class="ltx_text ltx_bib_year"> (1982)</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Maximum likelihood estimation of misspecified models</span>.
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_journal">Econometrica</span> <span class="ltx_text ltx_bib_volume">50</span> (<span class="ltx_text ltx_bib_number">1</span>), <span class="ltx_text ltx_bib_pages"> pp. 1–25</span>.
+</span>
+<span class="ltx_bibblock">External Links: <span class="ltx_text ltx_bib_links"><a href="https://dx.doi.org/10.2307/1912526" title="" class="ltx_ref doi ltx_bib_external">Document</a></span>
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S3.Thmtheorem4.p1" title="Theorem 3.4 (Bias from C2 Misspecification). ‣ 3.3 Misspecification Under C2 Violation ‣ 3 Sensitivity Framework ‣ Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Theorem 3.4</span></a>.
+</span>
+</li>
+</ul>
+</section>
+<section id="A1" class="ltx_appendix">
+<h2 class="ltx_title ltx_title_appendix">
+<span class="ltx_tag ltx_tag_appendix">Appendix A </span>Score Functions</h2>
+
+<div id="A1.p1" class="ltx_para">
+<p class="ltx_p">For reference, we provide the score functions under the misspecified and true
+models for series systems with general component hazards.</p>
+</div>
+<section id="A1.SS0.SSS0.Px1" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Misspecified score (C1-C2-C3).</h4>
+
+<div id="A1.SS0.SSS0.Px1.p1" class="ltx_para">
+<p class="ltx_p">The score under the standard model for parameter <math id="A1.SS0.SSS0.Px1.p1.m1" class="ltx_Math" alttext="\theta_{j}" display="inline"><msub><mi>θ</mi><mi>j</mi></msub></math> is:</p>
+<table id="A1.E21" class="ltx_equation ltx_eqn_table">
+
+<tbody><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_eqn_cell ltx_align_center"><math id="A1.E21.m1" class="ltx_Math" alttext="\frac{\partial\ell^{\mathrm{wrong}}}{\partial\theta_{j}}=\sum_{i=1}^{n}\frac{%
+\partial\log R_{j}(s_{i};\theta_{j})}{\partial\theta_{j}}+\sum_{i:\delta_{i}=1%
+}\frac{\mathbf{1}_{j\in c_{i}}\,h_{j}^{\prime}(s_{i};\theta_{j})}{\sum_{k\in c%
+_{i}}h_{k}(s_{i};\theta_{k})}," display="block"><mrow><mrow><mfrac><mrow><mo rspace="0em">∂</mo><msup><mi mathvariant="normal">ℓ</mi><mi>wrong</mi></msup></mrow><mrow><mo rspace="0em">∂</mo><msub><mi>θ</mi><mi>j</mi></msub></mrow></mfrac><mo rspace="0.111em">=</mo><mrow><mrow><munderover><mo movablelimits="false">∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover><mfrac><mrow><mo rspace="0.167em">∂</mo><mrow><mrow><mi>log</mi><mo lspace="0.167em">⁡</mo><msub><mi>R</mi><mi>j</mi></msub></mrow><mo>⁢</mo><mrow><mo stretchy="false">(</mo><msub><mi>s</mi><mi>i</mi></msub><mo>;</mo><msub><mi>θ</mi><mi>j</mi></msub><mo stretchy="false">)</mo></mrow></mrow></mrow><mrow><mo rspace="0em">∂</mo><msub><mi>θ</mi><mi>j</mi></msub></mrow></mfrac></mrow><mo rspace="0.055em">+</mo><mrow><munder><mo movablelimits="false">∑</mo><mrow><mi>i</mi><mo lspace="0.278em" rspace="0.278em">:</mo><mrow><msub><mi>δ</mi><mi>i</mi></msub><mo>=</mo><mn>1</mn></mrow></mrow></munder><mfrac><mrow><msub><mn>𝟏</mn><mrow><mi>j</mi><mo>∈</mo><msub><mi>c</mi><mi>i</mi></msub></mrow></msub><mo lspace="0.170em">⁢</mo><msubsup><mi>h</mi><mi>j</mi><mo>′</mo></msubsup><mo>⁢</mo><mrow><mo stretchy="false">(</mo><msub><mi>s</mi><mi>i</mi></msub><mo>;</mo><msub><mi>θ</mi><mi>j</mi></msub><mo stretchy="false">)</mo></mrow></mrow><mrow><msub><mo>∑</mo><mrow><mi>k</mi><mo>∈</mo><msub><mi>c</mi><mi>i</mi></msub></mrow></msub><mrow><msub><mi>h</mi><mi>k</mi></msub><mo>⁢</mo><mrow><mo stretchy="false">(</mo><msub><mi>s</mi><mi>i</mi></msub><mo>;</mo><msub><mi>θ</mi><mi>k</mi></msub><mo stretchy="false">)</mo></mrow></mrow></mrow></mfrac></mrow></mrow></mrow><mo>,</mo></mrow></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation ltx_align_right">(21)</span></td>
+</tr></tbody>
+</table>
+<p class="ltx_p">where <math id="A1.SS0.SSS0.Px1.p1.m2" class="ltx_Math" alttext="h_{j}^{\prime}=\partial h_{j}/\partial\theta_{j}" display="inline"><mrow><msubsup><mi>h</mi><mi>j</mi><mo>′</mo></msubsup><mo rspace="0.1389em">=</mo><mrow><mo lspace="0.1389em" rspace="0em">∂</mo><mrow><msub><mi>h</mi><mi>j</mi></msub><mo>/</mo><mrow><mo lspace="0em" rspace="0em">∂</mo><msub><mi>θ</mi><mi>j</mi></msub></mrow></mrow></mrow></mrow></math>.</p>
+</div>
+</section>
+<section id="A1.SS0.SSS0.Px2" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">True score (C1-C3 with known <math id="A1.SS0.SSS0.Px2.m1" class="ltx_Math" alttext="\mathbf{P}" display="inline"><mi>𝐏</mi></math>).</h4>
+
+<div id="A1.SS0.SSS0.Px2.p1" class="ltx_para">
+<p class="ltx_p">Under the Bernoulli masking model with masking weights <math id="A1.SS0.SSS0.Px2.p1.m1" class="ltx_Math" alttext="\pi_{k,c}" display="inline"><msub><mi>π</mi><mrow><mi>k</mi><mo>,</mo><mi>c</mi></mrow></msub></math>:</p>
+<table id="A1.E22" class="ltx_equation ltx_eqn_table">
+
+<tbody><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_eqn_cell ltx_align_center"><math id="A1.E22.m1" class="ltx_Math" alttext="\frac{\partial\ell^{\mathrm{true}}}{\partial\theta_{j}}=\sum_{i=1}^{n}\frac{%
+\partial\log R_{j}(s_{i};\theta_{j})}{\partial\theta_{j}}+\sum_{i:\delta_{i}=1%
+}\frac{\pi_{j,c_{i}}\,\mathbf{1}_{j\in c_{i}}\,h_{j}^{\prime}(s_{i};\theta_{j}%
+)}{\sum_{k\in c_{i}}h_{k}(s_{i};\theta_{k})\,\pi_{k,c_{i}}}." display="block"><mrow><mrow><mfrac><mrow><mo rspace="0em">∂</mo><msup><mi mathvariant="normal">ℓ</mi><mi>true</mi></msup></mrow><mrow><mo rspace="0em">∂</mo><msub><mi>θ</mi><mi>j</mi></msub></mrow></mfrac><mo rspace="0.111em">=</mo><mrow><mrow><munderover><mo movablelimits="false">∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover><mfrac><mrow><mo rspace="0.167em">∂</mo><mrow><mrow><mi>log</mi><mo lspace="0.167em">⁡</mo><msub><mi>R</mi><mi>j</mi></msub></mrow><mo>⁢</mo><mrow><mo stretchy="false">(</mo><msub><mi>s</mi><mi>i</mi></msub><mo>;</mo><msub><mi>θ</mi><mi>j</mi></msub><mo stretchy="false">)</mo></mrow></mrow></mrow><mrow><mo rspace="0em">∂</mo><msub><mi>θ</mi><mi>j</mi></msub></mrow></mfrac></mrow><mo rspace="0.055em">+</mo><mrow><munder><mo movablelimits="false">∑</mo><mrow><mi>i</mi><mo lspace="0.278em" rspace="0.278em">:</mo><mrow><msub><mi>δ</mi><mi>i</mi></msub><mo>=</mo><mn>1</mn></mrow></mrow></munder><mfrac><mrow><msub><mi>π</mi><mrow><mi>j</mi><mo>,</mo><msub><mi>c</mi><mi>i</mi></msub></mrow></msub><mo>⁢</mo><msub><mn class="ltx_mathvariant_bold" mathvariant="bold"> 1</mn><mrow><mi>j</mi><mo>∈</mo><msub><mi>c</mi><mi>i</mi></msub></mrow></msub><mo>⁢</mo><msubsup><mi>h</mi><mi>j</mi><mo>′</mo></msubsup><mo>⁢</mo><mrow><mo stretchy="false">(</mo><msub><mi>s</mi><mi>i</mi></msub><mo>;</mo><msub><mi>θ</mi><mi>j</mi></msub><mo stretchy="false">)</mo></mrow></mrow><mrow><msub><mo>∑</mo><mrow><mi>k</mi><mo>∈</mo><msub><mi>c</mi><mi>i</mi></msub></mrow></msub><mrow><msub><mi>h</mi><mi>k</mi></msub><mo>⁢</mo><mrow><mo stretchy="false">(</mo><msub><mi>s</mi><mi>i</mi></msub><mo>;</mo><msub><mi>θ</mi><mi>k</mi></msub><mo stretchy="false">)</mo></mrow><mo lspace="0.170em">⁢</mo><msub><mi>π</mi><mrow><mi>k</mi><mo>,</mo><msub><mi>c</mi><mi>i</mi></msub></mrow></msub></mrow></mrow></mfrac></mrow></mrow></mrow><mo lspace="0em">.</mo></mrow></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation ltx_align_right">(22)</span></td>
+</tr></tbody>
+</table>
+</div>
+</section>
+<section id="A1.SS0.SSS0.Px3" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Exponential specialization.</h4>
+
+<div id="A1.SS0.SSS0.Px3.p1" class="ltx_para">
+<p class="ltx_p">For exponential components (<math id="A1.SS0.SSS0.Px3.p1.m1" class="ltx_Math" alttext="h_{j}=\theta_{j}" display="inline"><mrow><msub><mi>h</mi><mi>j</mi></msub><mo>=</mo><msub><mi>θ</mi><mi>j</mi></msub></mrow></math>, <math id="A1.SS0.SSS0.Px3.p1.m2" class="ltx_Math" alttext="R_{j}=e^{-\theta_{j}t}" display="inline"><mrow><msub><mi>R</mi><mi>j</mi></msub><mo>=</mo><msup><mi>e</mi><mrow><mo>−</mo><mrow><msub><mi>θ</mi><mi>j</mi></msub><mo>⁢</mo><mi>t</mi></mrow></mrow></msup></mrow></math>), these
+simplify to:</p>
+<table id="A3.EGx2" class="ltx_equationgroup ltx_eqn_align ltx_eqn_table">
+
+<tbody id="A1.E23"><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right ltx_eqn_cell"><math id="A1.E23.m1" class="ltx_Math" alttext="\displaystyle\frac{\partial\ell^{\mathrm{wrong}}}{\partial\theta_{j}}" display="inline"><mstyle displaystyle="true"><mfrac><mrow><mo rspace="0em">∂</mo><msup><mi mathvariant="normal">ℓ</mi><mi>wrong</mi></msup></mrow><mrow><mo rspace="0em">∂</mo><msub><mi>θ</mi><mi>j</mi></msub></mrow></mfrac></mstyle></math></td>
+<td class="ltx_td ltx_align_left ltx_eqn_cell"><math id="A1.E23.m2" class="ltx_Math" alttext="\displaystyle=-\sum_{i=1}^{n}s_{i}+\sum_{i:\delta_{i}=1}\frac{\mathbf{1}_{j\in
+c%
+_{i}}}{\sum_{k\in c_{i}}\theta_{k}}," display="inline"><mrow><mrow><mi></mi><mo>=</mo><mrow><mrow><mo>−</mo><mrow><mstyle displaystyle="true"><munderover><mo movablelimits="false">∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover></mstyle><msub><mi>s</mi><mi>i</mi></msub></mrow></mrow><mo>+</mo><mrow><mstyle displaystyle="true"><munder><mo movablelimits="false">∑</mo><mrow><mi>i</mi><mo lspace="0.278em" rspace="0.278em">:</mo><mrow><msub><mi>δ</mi><mi>i</mi></msub><mo>=</mo><mn>1</mn></mrow></mrow></munder></mstyle><mstyle displaystyle="true"><mfrac><msub><mn>𝟏</mn><mrow><mi>j</mi><mo>∈</mo><msub><mi>c</mi><mi>i</mi></msub></mrow></msub><mrow><msub><mo>∑</mo><mrow><mi>k</mi><mo>∈</mo><msub><mi>c</mi><mi>i</mi></msub></mrow></msub><msub><mi>θ</mi><mi>k</mi></msub></mrow></mfrac></mstyle></mrow></mrow></mrow><mo>,</mo></mrow></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation ltx_align_right">(23)</span></td>
+</tr></tbody>
+<tbody id="A1.E24"><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right ltx_eqn_cell"><math id="A1.E24.m1" class="ltx_Math" alttext="\displaystyle\frac{\partial\ell^{\mathrm{true}}}{\partial\theta_{j}}" display="inline"><mstyle displaystyle="true"><mfrac><mrow><mo rspace="0em">∂</mo><msup><mi mathvariant="normal">ℓ</mi><mi>true</mi></msup></mrow><mrow><mo rspace="0em">∂</mo><msub><mi>θ</mi><mi>j</mi></msub></mrow></mfrac></mstyle></math></td>
+<td class="ltx_td ltx_align_left ltx_eqn_cell"><math id="A1.E24.m2" class="ltx_Math" alttext="\displaystyle=-\sum_{i=1}^{n}s_{i}+\sum_{i:\delta_{i}=1}\frac{\pi_{j,c_{i}}\,%
+\mathbf{1}_{j\in c_{i}}}{\sum_{k\in c_{i}}\theta_{k}\,\pi_{k,c_{i}}}." display="inline"><mrow><mrow><mi></mi><mo>=</mo><mrow><mrow><mo>−</mo><mrow><mstyle displaystyle="true"><munderover><mo movablelimits="false">∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover></mstyle><msub><mi>s</mi><mi>i</mi></msub></mrow></mrow><mo>+</mo><mrow><mstyle displaystyle="true"><munder><mo movablelimits="false">∑</mo><mrow><mi>i</mi><mo lspace="0.278em" rspace="0.278em">:</mo><mrow><msub><mi>δ</mi><mi>i</mi></msub><mo>=</mo><mn>1</mn></mrow></mrow></munder></mstyle><mstyle displaystyle="true"><mfrac><mrow><msub><mi>π</mi><mrow><mi>j</mi><mo>,</mo><msub><mi>c</mi><mi>i</mi></msub></mrow></msub><mo>⁢</mo><msub><mn class="ltx_mathvariant_bold" mathvariant="bold"> 1</mn><mrow><mi>j</mi><mo>∈</mo><msub><mi>c</mi><mi>i</mi></msub></mrow></msub></mrow><mrow><msub><mo>∑</mo><mrow><mi>k</mi><mo>∈</mo><msub><mi>c</mi><mi>i</mi></msub></mrow></msub><mrow><msub><mi>θ</mi><mi>k</mi></msub><mo>⁢</mo><msub><mi>π</mi><mrow><mi>k</mi><mo>,</mo><msub><mi>c</mi><mi>i</mi></msub></mrow></msub></mrow></mrow></mfrac></mstyle></mrow></mrow></mrow><mo lspace="0em">.</mo></mrow></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation ltx_align_right">(24)</span></td>
+</tr></tbody>
+</table>
+</div>
+</section>
+</section>
+<section id="A2" class="ltx_appendix">
+<h2 class="ltx_title ltx_title_appendix">
+<span class="ltx_tag ltx_tag_appendix">Appendix B </span>Non-Identifiability Evidence</h2>
+
+<div id="A2.p1" class="ltx_para">
+<p class="ltx_p">To demonstrate the non-identifiability of <math id="A2.p1.m1" class="ltx_Math" alttext="(\bm{\theta},\mathbf{P})" display="inline"><mrow><mo stretchy="false">(</mo><mi>𝜽</mi><mo>,</mo><mi>𝐏</mi><mo stretchy="false">)</mo></mrow></math>, we
+attempted joint estimation with <math id="A2.p1.m2" class="ltx_Math" alttext="n=2000" display="inline"><mrow><mi>n</mi><mo>=</mo><mn>2000</mn></mrow></math> observations from a 2-component
+exponential system with <math id="A2.p1.m3" class="ltx_Math" alttext="\bm{\theta}^{*}=(1.0,2.0)" display="inline"><mrow><msup><mi>𝜽</mi><mo>∗</mo></msup><mo>=</mo><mrow><mo stretchy="false">(</mo><mn>1.0</mn><mo>,</mo><mn>2.0</mn><mo stretchy="false">)</mo></mrow></mrow></math> and asymmetric
+<math id="A2.p1.m4" class="ltx_Math" alttext="\mathbf{P}" display="inline"><mi>𝐏</mi></math> (<math id="A2.p1.m5" class="ltx_Math" alttext="p_{21}=0.10" display="inline"><mrow><msub><mi>p</mi><mn>21</mn></msub><mo>=</mo><mn>0.10</mn></mrow></math>, <math id="A2.p1.m6" class="ltx_Math" alttext="p_{12}=0.90" display="inline"><mrow><msub><mi>p</mi><mn>12</mn></msub><mo>=</mo><mn>0.90</mn></mrow></math>).</p>
+</div>
+<div id="A2.p2" class="ltx_para">
+<table class="ltx_tabular ltx_centering ltx_guessed_headers ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_th_row ltx_border_tt">Method</th>
+<th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt"><math id="A2.m1" class="ltx_Math" alttext="\hat{\theta}_{1}" display="inline"><msub><mover accent="true"><mi>θ</mi><mo>^</mo></mover><mn>1</mn></msub></math></th>
+<th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt"><math id="A2.m2" class="ltx_Math" alttext="\hat{\theta}_{2}" display="inline"><msub><mover accent="true"><mi>θ</mi><mo>^</mo></mover><mn>2</mn></msub></math></th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_t">Joint <math id="A2.m3" class="ltx_Math" alttext="(\bm{\theta},\mathbf{P})" display="inline"><mrow><mo stretchy="false">(</mo><mi>𝜽</mi><mo>,</mo><mi>𝐏</mi><mo stretchy="false">)</mo></mrow></math>
+</th>
+<td class="ltx_td ltx_align_center ltx_border_t">1.62</td>
+<td class="ltx_td ltx_align_center ltx_border_t">1.44</td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row">Known <math id="A2.m4" class="ltx_Math" alttext="\mathbf{P}" display="inline"><mi>𝐏</mi></math>
+</th>
+<td class="ltx_td ltx_align_center">0.97</td>
+<td class="ltx_td ltx_align_center">2.08</td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_bb">True values</th>
+<td class="ltx_td ltx_align_center ltx_border_bb">1.00</td>
+<td class="ltx_td ltx_align_center ltx_border_bb">2.00</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="A2.p3" class="ltx_para">
+<p class="ltx_p">The joint estimator consistently converges to
+<math id="A2.p3.m1" class="ltx_Math" alttext="\hat{\bm{\theta}}\approx(1.6,1.4)" display="inline"><mrow><mover accent="true"><mi>𝜽</mi><mo>^</mo></mover><mo>≈</mo><mrow><mo stretchy="false">(</mo><mn>1.6</mn><mo>,</mo><mn>1.4</mn><mo stretchy="false">)</mo></mrow></mrow></math> with
+<math id="A2.p3.m2" class="ltx_Math" alttext="\hat{P}_{21}\approx 0.45" display="inline"><mrow><msub><mover accent="true"><mi>P</mi><mo>^</mo></mover><mn>21</mn></msub><mo>≈</mo><mn>0.45</mn></mrow></math> (true: 0.10), regardless of sample size. The
+total hazard is well-identified: <math id="A2.p3.m3" class="ltx_Math" alttext="\sum_{j}\hat{\theta}_{j}=3.01" display="inline"><mrow><mrow><msub><mo>∑</mo><mi>j</mi></msub><msub><mover accent="true"><mi>θ</mi><mo>^</mo></mover><mi>j</mi></msub></mrow><mo>=</mo><mn>3.01</mn></mrow></math> vs. true
+3.00. This confirms <a href="#S3.Thmtheorem5" title="Theorem 3.5 (Non-Identifiability of (𝜽,𝐏)). ‣ 3.4 The Identifiability Trap ‣ 3 Sensitivity Framework ‣ Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Theorem</span> <span class="ltx_text ltx_ref_tag">3.5</span></a>: individual rates and masking
+probabilities are confounded, but the total system hazard is identifiable.</p>
+</div>
+</section>
+<section id="A3" class="ltx_appendix">
+<h2 class="ltx_title ltx_title_appendix">
+<span class="ltx_tag ltx_tag_appendix">Appendix C </span>Software</h2>
+
+<div id="A3.p1" class="ltx_para">
+<p class="ltx_p">All methods are implemented in the <span class="ltx_text ltx_font_typewriter">mdrelax</span> R package (version 1.1.0),
+available at <a href="https://github.com/queelius/mdrelax" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://github.com/queelius/mdrelax</a>. The package provides:</p>
+<ul id="A3.I1" class="ltx_itemize">
+<li id="A3.I1.i1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="A3.I1.i1.p1" class="ltx_para">
+<p class="ltx_p">Data generation under C1-C2-C3 and relaxed C2 for both
+exponential and Weibull series systems.</p>
+</div>
+</li>
+<li id="A3.I1.i2" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="A3.I1.i2.p1" class="ltx_para">
+<p class="ltx_p">MLE with analytical score and Fisher information for all model tiers.</p>
+</div>
+</li>
+<li id="A3.I1.i3" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="A3.I1.i3.p1" class="ltx_para">
+<p class="ltx_p">The <math id="A3.I1.i3.p1.m1" class="ltx_Math" alttext="\mathbf{P}" display="inline"><mi>𝐏</mi></math> matrix construction and masking probability
+computation functions used in this paper.</p>
+</div>
+</li>
+<li id="A3.I1.i4" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="A3.I1.i4.p1" class="ltx_para">
+<p class="ltx_p">1276 unit tests verifying likelihood correctness, score–gradient
+agreement, FIM consistency, and MLE convergence properties.</p>
+</div>
+</li>
+</ul>
+</div>
+<div id="A3.p2" class="ltx_para">
+<p class="ltx_p">The simulation sweep script (<span class="ltx_text ltx_font_typewriter">paper/run_sensitivity_sweep.R</span>)
+reproduces all figures and tables in <a href="#S4" title="4 Simulation Study ‣ Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Section</span> <span class="ltx_text ltx_ref_tag">4</span></a>.</p>
+</div>
+</section>
+</article>
+</div>
+<footer class="ltx_page_footer">
+<div class="ltx_page_logo">Generated  on Sat Mar 14 07:46:21 2026 by <a href="http://dlmf.nist.gov/LaTeXML/" class="ltx_LaTeXML_logo"><span style="letter-spacing:-0.2em; margin-right:0.1em;">L<span class="ltx_font_smallcaps" style="position:relative; bottom:2.2pt;">a</span>T<span class="ltx_font_smallcaps" style="font-size:120%;position:relative; bottom:-0.2ex;">e</span></span><span style="font-size:90%; position:relative; bottom:-0.2ex;">XML</span><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="Mascot Sammy"></a>
+</div></footer>
+</div>
+</body>
+</html>
