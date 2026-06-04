@@ -1,0 +1,36 @@
+cff-version: 1.2.0
+message: "If you use this work, please cite it as below."
+type: article
+title: "Sensitivity of Series System Reliability Estimation to the Coarsening Conditions on Masked Failure Data"
+authors:
+  - family-names: Towell
+    given-names: Alexander
+    email: lex@metafunctor.com
+    orcid: "https://orcid.org/0000-0001-6443-9897"
+    affiliation: "Southern Illinois University Edwardsville"
+abstract: >-
+  Maximum likelihood estimation for series systems with masked failure data
+  rests on three coarsening conditions: (C1) the failed component is in the
+  candidate set; (C2) the candidate set is independent of the true cause
+  given the failure time; and (C3) the masking mechanism does not depend on
+  the component reliability parameters. We develop a unified
+  sensitivity-analysis framework for the standard C1-C2-C3 MLE under
+  calibrated violations of each condition. Closed-form pseudo-true expansions
+  yield local sensitivity indices, and a profile-likelihood factorization
+  yields an exact total-hazard preservation result that sharpens the
+  exponential case to all orders. A systematic sweep on a five-component
+  Weibull system validates a robustness hierarchy: system-level estimands
+  are robust under any of the three violations, while component-level
+  estimands degrade with violation severity. Software is available in the
+  mdrelax R package.
+keywords:
+  - masked data
+  - coarsening at random
+  - sensitivity analysis
+  - non-informative masking
+  - series systems
+  - reliability
+  - Weibull
+  - identifiability
+license: CC-BY-4.0
+repository-code: "https://github.com/queelius/mdrelax"

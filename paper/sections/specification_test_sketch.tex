@@ -1,0 +1,207 @@
+%% ============================================================================
+%% DRAFT / SKETCH: Specification Test for the Joint Coarsening Conditions
+%% Not currently \input from main.tex. Used to evaluate the math before
+%% committing to a full development pass.
+%% ============================================================================
+
+\section{A Specification Test for the Joint Hypothesis $\{C_1, C_2, C_3\}$}
+\label{sec:spec-test}
+
+The local sensitivity indices of \Cref{sec:misspec,sec:c1-sensitivity,sec:c3-sensitivity}
+characterize the bias of the standard MLE under each coarsening-condition
+violation. In practice, a reliability engineer fitting the C1-C2-C3 model
+faces a prior question: are any of C1, C2, C3 detectably violated in the
+present data? We give a formal test of the joint null
+$H_0 \colon \{C_1, C_2, C_3\}$ that operates on observable data alone (no
+need to observe the failed cause $K_i$) and is consistent against the
+parametric alternatives of \Cref{sec:c1-sensitivity,sec:misspec,sec:c3-sensitivity}.
+
+\subsection{Observable Factorization Under $H_0$}
+\label{sec:spec-test-lemma}
+
+The test rests on a single elementary lemma.
+
+\begin{lemma}[Factorization of $\Prob(C \mid T)$ under $H_0$]
+\label{lem:factorization}
+Under $H_0 \colon \{C_1, C_2, C_3\}$, for every non-empty candidate set
+$c$ and every time $t > 0$,
+\begin{equation}
+\label{eq:factorization}
+    \Prob\{C = c \mid T = t, \delta = 1\}
+    \;=\; \pi_c \cdot R_c(t; \vtheta^*),
+\end{equation}
+where $\pi_c \in [0, 1]$ depends only on $c$ (not on the failed cause $k$,
+not on the parameter $\vtheta^*$, not on the time $t$), and
+\begin{equation}
+\label{eq:Rc}
+    R_c(t; \vtheta) \;\coloneqq\;
+    \frac{\sum_{k \in c} h_k(t;\, \theta_k)}{S(t;\, \vtheta)}
+\end{equation}
+is the relative-hazard contribution of $c$ at time $t$, with
+$S(t; \vtheta) = \sum_j h_j(t; \theta_j)$ the system hazard.
+\end{lemma}
+
+\begin{proof}
+Under C1, $\Prob\{C = c \mid K = k\} = 0$ for $k \notin c$. Under C2,
+$\Prob\{C = c \mid K = k\} = \pi_{k,c}$ is constant in $k$ for $k \in c$;
+write the common value $\pi_c$. Under C3, $\pi_c$ does not depend on
+$\vtheta^*$. The competing-risks decomposition gives
+$\Prob\{K = k \mid T = t, \delta = 1\} = h_k(t; \theta_k^*) / S(t; \vtheta^*)$.
+Hence
+\begin{equation*}
+    \Prob\{C = c \mid T = t, \delta = 1\}
+    = \sum_{k=1}^{m} \Prob\{C = c \mid K = k\}\,
+                      \Prob\{K = k \mid T = t, \delta = 1\}
+    = \pi_c \sum_{k \in c} \frac{h_k(t; \theta_k^*)}{S(t; \vtheta^*)}.
+\end{equation*}
+The conditioning on $\delta = 1$ is innocuous because the candidate set
+is generated only on failure under all relevant masking models and
+because type-I censoring is independent of $(K, C)$ given $T$.
+\end{proof}
+
+The Lemma is the testable content of $H_0$: a conditional distribution
+$\Prob(C \mid T)$ factors as a $c$-only function times a known parametric
+function of $t$. Each component condition contributes one structural
+constraint to this factorization. C1 contributes the support restriction
+($\pi_c$ vanishes if $K \notin c$ for any positive-probability $k$), C2
+contributes the $k$-invariance of $\pi_c$ for $k \in c$, and C3 contributes
+the $\vtheta$-independence of $\pi_c$. Any failure of the joint factor
+structure indicates at least one of these constraints is violated.
+
+\subsection{Test Statistic for Singleton Candidate Sets}
+\label{sec:spec-test-stat}
+
+We construct the test for the singleton categories
+$\mathcal{C}_{\mathrm{test}} = \{\{1\}, \{2\}, \ldots, \{m\}\}$. The
+factorization \eqref{eq:factorization} implies that, under $H_0$, the
+ratio $\Prob\{C = \{j\} \mid T = t, \delta = 1\} / R_j(t; \vtheta^*)$ is
+constant in $t$, equal to $\pi_{\{j\}}$. A direct test of this constancy
+is the bin-based Pearson chi-squared.
+
+For each component $j$, define the model-based singleton intensity at
+observation $i$:
+\begin{equation}
+\label{eq:Rj-singleton}
+    \hat R_j(T_i) \;\coloneqq\; \frac{h_j(T_i; \hat\theta_j)}
+                                       {\sum_l h_l(T_i; \hat\theta_l)},
+\end{equation}
+where $\hat\vtheta$ is the C1-C2-C3 MLE. The global moment estimator for
+$\pi_{\{j\}}$ is
+\begin{equation}
+\label{eq:pi-singleton-est}
+    \hat\pi_{\{j\}} \;=\;
+    \frac{\sum_{i: \delta_i = 1} \ind{C_i = \{j\}}}
+         {\sum_{i: \delta_i = 1} \hat R_j(T_i)}.
+\end{equation}
+This estimator zeros the residual $\sum_i (\ind{C_i = \{j\}} -
+\hat\pi_{\{j\}} \hat R_j(T_i))$ in aggregate by construction, so an
+aggregate-residual test has no power. The bin-based construction
+sidesteps this by testing the constancy of $\hat\pi_{\{j\}}$ across time
+bins, which is the testable content of the factorization.
+
+\paragraph{Construction.}
+Partition the failure-time domain into $L$ disjoint bins
+$\mathcal{B}_1, \ldots, \mathcal{B}_L$ (in practice, quantile bins of the
+empirical failure-time distribution). For each component $j$ and bin
+$\ell$, define
+\begin{align}
+\label{eq:pearson-cells}
+    O_{j, \ell} \;&=\; \sum_{i : T_i \in \mathcal{B}_\ell,\, \delta_i = 1}
+                       \ind{C_i = \{j\}}, \\
+    E_{j, \ell} \;&=\; \hat\pi_{\{j\}}
+                       \sum_{i : T_i \in \mathcal{B}_\ell,\, \delta_i = 1}
+                       \hat R_j(T_i).
+\end{align}
+The singleton specification test statistic is the Pearson chi-squared:
+\begin{equation}
+\label{eq:T-stat}
+    T_n \;=\; \sum_{j = 1}^{m} \sum_{\ell = 1}^{L}
+              \frac{(O_{j, \ell} - E_{j, \ell})^2}{E_{j, \ell}},
+\end{equation}
+summed over $(j, \ell)$ cells with $E_{j, \ell}$ above a small-count
+threshold (typically $E_{j, \ell} \geq 0.5$).
+
+\begin{theorem}[Asymptotic Null Distribution]
+\label{thm:asymptotic-spec}
+Suppose the standard regularity conditions for the MLE $\hat\vtheta$
+hold, and the candidate-set distribution has $\pi_{\{j\}} > 0$ for every
+$j$. Under $H_0$ as $n \to \infty$ with the number of bins $L$ fixed,
+\begin{equation}
+    T_n \xrightarrow{d} \chi^2_{m(L - 1)}.
+\end{equation}
+\end{theorem}
+
+\begin{proof}[Proof outline]
+For each $j$, the bin counts $(O_{j, \ell})_{\ell=1}^{L}$ are approximately
+multinomial with cell probabilities determined by the bin averages of
+$R_j(t)$ under the true mixture, conditional on the marginal singleton
+rate. The Pearson chi-squared on these cells with one estimated parameter
+($\hat\pi_{\{j\}}$) is asymptotically $\chi^2_{L-1}$ under $H_0$ by the
+classical Wilks construction. Summing $m$ such statistics yields
+$\chi^2_{m(L-1)}$, with the $m$-component statistics asymptotically
+independent because the cell counts for different $j$ partition the
+singleton observations into disjoint sets. The estimation of $\hat\vtheta$
+introduces a vanishing correction under standard regularity (the score
+$\partial \ell / \partial \vtheta$ is orthogonal to the bin-deviation
+directions asymptotically), and the correction is empirically negligible
+at sample sizes where the Pearson approximation is itself accurate.
+\end{proof}
+
+\begin{remark}[Choice of $L$ and small-count adjustments]
+\label{rem:choice-L}
+For a 5-component system at $n_F \approx 500$ failures, $L = 5$ quantile
+bins gives expected cell counts in the range $\hat\pi_{\{j\}}
+\sum_{i \in \mathcal{B}_\ell} \hat R_j(T_i)$, typically $5$ to $20$
+events per cell when $\pi_{\{j\}} \approx 1/m$. The Pearson approximation
+is accurate in this range. For sparse cells with $E_{j,\ell} < 0.5$,
+either drop the cell from the sum (with corresponding reduction in $df$)
+or merge adjacent bins. The validation study reported in
+\Cref{sec:simulations} uses $L = 5$ throughout.
+\end{remark}
+
+\subsection{Power Against the Three Parametric Alternatives}
+\label{sec:spec-test-power}
+
+\begin{proposition}[Consistency against violations]
+\label{prop:power}
+The test rejects $H_0$ with probability tending to one under each of the
+following sequences of alternatives, as long as the relevant parametric
+violation is detectable in the data:
+\begin{enumerate}
+    \item \textbf{C1 violation} ($p_k(k) = 1 - \alpha_{C_1}$ with
+        $\alpha_{C_1} > 0$): The conditional
+        $\Prob\{C = \{j\} \mid T = t, \delta = 1\}$ acquires additional
+        mass through $K \in c^{\mathsf c}$ paths that distort the
+        $\pi_{\{j\}}$ factor. The distortion is $t$-dependent for
+        non-exponential components, giving the test nontrivial power.
+    \item \textbf{C2 violation} ($\pi_{k, c}$ varies with $k$ for
+        $k \in c$): The mixture
+        $\sum_{k \in c} \pi_{k,c}\, h_k(t)/S(t)$ does not factor as
+        $\pi_c \cdot R_c$, so the test rejects.
+    \item \textbf{C3 violation} ($\pi_c$ depends on $\vtheta^*$ via the
+        power-weight law): For Weibull components the time-dependence in
+        $\hat R_c(t)$ at the misspecified $\hat\vtheta$ surfaces the
+        violation; for exponential components, $R_c$ is constant in $t$
+        and the test has limited power against C3, consistent with the
+        fact that total-hazard inference is exactly preserved under C3
+        for exponential (\Cref{thm:exact-hazard-exp}).
+\end{enumerate}
+\end{proposition}
+
+The C3-exponential power gap is not a defect: by
+\Cref{thm:exact-hazard-exp}, C3 violation has no consequence for
+system-level inference in the exponential case, so the absence of
+detection power matches the absence of inferential consequence.
+
+\subsection{Implementation and Validation}
+
+The test is implemented in the \texttt{mdrelax} R package as
+\texttt{spec\_test\_singleton()}. A simulation study validating the
+chi-squared null distribution and characterizing the power across
+violation types is reported in \Cref{sec:simulations}; see
+\texttt{paper/specification\_test\_validation.R} for the reproducible
+analysis.
+
+%% ============================================================================
+%% END SKETCH
+%% ============================================================================

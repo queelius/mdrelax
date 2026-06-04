@@ -9,66 +9,133 @@ fails, diagnostic procedures may identify only a \emph{candidate set} of
 components that could have caused the failure, rather than pinpointing the
 exact failed component \citep{Usher-1988}. Maximum likelihood estimation under
 masked data has been developed extensively under a standard set of
-assumptions~\citep{Lin-1993, towell2023reliability}: (C1)~the true failed
+assumptions~\citep{Lin-1993, towell2023reliability, towell2026masked}: (C1)~the true failed
 component is always in the candidate set; (C2)~masking is non-informative,
 meaning the candidate set formation is independent of the failure cause given
 the failure time; and (C3)~the masking mechanism does not depend on the
 component reliability parameters.
 
-Among these, C2 is the strongest and least verifiable assumption. It requires
-that the diagnostic process which generates candidate sets reveals nothing
-about which component actually failed beyond the guarantee of C1. In practice,
-the masking mechanism reflects a complex diagnostic process---technician
-experience, test equipment sensitivity, failure mode characteristics---that is
-rarely known and seldom non-informative. An experienced technician may
-preferentially include components whose failure signatures match the observed
-failure time; an automated diagnostic may weight components by their estimated
-reliability ranking, effectively violating C2.
+Each of these conditions is a restriction on the diagnostic process that
+produces the candidate set. Taken together, they are equivalent to the joint
+assumption of \emph{coarsening at random}
+\citep{HeitjanRubin1991, JacobsenKeiding1995} and parameter distinctness
+\citep{Rubin1976} for the candidate-set coarsening map. Each may fail in
+practice. The technician's experience may make the candidate set informative
+about the cause (C2 violation). An automated diagnostic may weight candidate
+inclusion by failure-rate ranking (C3 violation). In the worst case, the
+diagnostic may miss the failed component entirely, producing a candidate set
+that does not contain the true cause (C1 violation).
 
-Prior work has addressed dependent masking by proposing alternative models for
-the masking probability. \citet{LinGuess1994} introduced proportional masking
-probabilities for two-component systems with closed-form maximum likelihood
-estimators. \citet{Guttman1995} developed Bayesian inference under dependent
-masking for two-component systems. \citet{Mukhopadhyay2006} extended
-likelihood-based inference to general $m$-component systems where masking
-depends on the cause of failure. \citet{CraiuReiser2006} studied conditional
-masking probability models and their identifiability. These approaches share a
-common structure: they propose a specific masking model to replace C2 and
-estimate its parameters jointly with the component reliability parameters.
+Prior work has addressed each violation in isolation, often in distinct
+vocabularies. For C2, alternative parametric masking models have been
+proposed in the reliability literature \citep{LinGuess1994, Guttman1995,
+Mukhopadhyay2006, CraiuReiser2006}. The analogous problem of cause
+uncertainty in biostatistics has produced parallel methodology:
+\citet{MorenoBetancur2015} developed pattern-mixture sensitivity analysis
+for competing risks regression with missing causes;
+\citet{BakoyannisYiannoutsos2015} derived closed-form bias expressions and
+permissible-range bounds for cumulative incidence under cause
+misclassification; \citet{Bakoyannis2025}, in concurrent work, introduced
+robustness intervals for Cox cause-specific hazards under binary missing
+cause. The local sensitivity of an MLE to assumption violations has been
+formalized as the Index of Local Sensitivity to Nonignorability (ISNI)
+\citep{TroxelMaHeitjan2004, ZhangHeitjan2006}, with closely related
+first-order bias expansions in \citet{CopasEguchi2005} and
+\citet{SiannisCopasLu2005}, and the modern calibrated-bias-bound tradition
+culminating in the omitted-variable robustness value of
+\citet{CinelliHazlett2020}.
 
-We take a complementary approach. Rather than proposing an alternative masking
-model, we study the \emph{sensitivity} of the standard C1-C2-C3 estimator to
-violations of C2. The question is practical: when a reliability engineer fits
-the standard model---as is common practice---how wrong are the resulting
-estimates when C2 fails? Our contributions are:
+Three structural features of the masked series-system problem are not
+addressed in this corpus. First, the candidate set is \emph{set-valued}, not
+a single label that may be wrong. Every prior treatment of cause uncertainty
+in competing risks treats the cause as either fully observed, fully missing,
+or misclassified to a single alternative label; the set-valued case requires
+a different likelihood structure and does not reduce to point-cause
+misclassification with random masking (\Cref{app:set-vs-point}). Second, the
+standard reliability model imposes \emph{three orthogonal coarsening
+conditions} (C1, C2, C3) whose violations carry distinct semantics, where
+existing sensitivity frameworks operate over a scalar departure parameter.
+Third, parametric reliability models (Weibull, exponential series systems)
+admit closed-form bias expressions that the predominantly semiparametric
+biostatistics literature has not derived. \citet{Bakoyannis2025} explicitly
+note that ``there is no formula for computing the E-value in the context of
+competing risks analysis with MNAR causes of failure.''
+
+We address these gaps with a unified sensitivity-analysis framework for
+masked series-system reliability under calibrated violations of C1, C2, and
+C3. Our contributions are:
+
 \begin{enumerate}
-    \item \textbf{Misspecification characterization.} We prove that when C2 is
-        violated but assumed to hold, the MLE converges to a pseudo-true
-        parameter whose individual component rates absorb the masking
-        asymmetry. The total system hazard, however, remains consistently
-        estimated (\Cref{sec:framework}).
+    \item \textbf{Calibrated severity scales.} We parameterize each
+        coarsening condition on a scalar severity
+        $\alpha_{C_k} \in [0, \alpha_{C_k}^{\max}]$ with boundary semantics
+        that $\alpha_{C_k} = 0$ recovers the standard C1-C2-C3 model and
+        $\alpha_{C_k}^{\max}$ marks the transition to an adversarial regime.
+        This aligns with the calibrated-robustness-value philosophy of
+        \citet{CinelliHazlett2020} and the pattern-mixture sensitivity
+        parameter of \citet{MorenoBetancur2015}, but extends both to a
+        multi-dimensional sensitivity geometry.
 
-    \item \textbf{Simulation sweep.} Using a Bernoulli perturbation model that
-        generates controlled C2 violations of varying severity, we map the
-        bias, RMSE, and coverage degradation as a function of violation
-        severity for a 5-component Weibull series system
-        (\Cref{sec:simulations}).
+    \item \textbf{Local sensitivity indices for set-valued masking.} We
+        derive closed-form first-order expansions of the misspecified MLE in
+        each $\alpha_{C_k}$ at the standard-model fit, specializing the ISNI
+        construction of \citet{TroxelMaHeitjan2004} and
+        \citet{ZhangHeitjan2006} from interval-censored time to
+        candidate-set coarsening. The expansions are explicit for
+        exponential components and tractable for Weibull components,
+        addressing the gap that \citet{Bakoyannis2025} identify in the
+        cumulative-incidence setting.
 
-    \item \textbf{Practical finding.} System-level reliability estimates
-        (total hazard, mean time to failure) are robust to C2 violations
-        across the full severity range. Individual component parameter
-        estimates are not. Since the masking mechanism and component rates are
-        jointly non-identifiable, sensitivity analysis---not model
-        elaboration---is the appropriate response (\Cref{sec:discussion}).
+    \item \textbf{Robustness intervals.} For each violation type and each
+        estimand of practical interest (component rates, system hazard,
+        mean time to failure), we construct robustness intervals giving the
+        range of $\alpha_{C_k}$ within which inferential conclusions
+        persist. This extends the framework of \citet{Bakoyannis2025} from
+        semiparametric Cox regression with binary missing cause to
+        parametric series systems under set-valued candidate-set
+        coarsening.
+
+    \item \textbf{Robustness hierarchy across estimands.} We classify which
+        functionals of the parameter vector are protected versus fragile
+        under each violation type. System-level estimands (total hazard,
+        mean time to failure) remain consistently estimated under
+        violations of moderate severity, while component-level estimands
+        degrade in a violation-specific pattern admitting closed-form
+        characterization for exponential systems.
+
+    \item \textbf{Software.} The methods are implemented in the
+        \texttt{mdrelax} R package, which provides data generation, MLE,
+        Fisher information, sensitivity-index computation, and
+        robustness-interval construction for all model tiers. None of the
+        closest related work \citep{MorenoBetancur2015,
+        BakoyannisYiannoutsos2015, ZhangHeitjan2006, Bakoyannis2025}
+        releases code.
 \end{enumerate}
 
-The remainder of this paper is organized as follows. \Cref{sec:background}
-reviews series systems, masked data, and the standard C1-C2-C3 likelihood, and
-surveys prior work on dependent masking. \Cref{sec:framework} develops the
-sensitivity framework: the general likelihood under C1 alone, the Bernoulli
-perturbation model, the misspecification theorem, and the identifiability
-result. \Cref{sec:simulations} presents the simulation sweep.
-\Cref{sec:application} demonstrates the sensitivity analysis workflow on the
-turbine engine data of \citet{Huairu-2013}.
-\Cref{sec:discussion} discusses practical implications, and
-\Cref{sec:conclusion} concludes.
+The contributions are linked by the joint coarsening structure of C1, C2,
+and C3. Together they amount to a sensitivity-analysis toolkit for the
+practitioner who has fit the standard masked-series-system MLE and wishes
+to know how robust the resulting reliability estimates are to plausible
+violations of the modeling assumptions.
+
+We focus throughout on series systems, the $k = 1$ case of the general
+$k$-out-of-$m$ family. Companion work \citep{towell2026binary} treats the
+complementary identifiability question across general $k$: there the
+obstacle is a permutation symmetry of the system likelihood, resolved by a
+threshold theorem showing that component-level observations of essentially
+any quality break the symmetry. The present paper instead takes the
+candidate-set information as given and asks the robustness question: how
+much do violations of the masking conditions distort the standard
+C1-C2-C3 estimates?
+
+The remainder of this paper is organized as follows.
+\Cref{sec:background} reviews series systems, masked data, the standard
+C1-C2-C3 likelihood, and the coarsening-at-random framework that subsumes
+the three conditions. \Cref{sec:framework} develops the unified sensitivity
+framework: calibrated severity scales, the misspecification theorems and
+pseudo-true parameters under each violation, local sensitivity indices,
+and robustness-interval construction. \Cref{sec:simulations} presents
+the simulation sweep across all three violation types.
+\Cref{sec:application} demonstrates the workflow on the turbine engine data
+of \citet{Huairu-2013}. \Cref{sec:discussion} discusses practical
+implications and limitations, and \Cref{sec:conclusion} concludes.

@@ -161,50 +161,123 @@ $\vtheta^{\dagger}$ yields a system whose solution differs from $\vtheta^*$
 whenever the masking weights vary with $k$.
 \end{proof}
 
-\begin{proposition}[System Hazard Robustness]
+\begin{proposition}[System Hazard Robustness, exponential components]
 \label{prop:hazard-robust}
-Under the conditions of \Cref{thm:misspec-C2}, the total system hazard
-$\sum_j \theta_j^{\dagger}$ is preserved whenever the masking weights satisfy
-\begin{equation}
-\label{eq:hazard-condition}
-    \frac{\sum_{k \in c} \pi_{k,c}}{\sum_{k \in c} \theta_k\,\pi_{k,c}}
-    = \frac{|c|}{\sum_{k \in c} \theta_k}
-    \quad \text{for all candidate sets } c.
-\end{equation}
-This holds exactly when C2 is satisfied (all $\pi_{k,c}$ equal for $k \in c$).
-When C2 is moderately violated, \eqref{eq:hazard-condition} holds approximately
-and the total hazard bias is small.
+Let the components be exponential, so that the system hazard is
+$S = \sum_j \theta_j$, and suppose the retained system lifetimes satisfy
+$T \sim \mathrm{Exp}(S^*)$ with $S^* = \sum_j \theta_j^*$ (the
+masking mechanism produces retention events independent of $T$; see
+\Cref{thm:exact-hazard-exp} and its corollaries). Then the
+misspecified C1-C2-C3 MLE preserves the total system hazard exactly,
+$\sum_j \theta_j^{\dagger} = S^*$, for any severity of C2 violation.
 \end{proposition}
 
 \begin{proof}
-Summing the misspecified score over all $j$ yields the total hazard score
-\begin{equation}
-    \sum_j \frac{\partial \ell_i^{\mathrm{wrong}}}{\partial \theta_j}
-    = -ms_i + \delta_i\frac{|c_i|}{\sum_{k \in c_i} \theta_k}.
-\end{equation}
-The analogous sum for the true score is
-\begin{equation}
-    \sum_j \frac{\partial \ell_i^{\mathrm{true}}}{\partial \theta_j}
-    = -ms_i + \delta_i\frac{\sum_{k \in c_i} \pi_{k,c_i}}
-    {\sum_{k \in c_i} \theta_k\,\pi_{k,c_i}}.
-\end{equation}
-When \eqref{eq:hazard-condition} holds, both score equations are identical for
-the total hazard, so the pseudo-true total hazard equals the true total hazard.
-The simulation study in \Cref{sec:simulations} confirms that this
-approximation is excellent even under strong C2 violations: the total hazard
-bias remains below 3\% across all severity levels.
+This is the specialization of \Cref{thm:exact-hazard-exp} to the C2
+violation model, proved there via the profile-likelihood
+factorization of the exponential log-likelihood into an $S$-only and a
+$\phi$-only part; \Cref{cor:c2-hazard-exp} states the C2 case
+explicitly. The estimand $\sum_j \theta_j$ is the system hazard
+precisely because the components are exponential.
 \end{proof}
 
-\begin{remark}[Interpretation]
+\begin{remark}[Interpretation and scope]
 \label{rem:interpretation}
 The misspecified estimator acts as if each candidate in $c_i$ contributes
 equally to the observed failure, regardless of the actual masking weights. When
 a component is over-included in candidate sets (its column of $\mathbf{P}$ has
 higher off-diagonal values), it ``claims credit'' for more failures than it
 actually caused, inflating its estimated rate. The total system hazard is
-protected because the score for $\sum_j \theta_j$ aggregates contributions
-across all components, approximately canceling the masking asymmetry.
+protected because, for exponential components, the system-hazard MLE
+$\hat S = n_F / \sum_i s_i$ depends on the data only through the failure
+count and total exposure, neither of which is altered by how failures are
+attributed across candidates. For non-exponential components $\sum_j \theta_j$
+is no longer the system hazard and the exact factorization fails; total-hazard
+robustness then weakens to first-order preservation in the violation severity,
+which we report empirically rather than claim as an exact result.
 \end{remark}
+
+\subsection{Exact Total-Hazard Preservation for Exponential Components}
+\label{sec:exact-hazard-exp}
+
+The total-hazard robustness of \Cref{prop:hazard-robust} holds approximately
+for general parametric components and is strengthened to an exact result for
+the exponential case via a profile-likelihood argument. The result applies
+not only to C2 misspecification but to any masking violation, including C1
+and C3 violations to be analyzed in \Cref{sec:c1-sensitivity,sec:c3-sensitivity}.
+
+\begin{theorem}[Exact Total-Hazard Preservation, Exponential Components]
+\label{thm:exact-hazard-exp}
+For an $m$-component series system with exponential components and true
+rates $\vtheta^* = (\theta_1^*, \ldots, \theta_m^*)$, suppose data are
+generated under any masking model such that retained system lifetimes
+satisfy $T \sim \mathrm{Exp}(S^*)$, where $S^* = \sum_j \theta_j^*$. The
+standard C1-C2-C3 MLE applied to retained observations then satisfies
+\begin{equation}
+\label{eq:exact-hazard-exp}
+    \sum_{j=1}^{m} \theta_j^\dagger = S^*
+\end{equation}
+exactly, with no bias of any order in the total system hazard, regardless of
+the severity of the masking violation.
+\end{theorem}
+
+\begin{proof}
+Reparameterize $\theta_j = S \phi_j$ with $S = \sum_j \theta_j$ and
+$\phi$ lying on the open simplex. The standard C1-C2-C3 log-likelihood for
+exponential components is
+\begin{equation}
+    \ell^{\mathrm{wrong}}(\vtheta) =
+        -S \sum_{i=1}^n s_i + \sum_{i : \delta_i = 1}
+        \log\left(\sum_{k \in c_i} \theta_k\right),
+\end{equation}
+and substituting $\theta_k = S \phi_k$:
+\begin{equation}
+\label{eq:like-factored}
+    \ell^{\mathrm{wrong}}(S, \phi) =
+        \underbrace{- S \sum_i s_i + n_F \log S}_{\ell_S(S)}
+        + \underbrace{\sum_{i : \delta_i = 1} \log W_{c_i}(\phi)}_{\ell_\phi(\phi)},
+\end{equation}
+where $n_F = |\{i : \delta_i = 1\}|$ and
+$W_c(\phi) = \sum_{k \in c} \phi_k$. The log-likelihood is the sum of an
+$S$-only part and a $\phi$-only part. The score for $S$ is therefore
+$\partial \ell^{\mathrm{wrong}} / \partial S = -\sum_i s_i + n_F / S$,
+independent of $\phi$, yielding the MLE
+\begin{equation}
+\label{eq:S-mle}
+    \hat S = \frac{n_F}{\sum_i s_i}.
+\end{equation}
+This is the standard exponential rate MLE for type-I censored data with
+$n_F$ observed failures and total observation time $\sum_i s_i$. Under the
+assumed retention distribution $T \sim \mathrm{Exp}(S^*)$,
+$\hat S \to S^*$ in probability, hence $\sum_j \theta_j^\dagger = S^*$.
+\end{proof}
+
+\begin{remark}[Scope]
+\label{rem:exact-hazard-scope}
+The result rests on two structural features. First, the exponential
+log-likelihood factors additively as in \eqref{eq:like-factored}, a
+consequence of the exponential hazard being constant in time. For Weibull
+or other non-constant-hazard parametric components, no such factorization
+holds, and total-hazard robustness generally weakens to first-order
+preservation in the violation severity. Second, the marginal distribution
+of retained system lifetimes must be $\mathrm{Exp}(S^*)$, which holds
+whenever the masking mechanism produces retention events independent of
+$T$. We verify this condition for the Bernoulli C1, C2, and C3 violation
+models considered in this paper as corollaries below.
+\end{remark}
+
+\begin{corollary}[Strengthening of \Cref{prop:hazard-robust} for exponential]
+\label{cor:c2-hazard-exp}
+For exponential components under the Bernoulli C2 violation model with C1
+holding, the misspecified C1-C2-C3 MLE preserves $S^*$ exactly, not just
+approximately, for any severity of C2 violation.
+\end{corollary}
+
+\begin{proof}
+Under any Bernoulli C2 violation model with C1 holding, $|C| \geq 1$
+almost surely and no retention is needed. The marginal distribution of $T$
+is $\mathrm{Exp}(S^*)$, so \Cref{thm:exact-hazard-exp} applies.
+\end{proof}
 
 \subsection{The Identifiability Trap}
 \label{sec:identifiability}
@@ -276,3 +349,421 @@ how conclusions change under plausible perturbations of the masking structure
 via different $\mathbf{P}$ matrices. If the substantive conclusions are stable,
 C2 violations are not a concern for the application at hand.
 \end{remark}
+
+\subsection{Sensitivity to C1 Violations}
+\label{sec:c1-sensitivity}
+
+We now extend the framework to violations of C1, the assumption that the
+failed component is in the candidate set. The construction is parallel to
+the C2 case of \Cref{sec:bernoulli,sec:misspec}: we introduce a calibrated
+scalar severity parameter, derive the misspecified score equation, and
+expand the pseudo-true parameter to first order.
+
+\paragraph{The Bernoulli C1 violation model.}
+Within the Bernoulli masking model of \Cref{def:bernoulli}, a C1 violation
+is induced by setting
+\begin{equation}
+\label{eq:c1-violation}
+    p_k(k) = 1 - \alpha_{C_1}, \qquad
+    p_j(k) = p_0 \ \text{for } j \neq k.
+\end{equation}
+The off-diagonal probabilities are constant in $k$, so C2 continues to
+hold along the C1 sweep, isolating the effect of C1 violation. The
+parameter $\alpha_{C_1} \in [0, 1/2]$ measures the probability that the
+true cause is excluded from the candidate set, with $\alpha_{C_1} = 0$
+recovering the standard model and $\alpha_{C_1} = 1/2$ marking the boundary
+beyond which the candidate set is anti-informative (the true cause is
+more likely excluded than included).
+
+Under \eqref{eq:c1-violation} the candidate set may be empty with
+probability $\alpha_{C_1} (1 - p_0)^{m-1}$ conditional on a failure. The
+standard C1-C2-C3 likelihood is undefined on empty candidate sets, so we
+condition on $|C| \geq 1$ throughout the analysis. This matches the
+practitioner workflow: failures with no diagnostic information are
+excluded from the parametric MLE.
+
+\begin{theorem}[Pseudo-True Parameter Under C1 Misspecification, $m=2$]
+\label{thm:misspec-C1}
+For a two-component exponential series system with rates
+$\vtheta^* = (\theta_1^*, \theta_2^*)$ and data generated under the
+Bernoulli C1 violation model \eqref{eq:c1-violation}, conditioning on
+$|C| \geq 1$, the misspecified C1-C2-C3 MLE converges to a pseudo-true
+parameter $\vtheta^\dagger(\alpha_{C_1})$ admitting the first-order
+expansion
+\begin{equation}
+\label{eq:c1-expansion}
+    \theta_j^\dagger = \theta_j^* +
+        \alpha_{C_1}\, \Delta_j^{C_1}(\vtheta^*; p_0) +
+        O(\alpha_{C_1}^2),
+\end{equation}
+with
+\begin{equation}
+\label{eq:c1-delta}
+    \Delta_1^{C_1} = \frac{p_0\,(\theta_2^* - \theta_1^*)}{1 - p_0},
+    \qquad
+    \Delta_2^{C_1} = -\Delta_1^{C_1} =
+        \frac{p_0\,(\theta_1^* - \theta_2^*)}{1 - p_0}.
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+The misspecified score for exponential component $j$ is
+$\partial \ell_i^{\mathrm{wrong}} / \partial \theta_j = -s_i + \delta_i \,
+\ind{j \in c_i} / \sum_{k \in c_i} \theta_k$. Setting
+$\E_{\vtheta^*}[\partial \ell^{\mathrm{wrong}} / \partial \theta_j] = 0$ at
+$\vtheta = \vtheta^\dagger$, and computing the expectation under the
+Bernoulli C1 violation model with $|C| \geq 1$ and no censoring, the score
+equation for $\theta_1^\dagger$ reduces to (after dividing by $S^*$ and
+multiplying by the conditional-probability normalizer
+$Z = 1 - \alpha_{C_1}(1-p_0)$):
+\begin{equation}
+\label{eq:c1-score}
+    Z =
+    \frac{\theta_1^*(1-\alpha_{C_1})(1-p_0) + \theta_2^* \alpha_{C_1} p_0}
+         {\theta_1^\dagger}
+    + \frac{p_0 (1-\alpha_{C_1}) S^*}{\theta_1^\dagger + \theta_2^\dagger},
+\end{equation}
+with the analogous equation for $\theta_2^\dagger$ obtained by swapping
+indices. Writing $\theta_j^\dagger = \theta_j^* + \alpha_{C_1} \Delta_j +
+O(\alpha_{C_1}^2)$ and expanding both sides of \eqref{eq:c1-score} to
+first order in $\alpha_{C_1}$, the zeroth-order terms vanish identically.
+The first-order coefficients yield the linear system
+\begin{align}
+\label{eq:c1-linsys-1}
+    (1-p_0)\, \frac{\Delta_1}{\theta_1^*}
+        + p_0\, \frac{\Delta_1 + \Delta_2}{S^*}
+        &= p_0\, \frac{\theta_2^* - \theta_1^*}{\theta_1^*}, \\
+\label{eq:c1-linsys-2}
+    (1-p_0)\, \frac{\Delta_2}{\theta_2^*}
+        + p_0\, \frac{\Delta_1 + \Delta_2}{S^*}
+        &= p_0\, \frac{\theta_1^* - \theta_2^*}{\theta_2^*}.
+\end{align}
+Setting $a = \Delta_1 / \theta_1^*$, $b = \Delta_2 / \theta_2^*$, and
+$r = \theta_2^* / \theta_1^*$, the system \eqref{eq:c1-linsys-1},
+\eqref{eq:c1-linsys-2} reduces to two linear equations in $(a, b)$.
+Combining them yields $a + br = 0$, i.e., $\Delta_1 + \Delta_2 = 0$.
+Substituting back gives
+$a = p_0 (r-1) / (1 - p_0)$, hence
+$\Delta_1 = \theta_1^* \cdot p_0 (r-1) / (1-p_0) = p_0 (\theta_2^* -
+\theta_1^*) / (1-p_0)$, and similarly $\Delta_2 = -\Delta_1$.
+\end{proof}
+
+\begin{corollary}[Total Hazard Preservation Under C1 Violation, Exponential, General $m$]
+\label{cor:c1-hazard-general}
+For exponential series systems of any size $m \geq 2$ under the Bernoulli
+C1 violation model \eqref{eq:c1-violation} with retention on
+$|C| \geq 1$, the misspecified MLE preserves the total system hazard
+exactly: $\sum_j \theta_j^\dagger = S^*$ for all
+$\alpha_{C_1} \in [0, 1/2]$. In particular, the $m=2$ first-order
+coefficients in \eqref{eq:c1-delta} satisfy $\Delta_1^{C_1} +
+\Delta_2^{C_1} = 0$, and this preservation holds at all orders for
+general $m$.
+\end{corollary}
+
+\begin{proof}
+By \Cref{thm:exact-hazard-exp}, it suffices to verify that retained
+system lifetimes have the marginal distribution $\mathrm{Exp}(S^*)$.
+Under \eqref{eq:c1-violation},
+$\Prob\{|C| \geq 1 \mid K = k, T = t\} = 1 - \alpha_{C_1}(1-p_0)^{m-1}$
+is independent of both $k$ and $t$. The retention event $\{|C| \geq 1\}$
+is therefore independent of $T$, and the conditional distribution
+$T \mid |C| \geq 1$ equals the marginal $T \sim \mathrm{Exp}(S^*)$.
+\end{proof}
+
+\begin{remark}[Interpretation]
+\label{rem:c1-interp}
+When the candidate set excludes the true cause, the misspecified MLE
+attributes the failure to whichever non-failed component appears in the
+candidate set. Equation \eqref{eq:c1-delta} shows that the first-order bias
+is proportional to the rate gap $\theta_2^* - \theta_1^*$: the
+higher-rate component absorbs failures it did not cause from the
+lower-rate component, biasing its estimate upward by the same magnitude
+that the lower-rate component is biased downward. The total system hazard
+is preserved because the system lifetime $T \sim \mathrm{Exp}(S^*)$
+identifies $S^*$ directly from time data, independent of how individual
+failures are attributed. The amplification factor $p_0 / (1 - p_0)$
+reflects how much the surviving candidate set covers non-failed
+components; it diverges as $p_0 \to 1$, where individual rates become
+non-identifiable even under C1.
+\end{remark}
+
+The proof generalizes to $m \geq 3$ components with the same
+total-hazard preservation result. The structure of the linear system
+(score Jacobian on the left, $\alpha_{C_k}$-derivative of the score on
+the right) is identical to \eqref{eq:c3-linsys} and is implemented
+numerically for any $m$ in the \texttt{mdrelax} R package
+(\Cref{app:software}).
+
+\subsection{Sensitivity to C3 Violations}
+\label{sec:c3-sensitivity}
+
+C3 parameterizes whether the masking probability depends on the component
+reliability parameters $\vtheta$. We adopt the power-weight model
+\citep{Mukhopadhyay2006}:
+\begin{equation}
+\label{eq:c3-violation}
+    p_j(k; \vtheta) = p_0 \cdot
+        \frac{\theta_j^{\alpha_{C_3}}}
+             {\max_{l} \theta_l^{\alpha_{C_3}}}
+    \quad \text{for } j \neq k,
+\end{equation}
+with $p_k(k) = 1$ (C1 holds). The normalizer
+$\max_l \theta_l^{\alpha_{C_3}}$ is independent of the failed
+component $k$, so the inclusion weight of component $j$ is the same
+regardless of which component failed: C2 holds and the violation is
+purely C3 (dependence of the masking probability on $\vtheta$). This
+is the model implemented in \texttt{wei\_inclusion\_probs}
+(\texttt{R/wei\_series\_c1\_c2.R}), where the weights are normalized
+by their global maximum. The scalar
+$\alpha_{C_3} \in [0, \alpha_{C_3}^{\max}]$ is the calibrated severity:
+$\alpha_{C_3} = 0$ recovers constant masking $p_j(k) = p_0$ (C3 holds),
+while increasing $\alpha_{C_3}$ makes high-rate components more likely to
+appear in candidate sets, modeling a diagnostic procedure that weights
+candidates by their estimated reliability ranking.
+
+\begin{theorem}[Pseudo-True Parameter Under C3 Misspecification]
+\label{thm:misspec-C3}
+For exponential series systems with data generated under the power-weight
+C3 violation \eqref{eq:c3-violation}, the misspecified C1-C2-C3 MLE
+converges to a pseudo-true parameter $\vtheta^\dagger(\alpha_{C_3})$
+admitting the first-order expansion
+\begin{equation}
+\label{eq:c3-expansion}
+    \theta_j^\dagger = \theta_j^* +
+        \alpha_{C_3}\, \Delta_j^{C_3}(\vtheta^*; p_0) +
+        O(\alpha_{C_3}^2).
+\end{equation}
+The first-order coefficients satisfy
+\begin{enumerate}
+    \item \textbf{Total preservation, general $m$:}
+        $\sum_{j=1}^m \Delta_j^{C_3}(\vtheta^*; p_0) = 0$, and the
+        all-orders identity $\sum_j \theta_j^\dagger(\alpha_{C_3}) = S^*$
+        holds for every $\alpha_{C_3}$ (by \Cref{thm:exact-hazard-exp},
+        since the power-weight model makes $|C| \geq 1$ deterministic so
+        the retention condition is satisfied trivially).
+    \item \textbf{Linear system for general $m$:} the vector
+        $\Delta^{C_3}(\vtheta^*; p_0) \in \mathbb{R}^m$ is the unique
+        solution (on the rate simplex) of the score-Jacobian system
+        \begin{equation}
+        \label{eq:c3-linsys}
+            \mathbf{J}(\vtheta^*)\, \Delta^{C_3}(\vtheta^*; p_0)
+                \,=\, \mathbf{r}(\vtheta^*; p_0),
+        \end{equation}
+        where $\mathbf{J}(\vtheta^*)$ is the Jacobian of the misspecified
+        score in $\vtheta$ at $\vtheta^*$ (the standard expected
+        information matrix evaluated under $\alpha_{C_3} = 0$) and
+        $\mathbf{r}(\vtheta^*; p_0)$ is the partial derivative of the
+        misspecified score in $\alpha_{C_3}$ at $\alpha_{C_3} = 0$
+        evaluated under the power-weight perturbation. Both matrices are
+        rational functions of $(\vtheta^*, p_0)$ obtained by
+        differentiating the misspecified score in
+        \Cref{thm:misspec-C2}. The total-preservation identity in item~1
+        forces $\mathbf{1}^\top \Delta^{C_3} = 0$, so the system has rank
+        $m - 1$ on the simplex; the rank deficiency is exactly the
+        directional ambiguity that the masking-mechanism non-identifiability
+        of \Cref{thm:non-ident} predicts.
+\end{enumerate}
+\end{theorem}
+
+The simulation results in \Cref{sec:simulations} demonstrate the
+qualitative behavior of $\Delta_j^{C_3}$: rates of high-failure-rate
+components are inflated further (positive bias amplification), while
+low-rate components are underestimated. The component-level redistribution
+respects the total-hazard constraint for exponential components. For
+Weibull components, where the factorization \eqref{eq:like-factored} does
+not apply, total-hazard preservation under C3 is no longer automatic and
+is studied empirically in \Cref{sec:simulations}.
+
+\subsection{Local Sensitivity Indices and the Robustness Hierarchy}
+\label{sec:hierarchy}
+
+The first-order coefficients $\Delta_j^{C_k}$ from
+\Cref{thm:misspec-C2}, \Cref{thm:misspec-C1}, and \Cref{thm:misspec-C3}
+specialize the local-sensitivity construction of
+\citet{TroxelMaHeitjan2004} and \citet{ZhangHeitjan2006} to candidate-set
+coarsening. We collect them into a single index and use it to classify
+estimands by robustness.
+
+\begin{definition}[Local Sensitivity Index for Candidate-Set Coarsening]
+\label{def:isni}
+For a functional $\psi(\vtheta)$ of the parameter vector and a violation
+type $C_k \in \{C_1, C_2, C_3\}$, the local sensitivity index is
+\begin{equation}
+\label{eq:isni}
+    \mathrm{ISNI}_{C_k}[\psi]
+    \,\coloneqq\,
+    \left.
+        \frac{\partial}{\partial \alpha_{C_k}}
+        \psi\bigl(\vtheta^\dagger(\alpha_{C_k})\bigr)
+    \right|_{\alpha_{C_k} = 0}
+    = \nabla \psi(\vtheta^*)^{\!\top}\, \Delta^{C_k}(\vtheta^*).
+\end{equation}
+\end{definition}
+
+\paragraph{Robustness intervals.}
+The local sensitivity index converts an unverifiable masking deviation
+$\alpha_{C_k}$ into a bound on the asymptotic bias of $\psi$ under the
+standard MLE. We package that bound as an interval covering the
+pseudo-true value $\psi(\vtheta^\dagger(\alpha_{C_k}))$ across a
+practitioner-chosen plausibility set for $\alpha_{C_k}$.
+
+\begin{definition}[First-Order Robustness Interval]
+\label{def:robustness-interval}
+Fix a functional $\psi \colon \Theta \to \mathbb{R}$ that is $C^2$ in
+a neighborhood of the standard-model fit $\vtheta^*$, a violation type
+$C_k$, and a plausibility set $\mathcal{A}_k \subset [0,
+\alpha_{C_k}^{\max}]$. The first-order robustness interval for $\psi$
+under $C_k$ is
+\begin{equation}
+\label{eq:rob-int}
+    \mathrm{RI}_{C_k}^{(1)}(\psi; \mathcal{A}_k)
+    \,\coloneqq\,
+    \Bigl[
+        \widehat\psi
+        \,-\, |\mathrm{ISNI}_{C_k}[\psi]|\, \sup_{\alpha \in \mathcal{A}_k} \alpha,
+        \ \widehat\psi
+        \,+\, |\mathrm{ISNI}_{C_k}[\psi]|\, \sup_{\alpha \in \mathcal{A}_k} \alpha
+    \Bigr],
+\end{equation}
+where $\widehat\psi = \psi(\widehat\vtheta)$ is the plug-in estimate
+from the standard MLE.
+\end{definition}
+
+\begin{proposition}[Asymptotic Coverage of $\psi(\vtheta^\dagger)$]
+\label{prop:robustness-coverage}
+Assume the regularity conditions of \Cref{thm:misspec-C2,thm:misspec-C1,thm:misspec-C3}:
+the standard-model fit $\widehat\vtheta$ is $\sqrt{n}$-consistent for
+$\vtheta^*$ when $\alpha_{C_k} = 0$; the pseudo-true map
+$\alpha_{C_k} \mapsto \vtheta^\dagger(\alpha_{C_k})$ is $C^2$ on a
+neighborhood of $0$ with a uniform bound $M_k$ on the operator norm of
+its Hessian and a uniform bound $D_k$ on the norm of its first
+derivative $\dot\vtheta = \mathrm{d}\vtheta^\dagger/\mathrm{d}\alpha_{C_k}$
+on $\mathcal{A}_k$; and $\psi$ is $C^2$ with $\|\nabla\psi\|$ bounded
+by $L_\psi$ and $\|\nabla^2\psi\|$ bounded by $B_\psi$ on a
+neighborhood of $\vtheta^*$. Then for every $\alpha_{C_k} \in
+\mathcal{A}_k$ the pseudo-true value admits the expansion
+\begin{equation}
+\label{eq:rob-sandwich}
+    \psi\bigl(\vtheta^\dagger(\alpha_{C_k})\bigr)
+    \,=\, \psi(\vtheta^*)
+    \,+\, \alpha_{C_k}\, \mathrm{ISNI}_{C_k}[\psi]
+    \,+\, R_k(\alpha_{C_k}),
+    \qquad
+    |R_k(\alpha_{C_k})| \leq \tfrac{1}{2}\bigl(L_\psi M_k + B_\psi D_k^2\bigr)\, \alpha_{C_k}^2,
+\end{equation}
+with $L_\psi = \sup_{\vtheta \in \mathcal{N}(\vtheta^*)} \|\nabla
+\psi(\vtheta)\|$ and $B_\psi = \sup_{\vtheta \in
+\mathcal{N}(\vtheta^*)} \|\nabla^2\psi(\vtheta)\|$. Consequently,
+$\mathrm{RI}_{C_k}^{(1)}(\psi; \mathcal{A}_k)$ contains
+$\psi(\vtheta^\dagger(\alpha_{C_k}))$ for every $\alpha_{C_k} \in
+\mathcal{A}_k$ up to a remainder that is $O(\sup \mathcal{A}_k^2)$.
+\end{proposition}
+
+\begin{proof}
+Write $f(\alpha) = \psi(\vtheta^\dagger(\alpha))$. By the chain rule,
+$f'(\alpha) = \nabla\psi(\vtheta^\dagger)^\top \dot\vtheta$ and
+\begin{equation*}
+    f''(\alpha) = \dot\vtheta^\top \nabla^2\psi(\vtheta^\dagger)\,\dot\vtheta
+    \;+\; \nabla\psi(\vtheta^\dagger)^\top \ddot\vtheta,
+\end{equation*}
+so the second-order term carries \emph{both} the curvature of the
+pseudo-true map ($\ddot\vtheta$, bounded by $M_k$) and the curvature
+of the estimand ($\nabla^2\psi$ contracted with $\dot\vtheta^{\otimes
+2}$, bounded by $B_\psi D_k^2$). The linear term is
+$f'(0) = \mathrm{ISNI}_{C_k}[\psi]$. The Lagrange remainder of the
+first-order Taylor expansion is $\tfrac12 f''(\xi)\alpha^2$ for some
+$\xi$, and $|f''(\xi)| \leq L_\psi M_k + B_\psi D_k^2$ uniformly on
+$\mathcal{A}_k$, giving \eqref{eq:rob-sandwich}. The estimand-curvature
+term $B_\psi D_k^2$ is nonzero for every nonlinear $\psi$ (MTTF,
+reliability, hazard-at-$t$) and vanishes only for affine $\psi$. The
+interval in \eqref{eq:rob-int} contains the linear term for every
+$\alpha_{C_k} \in \mathcal{A}_k$ by construction.
+\end{proof}
+
+\begin{remark}[How to use the interval]
+\label{rem:robustness-interval-usage}
+The practitioner picks $\mathcal{A}_k = [0, \alpha_{C_k}^\star]$ where
+$\alpha_{C_k}^\star$ is the largest violation deemed plausible for the
+diagnostic process at hand: the default scale is calibrated so that
+$\alpha_{C_k}^\star = \alpha_{C_k}^{\max}$ is the boundary of the
+adversarial regime. The ISNI value
+$\mathrm{ISNI}_{C_k}[\psi]$ is obtained in closed form from
+$\nabla \psi(\widehat\vtheta)$ and the $\Delta^{C_k}(\widehat\vtheta)$
+expression from
+\Cref{thm:misspec-C2,thm:misspec-C1,thm:misspec-C3}. The interval is
+deliberately conservative: it bounds the asymptotic pseudo-true bias and
+does not absorb Monte Carlo uncertainty in $\widehat\vtheta$, which can
+be added by widening the interval by the usual Wald half-width
+$1.96\, \widehat{\mathrm{se}}(\widehat\psi)$.
+\end{remark}
+
+\begin{remark}[When the first-order interval collapses]
+\label{rem:rob-int-collapse}
+For estimands that the hierarchy classifies as exactly preserved
+(items 1 and 2 of \Cref{cor:hierarchy}) the ISNI is zero,
+$\mathrm{RI}_{C_k}^{(1)}$ collapses to the point estimate, and
+\Cref{prop:robustness-coverage} becomes the assertion that the
+pseudo-true value coincides with the standard-model fit at every order.
+For estimands that are first-order robust but not exactly preserved
+(item 3) the interval has zero linear half-width and only the
+second-order remainder $R_k$ matters; in practice this remainder is
+absorbed into the Monte Carlo or sandwich variance. For estimands that
+are not first-order robust (item 4) the interval width scales linearly
+with $\sup \mathcal{A}_k$, and is the operative bound for
+practitioner-facing component-level claims.
+\end{remark}
+
+\begin{corollary}[Robustness Hierarchy]
+\label{cor:hierarchy}
+For masked series systems under the standard C1-C2-C3 MLE:
+\begin{enumerate}
+    \item \textbf{Exponential components, total system hazard
+        $S(\vtheta) = \sum_j \theta_j$:} preserved exactly under any
+        violation of C1, C2, or C3
+        (\Cref{thm:exact-hazard-exp}, \Cref{cor:c2-hazard-exp},
+        \Cref{cor:c1-hazard-general}), giving $\mathrm{ISNI}_{C_k}[S] = 0$
+        for all $k$.
+    \item \textbf{Exponential components, mean time to system failure
+        $1/S(\vtheta)$:} preserved exactly under any of the three
+        violations (immediate from item 1).
+    \item \textbf{Weibull components, system-level estimands (system
+        hazard at fixed $t$, MTTF):} first-order robust under C2 and C3
+        violations ($\mathrm{ISNI}_{C_2}[S] = \mathrm{ISNI}_{C_3}[S] = 0$
+        at the standard-model fit). Under C1, the first-order coefficient
+        is nonzero but the absolute bias remains bounded across the
+        practical violation range $\alpha_{C_1} \in [0, 0.5]$, with
+        empirical magnitude below $4\%$ in the 5-component sweep of
+        \Cref{sec:simulations}.
+    \item \textbf{Individual component parameters} (rates $\theta_j$ for
+        exponential, shape-scale pairs for Weibull): not first-order
+        robust under any of the three violations. Scale parameters of
+        low-rate components exhibit the most catastrophic degradation.
+\end{enumerate}
+\end{corollary}
+
+The asymmetry in item 3 has a structural origin. The exact-preservation
+proof for exponential (\Cref{thm:exact-hazard-exp}) relies on the
+log-likelihood factorization $\ell(S, \phi) = \ell_S(S) + \ell_\phi(\phi)$,
+which decouples system-level inference from component-level inference. For
+Weibull components the analogous factorization fails: the time-portion of
+the likelihood involves the individual shape-scale pairs that also appear
+in the candidate-set portion. Under C2 and C3 violations, the
+candidate-set bias remains balanced enough that it does not propagate to
+the time portion at first order. Under C1 violation, the candidate set
+sometimes omits the true cause entirely, producing more aggressive
+candidate-set bias that does propagate to the time-portion estimates at
+first order. The bias remains bounded because the system lifetime
+$T \sim \mathrm{Weibull}_m^{\mathrm{series}}(\vtheta^*)$ still satisfies
+the marginal-distribution preservation that powers the exponential
+argument; only the parametric mapping back to $S(t)$ is biased.
+
+The hierarchy formalizes the empirical pattern observed in
+\Cref{sec:simulations}. The practical takeaway is sharp: practitioners
+reporting system-level reliability estimates from exponential models can
+ignore concerns about masking-condition violations entirely. For
+Weibull-component systems, system-level estimates are first-order
+protected against C2 and C3 violations and admit a small, bounded bias
+under C1. Component-level estimates are sensitive to all three violations
+regardless of the component family, and require sensitivity analysis
+before being reported. We discuss the practical consequences in
+\Cref{sec:discussion}.

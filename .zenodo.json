@@ -1,0 +1,36 @@
+{
+  "title": "Sensitivity of Series System Reliability Estimation to the Coarsening Conditions on Masked Failure Data",
+  "upload_type": "publication",
+  "publication_type": "preprint",
+  "description": "<p>Maximum likelihood estimation for series systems with masked failure data rests on three coarsening conditions: (C1) the failed component is in the candidate set; (C2) the candidate set is independent of the true cause given the failure time; and (C3) the masking mechanism does not depend on the component reliability parameters. None of the three is verifiable from observed data, and any of them can fail in practice.</p><p>We develop a unified sensitivity-analysis framework for the standard C1-C2-C3 MLE under calibrated violations of each condition. Closed-form pseudo-true expansions yield local sensitivity indices that specialize the Index-of-Local-Sensitivity-to-Nonignorability of Troxel et al. (2004) to set-valued candidate-set coarsening, and an exact total-hazard preservation result via a profile-likelihood factorization sharpens the exponential case from first-order to all-orders.</p><p>A systematic sweep across all three violations on a 5-component Weibull system validates the resulting robustness hierarchy: system-level estimands (total hazard, mean time to failure, system reliability at a fixed time) are robust under any of the three violations, with system-hazard relative bias bounded under 4 percent throughout, while component-level estimands degrade with violation severity. Scale parameters of low-rate components exhibit the most catastrophic degradation (relative bias exceeding 100 percent under C3, and confidence-interval coverage collapsing to zero for some parameters), so component-level claims should be reported with the first-order robustness intervals introduced here.</p><p>The masking mechanism and component parameters are jointly non-identifiable, so we recommend sensitivity analysis over model elaboration. Software is available in the mdrelax R package.</p>",
+  "version": "0.1.0",
+  "license": {
+    "id": "CC-BY-4.0"
+  },
+  "keywords": [
+    "masked-data inference",
+    "coarsening at random",
+    "identifiability",
+    "sensitivity analysis",
+    "non-informative masking",
+    "series systems",
+    "reliability",
+    "Weibull",
+    "robustness",
+    "R package"
+  ],
+  "creators": [
+    {
+      "name": "Towell, Alexander",
+      "orcid": "0000-0001-6443-9897",
+      "affiliation": "Southern Illinois University Edwardsville"
+    }
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/queelius/mdrelax",
+      "relation": "isSupplementTo",
+      "scheme": "url"
+    }
+  ]
+}

@@ -3,94 +3,199 @@
 \label{sec:discussion}
 %% ============================================================================
 
-\subsection{When Does C2 Matter?}
-\label{sec:when-C2}
+The theoretical results of \Cref{sec:framework} and the empirical sweeps of
+\Cref{sec:simulations} together establish a robustness hierarchy for
+masked series-system reliability inference. We summarize the practical
+implications, structural reasons behind the hierarchy, limitations of the
+analysis, and natural extensions.
 
-Our results delineate two distinct regimes for masked series system inference:
+\subsection{When Does Each Violation Matter?}
+\label{sec:when-matter}
 
-\paragraph{System-level inference: C2 rarely matters.}
-If the goal is to estimate the system hazard rate, the mean time to failure,
-or the system reliability function, the standard C1-C2-C3 model is robust to
-C2 violations. The system hazard remained approximately unbiased across all
-severity levels in our 5-component Weibull system. This robustness arises from
-the structure of the misspecified score: summing over components eliminates the
-masking weights, so the total hazard estimating equation is approximately
-correct regardless of the masking mechanism (\Cref{prop:hazard-robust}).
+The robustness hierarchy of \Cref{cor:hierarchy} partitions estimands into
+three regimes:
 
-\paragraph{Component-level inference: C2 matters.}
-If the goal is to estimate individual component parameters---for example,
-to identify the most unreliable component or to plan component-specific
-maintenance---the standard model can produce substantially biased estimates
-when C2 is violated. The bias grows with violation severity, and coverage
-degrades to the point where confidence intervals are misleading. Scale
-parameters are particularly affected, with the Weibull shape-scale interaction
-amplifying misspecification bias nonlinearly.
+\paragraph{System-level estimands are reliable across all three violations.}
+For the total system hazard, mean time to failure, and system reliability
+at a fixed time, the standard C1-C2-C3 MLE produces estimates whose bias
+remains bounded across the full range of practical violation severities.
+For exponential components, the preservation is exact under any masking
+violation (\Cref{thm:exact-hazard-exp}); the profile-likelihood
+factorization decouples the system-rate score from the candidate-set
+information entirely. For Weibull components, preservation is first-order
+under C2 and C3 violations and admits a small bounded first-order bias
+under C1 violations. The empirical bound at the 5-component system
+studied here is under 4\% relative bias at $\alpha_{C_1} = 0.5$, and
+under 1\% under C2 or C3.
+
+\paragraph{Component-level estimands are fragile under any violation.}
+Individual component parameters (rates for exponential, shape-scale pairs
+for Weibull) are not first-order robust to any of the three violations.
+The empirical results document the failure mode in stark detail:
+component-level relative biases can exceed 100\% (e.g., $\lambda_5$ under
+C3 violation), confidence-interval coverage can collapse from nominal to
+zero (e.g., $\lambda_1$ under C3), and the Fisher information for
+specific parameter combinations can become near-singular under C2
+perturbations (the $\lambda_2$ instability at $s = 0.5$). The standard
+MLE makes confident but systematically wrong claims about which
+components are unreliable.
+
+\paragraph{The asymmetry between C1 and the other two violations for
+Weibull.} The simulation sweep cleanly separates the three violations by
+their first-order behavior. Under C2 and C3, the linear coefficient
+in the pseudo-true expansion is statistically indistinguishable from
+zero at $p > 0.20$ at both $n = 500$ and $n = 2000$, confirming
+first-order preservation. Under C1, the linear coefficient is consistent
+and significantly nonzero ($\sim -0.30$ at both sample sizes,
+$p < 0.001$). The structural reason traces to where each violation
+inserts bias into the likelihood: C2 and C3 distort only the
+candidate-set portion (which couples to the time portion at second order
+through the Weibull shape-scale interaction), while C1 violation
+introduces empty or wrong-cause candidate sets that bias the
+candidate-set portion more aggressively, and that bias propagates
+into the time-portion estimates at first order through the shared
+parameterization.
 
 \subsection{Practical Guidance}
 \label{sec:guidance}
 
-Since the masking mechanism is a diagnostic process that is rarely known in
-detail, the practitioner typically cannot determine whether C2 holds. We
-recommend the following approach:
+Since the masking mechanism is a diagnostic process rarely known in
+detail, the practitioner usually cannot verify whether C1, C2, or C3
+holds. The robustness hierarchy yields a simple decision procedure.
 
 \begin{enumerate}
-    \item \textbf{Fit the standard model.} The C1-C2-C3 MLE is well-understood,
-        computationally straightforward, and yields reliable system-level
-        estimates regardless of C2 status.
+    \item \textbf{Fit the standard model.} The C1-C2-C3 MLE is
+        well-understood, computationally straightforward, and yields
+        reliable system-level estimates regardless of coarsening
+        condition status under the regimes characterized in this paper.
 
-    \item \textbf{Assess the inferential target.} If only system-level
-        quantities are needed, the standard model suffices and no further
-        action is required.
+    \item \textbf{Identify the inferential target.} If only system-level
+        quantities are needed (system hazard, MTTF, system survival at a
+        fixed time), the standard model suffices. No correction or
+        sensitivity analysis is required for exponential components, and
+        only mild caution is warranted for Weibull components under
+        suspected C1 violation.
 
-    \item \textbf{Run sensitivity analysis for component-level inference.}
-        Construct a family of plausible $\mathbf{P}$ matrices representing
-        different degrees and directions of masking asymmetry. Refit the
-        model with known $\mathbf{P}$ under each scenario. If
-        the component-level conclusions are stable across the family,
-        C2 violations are not a concern.
+    \item \textbf{For component-level inference, perform sensitivity
+        analysis.} Construct a family of plausible masking models
+        representing different violation directions and severities.
+        Refit the standard model under each scenario or use the local
+        sensitivity indices of \Cref{sec:hierarchy} to bound the
+        first-order bias. If the component-level conclusions are stable
+        across the family, the violations are not a concern for the
+        application at hand.
 
-    \item \textbf{Report sensitivity bounds.} When conclusions are sensitive to
-        the assumed masking structure, report the range of estimates across the
-        $\mathbf{P}$ family as sensitivity bounds. This parallels the partial
-        identification approach~\citep{manski2003partial}, where the data
-        identify a set of possible parameter values rather than a point
-        estimate, and reporting the identified set is more honest than
+    \item \textbf{Report sensitivity bounds, not point estimates, when
+        conclusions are violation-sensitive.} For component-level claims
+        that move under the assumed masking structure, report the range
+        of estimates as a sensitivity bound. This parallels the partial
+        identification approach \citep{manski2003partial}: data identify
+        a set of possible component parameter values rather than a
+        point estimate, and reporting the set is more honest than
         reporting a single estimate under an unverifiable assumption.
 \end{enumerate}
 
 \subsection{Limitations}
 \label{sec:limitations}
 
-Several limitations should be acknowledged:
+Several aspects of the analysis warrant explicit caveats.
 
 \begin{itemize}
-    \item \textbf{Perturbation family.} Our simulation sweep uses the Bernoulli
-        $\mathbf{P}(s)$ model as the sole perturbation device. Other violation
-        structures---for example, time-dependent masking where $\mathbf{P}$
-        varies with $t$---could behave differently.
+    \item \textbf{Parametric perturbation families.} The Bernoulli C1,
+        directional-P C2, and power-weight C3 sweeps are specific
+        parametric violations. Each was chosen to be interpretable and
+        cover a calibrated severity scale, but other violation
+        structures (e.g., masking that depends explicitly on $t$,
+        diagnostic procedures that interact with system age, masking
+        that depends on observed covariates) are not covered. The
+        first-order preservation arguments of \Cref{sec:misspec}
+        and \Cref{sec:c3-sensitivity} extend in principle to any
+        smooth violation family, but the empirical magnitudes depend on
+        the specific perturbation.
 
-    \item \textbf{Lifetime distributions.} We study Weibull components, which
-        subsume exponential as a special case ($k = 1$). Other parametric
-        families (e.g., log-normal, Gompertz) may exhibit different sensitivity
-        profiles.
+    \item \textbf{Lifetime distributions.} We study Weibull components,
+        with exponential as a constant-hazard special case. Other
+        parametric families (log-normal, Gompertz, gamma, generalized
+        gamma) have different hazard shapes and may exhibit different
+        first-order behavior under the same violations. The exponential
+        exact-preservation result (\Cref{thm:exact-hazard-exp}) depends
+        specifically on the additive factorization
+        $\ell(S, \phi) = \ell_S(S) + \ell_\phi(\phi)$ that does not
+        generalize to non-constant-hazard models.
 
-    \item \textbf{Direction dependence.} The specific direction matrix
-        $\mathbf{D}$ determines which parameters are over- or under-estimated.
-        Different $\mathbf{D}$ matrices would produce different bias patterns,
-        though the system-hazard robustness should persist by
-        \Cref{prop:hazard-robust}.
+    \item \textbf{Direction dependence for C2.} The specific direction
+        matrix $\mathbf{D}$ in the C2 perturbation determines which
+        component parameters absorb the masking asymmetry. Different
+        $\mathbf{D}$ matrices produce different component-level bias
+        patterns. The system-hazard robustness persists by
+        \Cref{prop:hazard-robust} regardless of $\mathbf{D}$, but
+        component-level fragility claims should be interpreted as
+        representative rather than universal.
 
-    \item \textbf{Sample size.} Our simulations use $n = 500$. The relative
-        bias would be similar at larger sample sizes (misspecification bias
-        does not shrink with $n$), but coverage degradation would be more
-        pronounced as confidence intervals narrow.
+    \item \textbf{Sample size.} The main simulations use $n = 500$
+        with $n = 2000$ as a robustness check. The bias trajectories
+        are qualitatively stable across the $4\times$ sample-size
+        change, but coverage degradation is more pronounced at larger
+        $n$ (confidence intervals narrow while bias persists), an
+        effect already visible in the $\lambda_1$ coverage trajectory
+        under C3.
 
-    \item \textbf{Variance estimation.} The coverage metric uses Wald
-        intervals based on the model-based Fisher information, which assumes
-        correct specification. Under misspecification, the sandwich
-        estimator~\citep{huber1967behavior} is more appropriate for variance
-        estimation. The observed coverage degradation thus conflates two
-        effects: bias moving the point estimate away from the true value, and
-        the model-based standard error being incorrect. Disentangling these
-        effects via sandwich-based coverage is an avenue for future work.
+    \item \textbf{Variance estimation.} Coverage uses Wald intervals
+        based on model-based Fisher information, which assumes correct
+        specification. Under masking-condition violations, the sandwich
+        estimator \citep{huber1967behavior, white1982misspecified} is
+        more appropriate. The observed coverage degradation conflates
+        bias and incorrect standard errors; disentangling them via
+        sandwich-based coverage is straightforward to add and is left
+        for the software extension.
+
+    \item \textbf{Set-valued versus point-cause masking.} The framework
+        and results apply to set-valued candidate-set masking. As
+        \Cref{app:set-vs-point} shows, this observational structure
+        does not reduce to point-cause misclassification with random
+        coarsening, so the methodology of \citet{Ebrahimi1996},
+        \citet{VanRompaye2012}, \citet{MorenoBetancur2015}, and
+        \citet{Bakoyannis2025} is not directly applicable.
 \end{itemize}
+
+\subsection{Future Work}
+\label{sec:future}
+
+Three natural extensions are visible from the current results.
+
+\paragraph{A formal specification test for $\{C_1, C_2, C_3\}$.}
+Under $H_0 \colon \{C_1, C_2, C_3\}$, the conditional distribution of
+the candidate set given the failure time factors as
+$\Pr(C = c \mid T = t) = \pi_c \cdot R_c(t; \vtheta^*)$ where
+$\pi_c$ depends only on $c$ and $R_c(t; \vtheta) = \sum_{k \in c}
+h_k(t; \theta_k) / S(t; \vtheta)$ is the relative-hazard contribution.
+This factorization is testable from observed data alone (no need to
+observe the failed cause $K$). A bin-based Pearson statistic on
+candidate-set frequencies provides a workable null distribution; the
+practical challenge is power against the C1 violation (the most
+inferentially consequential) at typical reliability-study sample
+sizes. We have implemented and validated the singleton version of the
+test in our companion software; substantial development is needed for
+a publication-ready version, including the all-candidate-set extension
+and a closed-form sandwich variance.
+
+\paragraph{Second-order theory for the C1 first-order failure.}
+The simulation results show a quadratic-in-$\alpha$ trajectory for the
+Weibull C1 bias, with a significant quadratic curvature at both
+sample sizes. Deriving the second-order coefficient
+$\Delta^{(2)}_j(\vtheta^*; p_0)$ would explain the bias-bounding
+phenomenon (why the bias plateaus rather than growing linearly) and
+provide tighter robustness intervals than the first-order ISNI alone
+can deliver. The derivation should follow from extending the proof of
+\Cref{thm:misspec-C1} to the second-order expansion of the score
+equations.
+
+\paragraph{Extension to other parametric families.}
+The exponential-versus-Weibull asymmetry (exact preservation versus
+first-order preservation) follows from the constant-hazard property of
+the exponential. Parametric families with related structural properties
+(gamma at integer shape, log-logistic with specific shape constraints,
+generalized exponential subfamilies) may admit analogous exact
+preservation results. A systematic survey of which masked-data
+parametric families admit which preservation tier would strengthen
+the framework's generality.

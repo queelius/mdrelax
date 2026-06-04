@@ -1,25 +1,40 @@
 #!/usr/bin/env Rscript
 # =============================================================================
-# Sensitivity Sweep: How does C2 violation severity affect C1-C2-C3 MLE?
+# Sensitivity Sweep: How does C3 violation severity affect C1-C2-C3 MLE?
 # =============================================================================
 #
-# Generates data under informative masking (relaxed C2) with varying severity,
-# fits the misspecified C1-C2-C3 model, and measures bias, RMSE, and coverage
-# as a function of severity.
+# Generates data under parameter-dependent masking (relaxed C3, power-weight
+# model) with varying severity alpha, fits the misspecified C1-C2-C3 model,
+# and measures bias, RMSE, and coverage as a function of alpha.
 #
-# System: 5-component Weibull series
+# Theoretical question tested: For Weibull components, is the total system
+# hazard preserved at first order under C3 violation?
+#
+# Background: Theorem (Exact Total-Hazard Preservation, Exponential Components)
+# in sensitivity_framework.tex shows that for exponential components, the
+# C1-C2-C3 MLE preserves the total hazard exactly under any masking violation,
+# including C3. The argument rests on the additive factorization of the
+# exponential log-likelihood as ell(S, phi) = ell_S(S) + ell_phi(phi), which
+# does not hold for Weibull components. This sweep empirically tests whether
+# Weibull total-hazard preservation holds at least at first order under C3,
+# or whether the parameter-dependent masking biases the time data enough to
+# break first-order robustness.
+#
+# System: 5-component Weibull series (matches the C2 sweep for comparability)
 #   shapes = (2.0, 1.5, 1.2, 1.8, 1.0)
 #   scales = (3.0, 4.0, 5.0, 3.5, 4.5)
 #   tau = 5, n = 500, B = 200
 #
 # Usage:
-#   Rscript paper/run_sensitivity_sweep.R [--quick]
+#   Rscript paper/run_sensitivity_sweep_c3.R [--quick]
 #
 # Outputs:
-#   paper/data/sensitivity_sweep.rds
-#   inst/simulations/figures/fig_bias_vs_severity.pdf
-#   inst/simulations/figures/fig_rmse_vs_severity.pdf
-#   inst/simulations/figures/fig_coverage_vs_severity.pdf
+#   paper/data/sensitivity_sweep_c3.rds
+#   inst/simulations/figures/fig_c3_bias_vs_alpha.pdf
+#   inst/simulations/figures/fig_c3_rmse_vs_alpha.pdf
+#   inst/simulations/figures/fig_c3_coverage_vs_alpha.pdf
+#   inst/simulations/figures/fig_c3_median_bias_vs_alpha.pdf
+#   inst/simulations/figures/fig_c3_mad_vs_alpha.pdf
 #
 # =============================================================================
 
@@ -49,70 +64,39 @@ dir.create(data_dir, recursive = TRUE, showWarnings = FALSE)
 dir.create(fig_dir, recursive = TRUE, showWarnings = FALSE)
 
 cat("=============================================================\n")
-cat("Sensitivity Sweep: C2 Violation Severity vs C1-C2-C3 MLE\n")
+cat("Sensitivity Sweep: C3 Violation Severity vs C1-C2-C3 MLE\n")
 cat("  5-component Weibull series system\n")
+cat("  Tests whether total-hazard preservation holds for Weibull\n")
+cat("  under parameter-dependent masking\n")
 cat("=============================================================\n")
 cat(sprintf("Quick mode:  %s\n", quick_mode))
 cat(sprintf("Data dir:    %s\n", data_dir))
 cat(sprintf("Figure dir:  %s\n", fig_dir))
 cat("=============================================================\n\n")
 
-# -----------------------------------------------------------------------------
-# Direction matrix for P(s) = P_uniform + s * D
-# -----------------------------------------------------------------------------
-
-#' Create a 5x5 P matrix parameterized by severity s in [0, 1]
-#'
-#' P(s) = P_uniform(base_p) + s * D, with off-diag clamped to [0.05, 0.95]
-#' and diagonal fixed at 1.
-#'
-#' The direction matrix D has a cyclic structure with rows summing to zero,
-#' meaning the perturbation redistributes masking probability across
-#' non-failed components without changing the total.
-#'
-#' @param s Severity parameter in [0, 1]
-#' @param base_p Base off-diagonal probability for the uniform P matrix
-#' @return 5 x 5 P matrix
-make_sweep_P <- function(s, base_p) {
-    D <- matrix(c(
-         0,    0.3, -0.2,  0.1, -0.2,
-        -0.2,  0,    0.3, -0.2,  0.1,
-         0.1, -0.2,  0,    0.3, -0.2,
-        -0.2,  0.1, -0.2,  0,    0.3,
-         0.3, -0.2,  0.1, -0.2,  0
-    ), nrow = 5, byrow = TRUE)
-
-    P <- make_P_matrix(5, type = "uniform", p = base_p)
-    P <- P + s * D
-
-    # Clamp off-diagonal to [0.05, 0.95], keep diagonal = 1
-    offdiag <- row(P) != col(P)
-    P[offdiag] <- pmax(0.05, pmin(0.95, P[offdiag]))
-    diag(P) <- 1
-
-    P
-}
-
 # =============================================================================
-# Weibull Sensitivity Sweep
+# Weibull C3 Sensitivity Sweep
 # =============================================================================
 
 run_sweep <- function(quick_mode) {
-    cat("\n=== Weibull Sensitivity Sweep (m=5) ===\n")
+    cat("\n=== Weibull C3 Sensitivity Sweep (m=5) ===\n")
 
-    m       <- 5
-    shapes  <- c(2.0, 1.5, 1.2, 1.8, 1.0)
-    scales  <- c(3.0, 4.0, 5.0, 3.5, 4.5)
-    tau     <- 5
-    n       <- if (!is.na(n_cli)) n_cli else 500L
-    B       <- if (!is.na(b_cli)) b_cli else (if (quick_mode) 10L else 200L)
-    base_p  <- 0.5
-    s_grid  <- seq(0, 1, by = 0.1)
+    m         <- 5
+    shapes    <- c(2.0, 1.5, 1.2, 1.8, 1.0)
+    scales    <- c(3.0, 4.0, 5.0, 3.5, 4.5)
+    tau       <- 5
+    n         <- if (!is.na(n_cli)) n_cli else 500L
+    B         <- if (!is.na(b_cli)) b_cli else (if (quick_mode) 10L else 200L)
+    base_p    <- 0.5
+    # alpha = 0 is C3-respecting (uniform masking); higher values weight
+    # high-rate components more heavily. Practical sweep range: [0, 2].
+    alpha_grid <- if (quick_mode) c(0, 0.5, 1.0, 1.5, 2.0)
+                  else            seq(0, 2.0, by = 0.25)
 
     theta_true <- as.vector(rbind(shapes, scales))  # k1,l1,k2,l2,...,k5,l5
     theta0     <- theta_true * 0.9
 
-    # Reference time for system hazard (approx median)
+    # Reference time for system hazard (approx median; matches C2 sweep)
     t_ref <- 2.0
 
     comp_names <- c(paste0(rep(c("k", "lambda"), m),
@@ -123,14 +107,16 @@ run_sweep <- function(quick_mode) {
     cat(sprintf("  True params: shapes = (%s), scales = (%s)\n",
                 paste(shapes, collapse = ", "), paste(scales, collapse = ", ")))
     cat(sprintf("  System hazard at t=%.1f: %.4f\n", t_ref, true_haz))
-    cat(sprintf("  n = %d, B = %d, tau = %.1f, base_p = %.1f\n\n", n, B, tau, base_p))
+    cat(sprintf("  n = %d, B = %d, tau = %.1f, base_p = %.1f\n",
+                n, B, tau, base_p))
+    cat(sprintf("  alpha grid: %s\n\n",
+                paste(sprintf("%.2f", alpha_grid), collapse = ", ")))
 
-    all_results <- vector("list", length(s_grid))
+    all_results <- vector("list", length(alpha_grid))
 
-    for (si in seq_along(s_grid)) {
-        s <- s_grid[si]
-        P <- make_sweep_P(s, base_p)
-        cat(sprintf("  s = %.1f: ", s))
+    for (ai in seq_along(alpha_grid)) {
+        alpha <- alpha_grid[ai]
+        cat(sprintf("  alpha = %.2f: ", alpha))
 
         theta_hat_mat <- matrix(NA_real_, nrow = B, ncol = 2 * m)
         se_mat        <- matrix(NA_real_, nrow = B, ncol = 2 * m)
@@ -140,8 +126,9 @@ run_sweep <- function(quick_mode) {
         for (b in seq_len(B)) {
             if (b %% 10 == 0) cat(".")
 
-            sim <- rwei_series_md_c1_c3(
-                n = n, shapes = shapes, scales = scales, P = P, tau = tau
+            sim <- rwei_series_md_c1_c2(
+                n = n, shapes = shapes, scales = scales,
+                alpha = alpha, base_p = base_p, tau = tau
             )
 
             fit <- tryCatch(
@@ -200,23 +187,16 @@ run_sweep <- function(quick_mode) {
                 tv <- true_haz
             }
 
-            bias <- mean(ests) - tv
-            rmse <- sqrt(mean((ests - tv)^2))
+            bias     <- mean(ests) - tv
+            rmse     <- sqrt(mean((ests - tv)^2))
             med_bias <- median(ests) - tv
             mad_est  <- mad(ests)
-
-            # Print lambda2 quantiles at s=0.5 for outlier investigation
-            if (s == 0.5 && comp_names[ci] == "lambda2") {
-                cat(sprintf("\n  >>> lambda2 at s=0.5: quantiles = %s\n",
-                    paste(sprintf("%.3f", quantile(ests, probs = c(0, 0.25, 0.5, 0.75, 1))),
-                          collapse = ", ")))
-            }
 
             coverage <- mean(ests - 1.96 * ses <= tv &
                              tv <= ests + 1.96 * ses, na.rm = TRUE)
 
             rows[[ci]] <- data.frame(
-                severity    = s,
+                alpha       = alpha,
                 component   = comp_names[ci],
                 bias        = bias,
                 rmse        = rmse,
@@ -230,7 +210,7 @@ run_sweep <- function(quick_mode) {
                 stringsAsFactors = FALSE
             )
         }
-        all_results[[si]] <- do.call(rbind, rows)
+        all_results[[ai]] <- do.call(rbind, rows)
     }
 
     do.call(rbind, all_results)
@@ -260,15 +240,18 @@ plot_metric <- function(df, metric, ylabel, fig_path, nominal_line = NULL) {
     pad <- diff(ylim) * 0.05
     ylim <- ylim + c(-pad, pad)
 
-    plot(NULL, xlim = c(0, 1), ylim = ylim,
-         xlab = "C2 Violation Severity (s)", ylab = ylabel,
+    plot(NULL,
+         xlim = range(sub$alpha),
+         ylim = ylim,
+         xlab = expression(paste("C3 Violation Severity (", alpha, ")")),
+         ylab = ylabel,
          main = "Weibull Series (m = 5)")
 
     for (ci in seq_along(comps)) {
         d <- sub[sub$component == comps[ci], ]
         lty <- if (grepl("^k", comps[ci])) 1 else if (grepl("^lambda", comps[ci])) 2 else 3
         pch <- if (grepl("sys", comps[ci])) 17 else 16
-        lines(d$severity, d[[metric]], col = cols[ci], lwd = 2, type = "o",
+        lines(d$alpha, d[[metric]], col = cols[ci], lwd = 2, type = "o",
               pch = pch, cex = 0.8, lty = lty)
     }
 
@@ -291,30 +274,55 @@ plot_metric <- function(df, metric, ylabel, fig_path, nominal_line = NULL) {
 
 results <- run_sweep(quick_mode)
 
-# Save RDS (size-aware filename if n != 500)
+# Save RDS
 n_used <- if (!is.na(n_cli)) n_cli else 500L
 suffix <- if (n_used != 500L) sprintf("_n%d", n_used) else ""
-rds_path <- file.path(data_dir, sprintf("sensitivity_sweep%s.rds", suffix))
+rds_path <- file.path(data_dir, sprintf("sensitivity_sweep_c3%s.rds", suffix))
 saveRDS(results, rds_path)
 cat(sprintf("\nSaved: %s\n", rds_path))
+
+# Summary: total hazard preservation check
+cat("\n=== Total Hazard Preservation Check ===\n")
+sys_results <- results[results$component == "sys_hazard", ]
+cat(sprintf("  Reference time: t = 2.0, True hazard: %.4f\n",
+            sys_results$true_value[1]))
+cat("  System hazard bias as function of alpha:\n")
+for (i in seq_len(nrow(sys_results))) {
+    rel_bias <- sys_results$bias[i] / sys_results$true_value[i]
+    cat(sprintf("    alpha = %.2f: bias = %+.5f  (%+.2f%% relative)\n",
+                sys_results$alpha[i], sys_results$bias[i], 100 * rel_bias))
+}
+
+# Slope test for first-order preservation
+if (nrow(sys_results) >= 3) {
+    fit_lm <- lm(bias ~ alpha, data = sys_results)
+    cat(sprintf("\n  Linear fit of system hazard bias vs alpha:\n"))
+    cat(sprintf("    intercept = %+.5f (p = %.3f)\n",
+                coef(fit_lm)[1], summary(fit_lm)$coefficients[1, 4]))
+    cat(sprintf("    slope     = %+.5f (p = %.3f)\n",
+                coef(fit_lm)[2], summary(fit_lm)$coefficients[2, 4]))
+    cat("  If slope is significantly nonzero, first-order preservation fails.\n")
+    cat("  If slope is indistinguishable from zero, first-order preservation\n")
+    cat("  holds even for Weibull under C3 (matching the exponential case).\n")
+}
 
 # Generate figures
 cat("\n=== Generating Figures ===\n")
 
 plot_metric(results, "bias", "Bias",
-            file.path(fig_dir, sprintf("fig_bias_vs_severity%s.pdf", suffix)))
+            file.path(fig_dir, sprintf("fig_c3_bias_vs_alpha%s.pdf", suffix)))
 
 plot_metric(results, "rmse", "RMSE",
-            file.path(fig_dir, sprintf("fig_rmse_vs_severity%s.pdf", suffix)))
+            file.path(fig_dir, sprintf("fig_c3_rmse_vs_alpha%s.pdf", suffix)))
 
 plot_metric(results, "coverage", "Coverage",
-            file.path(fig_dir, sprintf("fig_coverage_vs_severity%s.pdf", suffix)),
+            file.path(fig_dir, sprintf("fig_c3_coverage_vs_alpha%s.pdf", suffix)),
             nominal_line = 0.95)
 
 plot_metric(results, "median_bias", "Median Bias",
-            file.path(fig_dir, sprintf("fig_median_bias_vs_severity%s.pdf", suffix)))
+            file.path(fig_dir, sprintf("fig_c3_median_bias_vs_alpha%s.pdf", suffix)))
 
 plot_metric(results, "mad", "MAD",
-            file.path(fig_dir, sprintf("fig_mad_vs_severity%s.pdf", suffix)))
+            file.path(fig_dir, sprintf("fig_c3_mad_vs_alpha%s.pdf", suffix)))
 
-cat("\n=== Sensitivity sweep complete ===\n")
+cat("\n=== C3 sensitivity sweep complete ===\n")

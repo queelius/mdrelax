@@ -3,34 +3,68 @@
 \label{sec:conclusion}
 %% ============================================================================
 
-We have studied the sensitivity of maximum likelihood estimation in masked
-series systems to violations of the non-informative masking assumption (C2).
-Three contributions emerge:
+We have studied the sensitivity of maximum-likelihood estimation in masked
+series systems to violations of the three coarsening conditions C1, C2,
+and C3. The contributions of the paper are unified by the robustness
+hierarchy that emerges from the analysis:
 
 \begin{enumerate}
-    \item \textbf{Misspecification characterization.} When C2 is violated but
-        assumed to hold, the MLE converges to a pseudo-true parameter whose
-        individual component parameters absorb the masking asymmetry
-        (\Cref{thm:misspec-C2}), while the system hazard remains consistently
-        estimated (\Cref{prop:hazard-robust}). Joint estimation of the masking
-        mechanism and the reliability parameters is not possible due to
-        fundamental non-identifiability (\Cref{thm:non-ident}).
+    \item \textbf{Calibrated severity scales for each of the three
+        coarsening violations.} Each violation is parameterized on a
+        scalar severity $\alpha_{C_k} \in [0, \alpha_{C_k}^{\max}]$ with
+        $\alpha_{C_k} = 0$ recovering the standard model and
+        $\alpha_{C_k}^{\max}$ marking the boundary to adversarial
+        regimes. Together they form a multi-dimensional sensitivity
+        geometry that complements the calibrated-robustness-value
+        philosophy of \citet{CinelliHazlett2020} and the pattern-mixture
+        sensitivity parameter of \citet{MorenoBetancur2015}.
 
-    \item \textbf{Quantitative sensitivity map.} A systematic simulation sweep
-        across 11 severity levels for a 5-component Weibull series system
-        reveals that system-level quantities (system hazard) are robust to C2
-        violations across the full range (bias $< 3\%$), while individual
-        component estimates degrade with severity. The exponential
-        component within the system shows notable resistance to
-        misspecification.
+    \item \textbf{Closed-form local sensitivity indices specializing
+        ISNI to set-valued masking.} The first-order expansions of the
+        misspecified MLE at the standard-model fit are derived in
+        closed form for each violation. For exponential components the
+        system-hazard preservation is exact, not first-order, by a
+        profile-likelihood factorization argument
+        (\Cref{thm:exact-hazard-exp}); for Weibull components the
+        expansion specializes the ISNI construction of
+        \citet{TroxelMaHeitjan2004} and \citet{ZhangHeitjan2006} from
+        interval-censoring to candidate-set coarsening.
 
-    \item \textbf{Practical guidance.} Since the masking mechanism is
-        unknowable from the data alone, sensitivity analysis over plausible
-        masking structures is the appropriate response. For system-level
-        inference, the standard C1-C2-C3 model suffices. For component-level
-        inference, we recommend reporting results under multiple masking
-        scenarios.
+    \item \textbf{Robustness intervals for practitioner-facing
+        estimands.} For each violation type and each reliability
+        functional of interest, the robustness interval gives the range
+        of severities within which the estimate remains within a stated
+        tolerance of the standard-model fit. The implementation
+        (Monte-Carlo and first-order variants) is available in the
+        \texttt{mdrelax} R package.
+
+    \item \textbf{Robustness hierarchy classifying estimands.}
+        System-level estimands (total hazard, MTTF, system reliability)
+        are robust to all three violations: exactly for exponential
+        components, at first order for Weibull under C2 and C3, and
+        with a small bounded first-order bias under C1 for Weibull.
+        Component-level estimands are fragile under all three
+        violations regardless of component family. The simulation
+        sweeps validate the hierarchy at two sample sizes with
+        identical qualitative conclusions.
+
+    \item \textbf{Reproducible software.} The methods are implemented
+        in the \texttt{mdrelax} R package, which provides data
+        generation, MLE, Fisher information, and robustness-interval
+        computation for all model tiers. None of the closest competing
+        methodology papers release code.
 \end{enumerate}
 
-All methods are implemented in the \texttt{mdrelax} R package, available at
-\url{https://github.com/queelius/mdrelax}.
+The headline message for the practitioner is sharp. A reliability
+engineer reporting system-level estimates from the standard
+masked-data Weibull MLE has substantial protection against any
+plausible violation of the masking-condition assumptions. A
+reliability engineer reporting component-level estimates does not,
+and should perform sensitivity analysis using the methods of
+\Cref{sec:hierarchy} before publication.
+
+All code, simulations, and the manuscript source are available at
+\url{https://github.com/queelius/mdrelax}. The k-out-of-m generalization
+of the masking framework, including a threshold theorem characterizing
+when individual component parameters are identifiable, is developed in
+companion work \citep{towell2026binary}.
