@@ -286,6 +286,56 @@ review_history:
       Additionally: ORCID added to title block; canonical name updated to
       Alexander Towell; abstract rewritten for the unified C1/C2/C3
       framework; graphicspath widened to include paper/figures/.
+  - date: "2026-06-04"
+    type: "editorial (multi-agent)"
+    outcome: "minor-revision"
+    artifact: ".papermill/reviews/2026-06-04/review.md"
+    summary: |
+      Final pre-submission pass (per-specialist files complete; synthesis
+      review.md written 2026-06-05 after the launching orchestrator was
+      rate-limited). Both 2026-05-27 Criticals confirmed FIXED by direct
+      verification (Table 1 regenerated from data; robustness intervals
+      now formally Definition + Proposition in Section sec:hierarchy). No
+      new Critical. One carried Major (C3 n=2000 ablation under-powered as
+      a positive preservation claim, mitigated by the structural argument
+      and the powered C1 rejection). Minors: title vs Zenodo metadata
+      mismatch; robustness interval never demonstrated on the application
+      data; one-sentence foundational-paper boundary missing; soften
+      "multi-dimensional sensitivity geometry"; dead Stefanski2002 entry;
+      orphan section files / figure path / 1276 vanity count for the
+      tarball. Single most-important item: reconcile the
+      title-vs-Zenodo-metadata mismatch before submission.
+  - date: "2026-06-08"
+    type: "editorial (multi-agent)"
+    outcome: "minor-revision"
+    artifact: ".papermill/reviews/2026-06-08/review.md"
+    summary: |
+      Independent verification pass over the 2026-06-04 state plus four new
+      findings. Re-verified: clean build (0 undefined, 0 multiply-defined,
+      42 pp); Tables 1-3 reproduced cell-by-cell from committed data via
+      regenerate_tables.R; application system hazard 0.00307 reproduced
+      from the canonical MLE; abstract numeric claims (sys-hazard bias
+      under 4% throughout, 100%+ component bias under C3, zero coverage for
+      lambda_1 under C3) all confirmed against the sweep RDS files; proof
+      core (Thm 3.6 exact preservation, Lemma C.2 non-nesting, Prop 3.21
+      robustness coverage) re-confirmed sound. NEW: (Major) the
+      robustness-interval functions (ri_first_order, ri_simulation in
+      R/robustness_intervals.R) are unexported (absent from NAMESPACE, no
+      man pages) and never demonstrated on data, so the software /
+      robustness-interval contribution claim is partially untrue as
+      shipped; (Minor) application Table 4 s=0 baseline scales (897, 847)
+      drift from the package canonical Guo MLE (909, 840), though h_T is
+      unaffected; (Minor) residual C2-only framing in background.tex L84
+      and sensitivity_framework.tex L6-7 contradicts the unified scope;
+      (Minor) live Zenodo record 10.5281/zenodo.20468529 still shows the
+      old "non-informative masking assumption" title while the PDF /
+      .zenodo.json / CITATION.cff use the new "Coarsening Conditions"
+      title. The 2026-06-04 minor items remain unaddressed in the
+      manuscript (no content changed since). Verdict minor-revision
+      (verging on ready). Single most-important item: export + demonstrate
+      the robustness interval (closes the software-claim gap and shows the
+      headline tool), then reconcile the title across the published Zenodo
+      record.
 
 r_package:
   name: mdrelax

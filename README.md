@@ -2,6 +2,8 @@
 
 Relaxed Candidate Set Models for Masked Data in Series Systems
 
+> **Paper review status (2026-06-08, papermill multi-agent): minor-revision.** The manuscript in `paper/` is sound and reproduces; top remaining item: export and demonstrate the headline robustness-interval tool (`ri_first_order` / `ri_simulation` are currently unexported), and reconcile the paper title against the Zenodo record metadata.
+
 ## Overview
 
 This R package implements likelihood-based inference for series systems with masked failure data under relaxed candidate set conditions. It provides a complete framework for analyzing reliability data when the standard assumptions (C1, C2, C3) about candidate set formation may not hold.
