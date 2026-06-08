@@ -29,37 +29,54 @@ that does not contain the true cause (C1 violation).
 Prior work has addressed each violation in isolation, often in distinct
 vocabularies. For C2, alternative parametric masking models have been
 proposed in the reliability literature \citep{LinGuess1994, Guttman1995,
-Mukhopadhyay2006, CraiuReiser2006}. The analogous problem of cause
-uncertainty in biostatistics has produced parallel methodology:
-\citet{MorenoBetancur2015} developed pattern-mixture sensitivity analysis
-for competing risks regression with missing causes;
+Mukhopadhyay2006, CraiuReiser2006}. Closest in spirit on the reliability
+side is \citet{JablonkaCramerHermanns2019}, who study estimation for
+coherent systems with Weibull components under complete and incomplete
+component-failure information; their relaxation enlarges the observation
+model whereas we hold the standard C1-C2-C3 model fixed and quantify the
+bias it incurs when its coarsening conditions are violated. The analogous
+problem of cause uncertainty in biostatistics has produced parallel
+methodology: \citet{MorenoBetancur2015} developed pattern-mixture
+sensitivity analysis for competing risks regression with missing causes;
 \citet{BakoyannisYiannoutsos2015} derived closed-form bias expressions and
 permissible-range bounds for cumulative incidence under cause
 misclassification; \citet{Bakoyannis2025}, in concurrent work, introduced
 robustness intervals for Cox cause-specific hazards under binary missing
-cause. The local sensitivity of an MLE to assumption violations has been
-formalized as the Index of Local Sensitivity to Nonignorability (ISNI)
-\citep{TroxelMaHeitjan2004, ZhangHeitjan2006}, with closely related
-first-order bias expansions in \citet{CopasEguchi2005} and
-\citet{SiannisCopasLu2005}, and the modern calibrated-bias-bound tradition
-culminating in the omitted-variable robustness value of
-\citet{CinelliHazlett2020}.
+cause. The decision to parameterize an unverifiable departure rather than
+to model it is the partial-ignorability stance of
+\citet{HarelSchafer2009}, who formalize treating only part of a missingness
+mechanism as ignorable; the candidate-set coarsening here is exactly such a
+partially-ignorable mechanism. The local sensitivity of an MLE to
+assumption violations has been formalized as the Index of Local Sensitivity
+to Nonignorability (ISNI) \citep{TroxelMaHeitjan2004, ZhangHeitjan2006},
+with closely related first-order bias expansions in \citet{CopasEguchi2005}
+and \citet{SiannisCopasLu2005}, and the modern calibrated-bias-bound
+tradition culminating in the omitted-variable robustness value of
+\citet{CinelliHazlett2020}. The nearest software precedent is the
+\texttt{isni} package \citep{XieGaoHeitjan2018}, which computes ISNI for
+generalized-linear and mixed models with nonignorable outcome missingness;
+our \texttt{mdrelax} package supplies the set-valued candidate-set
+reliability instance, which \texttt{isni} does not cover.
 
-Three structural features of the masked series-system problem are not
-addressed in this corpus. First, the candidate set is \emph{set-valued}, not
-a single label that may be wrong. Every prior treatment of cause uncertainty
-in competing risks treats the cause as either fully observed, fully missing,
-or misclassified to a single alternative label; the set-valued case requires
-a different likelihood structure and does not reduce to point-cause
-misclassification with random masking (\Cref{app:set-vs-point}). Second, the
-standard reliability model imposes \emph{three orthogonal coarsening
-conditions} (C1, C2, C3) whose violations carry distinct semantics, where
-existing sensitivity frameworks operate over a scalar departure parameter.
-Third, parametric reliability models (Weibull, exponential series systems)
-admit closed-form bias expressions that the predominantly semiparametric
-biostatistics literature has not derived. \citet{Bakoyannis2025} explicitly
-note that ``there is no formula for computing the E-value in the context of
-competing risks analysis with MNAR causes of failure.''
+Three structural features of the masked series-system problem distinguish
+it from the cause-uncertainty settings treated in the references above.
+First, the candidate set is \emph{set-valued}, not a single label that may
+be wrong. The competing-risks treatments cited here represent the cause as
+fully observed, fully missing, or misclassified to a single alternative
+label; the set-valued candidate set carries a different likelihood
+structure, and we show in \Cref{app:set-vs-point} that the two model
+families are formally non-nested, so set-valued masking does not reduce to
+point-cause misclassification composed with random coarsening. Second, the
+standard reliability model carries \emph{three orthogonal coarsening
+conditions} (C1, C2, C3) whose violations carry distinct semantics, whereas
+the sensitivity frameworks above are organized around a single scalar
+departure parameter. Third, the parametric series-system case (Weibull and
+exponential components) admits closed-form bias expressions; the parallel
+biostatistics methods we cite are predominantly semiparametric and do not
+target this parametric instance. \citet{Bakoyannis2025} note in their
+setting that ``there is no formula for computing the E-value in the context
+of competing risks analysis with MNAR causes of failure,'' which our
+closed-form expansions supply for the series-system case.
 
 We address these gaps with a unified sensitivity-analysis framework for
 masked series-system reliability under calibrated violations of C1, C2, and
@@ -86,6 +103,19 @@ C3. Our contributions are:
         addressing the gap that \citet{Bakoyannis2025} identify in the
         cumulative-incidence setting.
 
+    \item \textbf{Exact, all-orders total-hazard preservation for
+        exponential components.} For exponential components we prove that
+        the standard C1-C2-C3 MLE recovers the true total system hazard
+        $\sum_j \theta_j$ \emph{exactly}, with no bias of any order and
+        regardless of how the candidate sets are formed
+        (\Cref{thm:exact-hazard-exp}). The argument is a profile-likelihood
+        factorization that decouples the system-rate score from the
+        candidate-set information entirely. This is strictly stronger than
+        the first-order ISNI guarantee \citep{TroxelMaHeitjan2004} the
+        sensitivity literature provides: the local-sensitivity index for
+        the total hazard is not merely small but identically zero for the
+        constant-hazard family.
+
     \item \textbf{Robustness intervals.} For each violation type and each
         estimand of practical interest (component rates, system hazard,
         mean time to failure), we construct robustness intervals giving the
@@ -103,13 +133,31 @@ C3. Our contributions are:
         degrade in a violation-specific pattern admitting closed-form
         characterization for exponential systems.
 
+    \item \textbf{Non-nesting of set-valued and point-cause models.} We
+        prove that the family of joint cause/candidate-set distributions
+        generated by set-valued Bernoulli masking under relaxed C1 is
+        formally non-nested with the family generated by point-cause
+        misclassification composed with random coarsening
+        (\Cref{lem:non-nesting}). This delimits the scope of the framework:
+        it shows that the concurrent point-cause robustness tools of
+        \citet{Bakoyannis2025}, and the misclassification methods of
+        \citet{MorenoBetancur2015} and \citet{VanRompaye2012}, neither
+        subsume nor are subsumed by the set-valued analysis here, so the
+        non-nesting insulates each line of work from the other rather than
+        ranking them.
+
     \item \textbf{Software.} The methods are implemented in the
         \texttt{mdrelax} R package, which provides data generation, MLE,
         Fisher information, sensitivity-index computation, and
-        robustness-interval construction for all model tiers. None of the
-        closest related work \citep{MorenoBetancur2015,
-        BakoyannisYiannoutsos2015, ZhangHeitjan2006, Bakoyannis2025}
-        releases code.
+        robustness-interval construction for all model tiers. Existing
+        sensitivity software such as the \texttt{isni} package
+        \citep{XieGaoHeitjan2018} targets generalized-linear and
+        mixed-model outcome missingness; \texttt{mdrelax} provides the
+        corresponding tooling for set-valued candidate-set coarsening in
+        series systems, which we are not aware of being available
+        elsewhere, and the closest competing methodology papers
+        \citep{MorenoBetancur2015, BakoyannisYiannoutsos2015,
+        ZhangHeitjan2006, Bakoyannis2025} do not release accompanying code.
 \end{enumerate}
 
 The contributions are linked by the joint coarsening structure of C1, C2,
