@@ -1,6 +1,6 @@
 ---
 schema_version: 1
-title: "Sensitivity of Series System Reliability Estimation to the Non-Informative Masking Assumption"
+title: "Sensitivity of Series System Reliability Estimation to the Coarsening Conditions on Masked Failure Data"
 short_title: "mdrelax sensitivity paper"
 citation_key: "towell2026mdrelax"
 stage: revising

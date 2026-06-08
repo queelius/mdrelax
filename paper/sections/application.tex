@@ -12,8 +12,9 @@ studies~\citep{Huairu-2013, towell2023reliability}.
 
 \paragraph{Standard analysis.}
 Fitting the C1-C2-C3 Weibull series MLE yields estimated shapes
-$\hat{\mathbf{k}} = (1.26, 1.17, 1.13)$ and scales
-$\hat{\vlambda} = (1000, 897, 847)$. The system hazard at the median failure
+$\hat{\mathbf{k}} = (1.26, 1.16, 1.13)$ and scales
+$\hat{\vlambda} = (994, 909, 840)$ (the package's canonical fit
+\texttt{guo\_weibull\_series\_mle}). The system hazard at the median failure
 time $t_0 = 249.5$ is $\hat{h}_T(t_0) = 0.00307$. The large scale estimates
 reflect the long lifetimes in this dataset; the shape estimates near 1 suggest
 approximately exponential behavior.
@@ -38,7 +39,7 @@ $s$ & $\hat{k}_1$ & $\hat{k}_2$ & $\hat{k}_3$ &
       $\hat{\lambda}_1$ & $\hat{\lambda}_2$ & $\hat{\lambda}_3$ &
       $\hat{h}_T(t_0)$ \\
 \midrule
-0.0 & 1.26 & 1.17 & 1.13 & 1000 & 897 & 847 & 0.00307 \\
+0.0 & 1.26 & 1.16 & 1.13 &  994 & 909 & 840 & 0.00307 \\
 0.3 & 1.36 & 1.12 & 1.08 &  883 & 923 & 965 & 0.00302 \\
 0.5 & 1.34 & 1.10 & 1.15 & 1032 & 918 & 800 & 0.00308 \\
 0.8 & 1.35 & 1.08 & 1.16 & 1036 & 933 & 786 & 0.00306 \\
@@ -50,16 +51,32 @@ $s$ & $\hat{k}_1$ & $\hat{k}_2$ & $\hat{k}_3$ &
 \Cref{tab:guo-sensitivity} confirms the pattern from the simulation study on
 real data: the system hazard is remarkably stable (varying by less than 2\%
 across the full severity range), while individual component parameters shift
-with severity. The scale parameter $\hat\lambda_3$ decreases from 847 to 780
-(an 8\% shift) as severity increases, while $\hat\lambda_2$ increases from 897
-to 945 (a 5\% shift). Shape parameters show smaller absolute changes but
+with severity. The scale parameter $\hat\lambda_3$ decreases from 840 to 780
+(a 7\% shift) as severity increases, while $\hat\lambda_2$ increases from 909
+to 945 (a 4\% shift). Shape parameters show smaller absolute changes but
 relative shifts of up to 9\%.
 
+\paragraph{Robustness interval.}
+To make the system-level robustness conclusion quantitative rather than
+visual, we apply the first-order robustness interval of
+\Cref{sec:framework} (function \texttt{ri\_first\_order} in the
+package) to the system hazard under a C2 violation. Taking a tolerance of
+5\% of the baseline $\hat{h}_T(t_0)$, the estimated local sensitivity index
+is near zero, giving a robustness interval of $s \approx 2.07$: the
+system-hazard estimate stays within 5\% of its baseline value for C2
+severities well beyond the swept range $s \in [0, 1]$. This is consistent
+with the near-flat $\hat{h}_T(t_0)$ column of \Cref{tab:guo-sensitivity} and,
+because the components are nearly exponential, with the exact all-orders
+preservation result for exponential systems. With only $n = 30$ failures the
+interval is an illustration of the workflow rather than a precise estimate;
+the seed-pinned computation is reproducible via
+\texttt{paper/regenerate\_application.R}.
+
 For this dataset, a practitioner can confidently report the system-level
-conclusion---that the system hazard at the median failure time is approximately
-0.003---without concern about C2 violations. Individual component rankings,
+conclusion, that the system hazard at the median failure time is approximately
+0.003, without concern about C2 violations. Individual component rankings,
 however, are less stable: at $s = 0$, component~3 appears least reliable
-($\hat\lambda_3 = 847$, smallest scale), but by $s = 1.0$ component~3 has
+($\hat\lambda_3 = 840$, smallest scale), but by $s = 1.0$ component~3 has
 $\hat\lambda_3 = 780$ while component~1 has $\hat\lambda_1 = 1033$,
 amplifying the gap. Whether this shift matters depends on how the component
 estimates will be used.

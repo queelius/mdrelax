@@ -171,7 +171,10 @@ available at \url{https://github.com/queelius/mdrelax}. The package provides:
     \item MLE with analytical score and Fisher information for all model tiers.
     \item The $\mathbf{P}$ matrix construction and masking probability
         computation functions used in this paper.
-    \item 1276 unit tests verifying likelihood correctness, score--gradient
+    \item Robustness-interval construction (\texttt{ri\_first\_order} and
+        \texttt{ri\_simulation}) for a user-supplied reliability estimand
+        under C1, C2, or C3 violations.
+    \item A unit-test suite verifying likelihood correctness, score--gradient
         agreement, FIM consistency, and MLE convergence properties.
 \end{itemize}
 

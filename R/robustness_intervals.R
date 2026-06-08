@@ -1,54 +1,68 @@
-#' Robustness Interval Computation for Masked Series Systems
-#'
-#' Given a fitted C1-C2-C3 model and a reliability estimand of interest,
-#' compute the maximum violation severity at which the estimate stays within
-#' a stated tolerance of the baseline. This is the practitioner-facing
-#' applied tool that connects the sensitivity framework to engineering
-#' conclusions: "my system-MTTF estimate is robust to C1 violations up to
-#' alpha = 0.27" (rather than just "the first-order coefficient is X").
-#'
-#' Two implementations are provided:
-#'
-#' 1. ri_simulation: Monte-Carlo robustness interval. For each candidate
-#'    alpha, simulates B datasets under the violation, refits the
-#'    misspecified MLE, computes the estimand, and reports the alpha at
-#'    which the mean deviation from baseline exceeds the tolerance.
-#'    Accurate but expensive.
-#'
-#' 2. ri_first_order: Closed-form robustness interval from the local
-#'    sensitivity index ISNI. For exponential components, the ISNI is
-#'    available analytically (and is zero for the system hazard, giving
-#'    infinite robustness). For Weibull, the ISNI is computed by
-#'    perturbation. Fast but only first-order accurate.
+# Robustness Interval Computation for Masked Series Systems
+#
+# Given a fitted C1-C2-C3 model and a reliability estimand of interest,
+# compute the maximum violation severity at which the estimate stays within
+# a stated tolerance of the baseline. This is the practitioner-facing
+# applied tool that connects the sensitivity framework to engineering
+# conclusions: "my system-MTTF estimate is robust to C1 violations up to
+# alpha = 0.27" (rather than just "the first-order coefficient is X").
+#
+# Two implementations are provided:
+#
+# 1. ri_simulation: Monte-Carlo robustness interval. For each candidate
+#    alpha, simulates B datasets under the violation, refits the
+#    misspecified MLE, computes the estimand, and reports the alpha at
+#    which the mean deviation from baseline exceeds the tolerance.
+#    Accurate but expensive.
+#
+# 2. ri_first_order: Closed-form robustness interval from the local
+#    sensitivity index ISNI. For exponential components, the ISNI is
+#    available analytically (and is zero for the system hazard, giving
+#    infinite robustness). For Weibull, the ISNI is computed by
+#    perturbation. Fast but only first-order accurate.
 
 # -----------------------------------------------------------------------------
 # Monte-Carlo robustness interval
 # -----------------------------------------------------------------------------
 
-#' Monte-Carlo robustness interval for a Weibull series-system MLE.
+#' Monte-Carlo robustness interval for a Weibull series-system MLE
+#'
+#' Computes the robustness interval of a reliability estimand by simulation.
+#' For each candidate severity \code{alpha}, the function simulates \code{B}
+#' datasets under the specified coarsening-condition violation, refits the
+#' standard C1-C2-C3 Weibull series MLE, evaluates the estimand, and records
+#' the mean deviation from the baseline value. The robustness interval is the
+#' largest contiguous prefix \code{[0, alpha*]} of the severity grid on which
+#' the mean deviation stays within \code{tolerance}. This is the
+#' practitioner-facing applied tool that connects the sensitivity framework to
+#' an engineering conclusion (for example, "the system-MTTF estimate is robust
+#' to C1 violations up to alpha = 0.27"). It is accurate but expensive; for a
+#' fast first-order alternative see \code{\link{ri_first_order}}.
 #'
 #' @param shapes_hat Shape MLE estimates (length m).
 #' @param scales_hat Scale MLE estimates (length m).
-#' @param estimand_fn Function taking (shapes, scales) and returning a
+#' @param estimand_fn Function taking \code{(shapes, scales)} and returning a
 #'   scalar estimand value. Examples:
-#'     function(s, l) sum(s/l) ... ish — components-summed-rate (no t).
-#'     function(s, l) hazard_wei_series(t_ref, s, l)
-#'     function(s, l) (1/sum(s/l)) ... pseudo-MTTF
-#' @param violation One of "C1", "C2", or "C3".
+#'   \code{function(s, l) hazard_wei_series(t_ref, s, l)} (system hazard);
+#'   \code{function(s, l) wei_series_mttf(s, l)} (mean time to failure).
+#' @param violation One of \code{"C1"}, \code{"C2"}, or \code{"C3"}.
 #' @param tolerance Acceptable absolute deviation from the baseline
 #'   estimand value.
 #' @param alpha_grid Grid of severity values to evaluate. The robustness
-#'   interval is the largest contiguous prefix [0, alpha*] on which the
+#'   interval is the largest contiguous prefix \code{[0, alpha*]} on which the
 #'   mean simulated deviation stays within tolerance.
 #' @param n Sample size per simulated dataset.
 #' @param B Number of Monte-Carlo replicates per alpha (default 100).
 #' @param tau Right-censoring time.
 #' @param base_p Baseline off-diagonal masking probability (default 0.5).
 #' @param C2_direction For C2 violations, the direction matrix D such that
-#'   P(s) = P_0 + s * D. Default: a fixed cyclic structure.
+#'   \code{P(s) = P_0 + s * D}. Default: a fixed cyclic structure.
 #' @param verbose If TRUE, print per-alpha progress.
-#' @return A list with: alpha_grid, mean_deviation, n_converged, RI (the
-#'   largest alpha within tolerance), baseline_value.
+#' @return A list with elements \code{alpha_grid}, \code{mean_deviation},
+#'   \code{n_converged}, \code{RI} (the largest alpha within tolerance),
+#'   \code{baseline_value}, \code{tolerance}, and \code{violation}.
+#' @seealso \code{\link{ri_first_order}} for the fast first-order variant.
+#' @export
 ri_simulation <- function(shapes_hat, scales_hat, estimand_fn,
                           violation = c("C1", "C2", "C3"),
                           tolerance,
@@ -123,29 +137,41 @@ ri_simulation <- function(shapes_hat, scales_hat, estimand_fn,
 # Closed-form first-order robustness interval (via numerical ISNI)
 # -----------------------------------------------------------------------------
 
-#' First-order robustness interval using the Index of Local Sensitivity to
-#' Nonignorability (ISNI).
+#' First-order robustness interval via the Index of Local Sensitivity to
+#' Nonignorability (ISNI)
 #'
-#' For exponential components, the ISNI for the total system hazard is
-#' exactly zero under any violation (theorem in
-#' sensitivity_framework.tex), giving an infinite robustness interval.
-#' For Weibull components, the ISNI is computed numerically by perturbing
-#' the masking severity and refitting at a small grid of alphas, then
-#' fitting a linear coefficient.
+#' Computes a fast, first-order robustness interval for a reliability estimand.
+#' The local sensitivity index (ISNI) is the slope of the estimand's deviation
+#' from baseline with respect to the violation severity at severity zero, and
+#' the robustness interval is \code{tolerance / |ISNI|}. For exponential
+#' components the ISNI for the total system hazard is exactly zero under any of
+#' the three violations (the all-orders preservation result), giving an
+#' infinite robustness interval. For Weibull components the ISNI is estimated
+#' numerically by perturbing the masking severity, refitting at a small grid of
+#' probe severities, and fitting a linear coefficient. This is the fast
+#' counterpart to the Monte-Carlo \code{\link{ri_simulation}}; it is only
+#' first-order accurate.
 #'
 #' @param shapes_hat Shape MLE estimates.
 #' @param scales_hat Scale MLE estimates.
-#' @param estimand_fn Function (shapes, scales) -> scalar.
-#' @param violation "C1", "C2", or "C3".
+#' @param estimand_fn Function \code{(shapes, scales)} returning a scalar
+#'   estimand value (for example \code{function(s, l) wei_series_mttf(s, l)}).
+#' @param violation One of \code{"C1"}, \code{"C2"}, or \code{"C3"}.
 #' @param tolerance Absolute deviation tolerance.
 #' @param n Sample size for ISNI estimation.
 #' @param B Number of Monte-Carlo replicates per probe (default 50).
 #' @param tau Censoring time.
-#' @param base_p Off-diagonal base masking probability.
+#' @param base_p Off-diagonal base masking probability (default 0.5).
 #' @param probe_alpha Two small alpha values used to estimate the slope
-#'   of the deviation curve at alpha = 0. Default c(0.05, 0.10).
-#' @return A list with: ISNI (the estimated first-order coefficient), RI
-#'   (= tolerance / |ISNI| if ISNI != 0; Inf otherwise), baseline_value.
+#'   of the deviation curve at alpha = 0. Default \code{c(0.05, 0.10)}.
+#' @param C2_direction For C2 violations, the direction matrix D such that
+#'   \code{P(s) = P_0 + s * D}. Default: a fixed cyclic structure.
+#' @return A list with elements \code{ISNI} (the estimated first-order
+#'   coefficient), \code{RI} (\code{= tolerance / |ISNI|} if \code{ISNI != 0},
+#'   \code{Inf} otherwise), \code{baseline_value}, \code{tolerance},
+#'   \code{violation}, \code{probe_alpha}, and \code{probe_deviations}.
+#' @seealso \code{\link{ri_simulation}} for the Monte-Carlo variant.
+#' @export
 ri_first_order <- function(shapes_hat, scales_hat, estimand_fn,
                             violation = c("C1", "C2", "C3"),
                             tolerance,
