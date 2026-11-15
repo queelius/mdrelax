@@ -1,0 +1,180 @@
+{
+  "schema_version": 1,
+  "record_id": "masked-exponential-total-rate",
+  "verified_at": "2026-11-15T16:47:15.748007+00:00",
+  "scope": "Finite-sample total-rate factorization of the standard fitted exponential likelihood; numerical and identification controls. No full-paper verification or historical novelty claim.",
+  "implementation": {
+    "repository": "https://github.com/queelius/mdrelax",
+    "commit": "39c7fc5f04905d364fc7acad43be2ddf99b9c0c1",
+    "version": "1.0.0",
+    "r_code_changed": false
+  },
+  "commands": {
+    "tests": "Rscript -e 'devtools::test(reporter=\"summary\", stop_on_failure=TRUE)'",
+    "coverage": "Rscript -e 'covr::package_coverage()'",
+    "reproduction": "sh paper/reproduction/exponential-total-rate/reproduce.sh /tmp/mdrelax-closeout-results"
+  },
+  "environment": {
+    "R": "4.3.3",
+    "os": "Ubuntu 24.04.5 LTS",
+    "platform": "x86_64-pc-linux-gnu"
+  },
+  "tests": {
+    "test_blocks": 245,
+    "assertions": 1304,
+    "failed": 0,
+    "errors": 0,
+    "warnings": 0,
+    "skipped": 18
+  },
+  "coverage": {
+    "package_percent": 69.0834,
+    "exponential_baseline_file_percent": 87.25,
+    "robustness_intervals_file_percent": 0
+  },
+  "known_gaps": [
+    "18 legacy simulation test blocks skip because their loader uses an old package name and an incorrect development-relative path.",
+    "One test-file setup warning occurs outside test_that and is not included in the assertion warning count.",
+    "Robustness-interval functions are not covered by the existing suite.",
+    "Full manuscript simulations, proofs and general Weibull robustness claims not revalidated."
+  ],
+  "reproduction": {
+    "passed": true,
+    "new_assertions": 28,
+    "fresh_install": true,
+    "r_vanilla": true,
+    "synthetic_data": true,
+    "negative_control": "Wrong likelihood omitting censored exposure rejected by independent likelihood comparison.",
+    "fits": [
+      {
+        "observation": "singletons",
+        "rate_1": "0.641025430546424",
+        "rate_2": "0.384616874834541",
+        "rate_3": "0.256410721491297",
+        "total": "1.28205302687226",
+        "failures": "10",
+        "exposure": "7.8"
+      },
+      {
+        "observation": "relabelled",
+        "rate_1": "0.256410721491297",
+        "rate_2": "0.384616874834541",
+        "rate_3": "0.641025430546424",
+        "total": "1.28205302687226",
+        "failures": "10",
+        "exposure": "7.8"
+      },
+      {
+        "observation": "fully_masked",
+        "rate_1": "0.427350427350428",
+        "rate_2": "0.427350427350428",
+        "rate_3": "0.427350427350428",
+        "total": "1.28205128205128",
+        "failures": "10",
+        "exposure": "7.8"
+      }
+    ],
+    "selection": [
+      {
+        "population_rate": "3",
+        "full_sample_fit": "3.00103995614885",
+        "selected_sample_fit": "1.77257381612952",
+        "selected_population_limit": "1.77184832744892"
+      }
+    ]
+  },
+  "historical_archive": {
+    "doi": "10.5281/zenodo.20468529",
+    "concept_doi": "10.5281/zenodo.20414727",
+    "version": "v0.2.0",
+    "title": "Sensitivity of series system reliability estimation to the non-informative masking assumption",
+    "metadata_publication_date": "2026-05-30",
+    "record_created": "2026-06-04T02:23:23.223961+00:00",
+    "record_updated": "2026-06-04T02:23:23.547955+00:00",
+    "url": "https://zenodo.org/records/20468529",
+    "file": "mdrelax.pdf",
+    "bytes": 556092,
+    "md5": "a31e9966e1d1afc8b66380dcd91804a7",
+    "sha256": "eaffb6da55026800f72eab883ca76a719a6a7387e53b8e3c33f755b3a12b3c59",
+    "public_download_verified": true,
+    "contains_new_checks": false,
+    "claim_locator": "Theorem 3.6, factorization and equation for total-rate MLE"
+  },
+  "source_files": [
+    {
+      "path": "R/data.R",
+      "sha256": "ea20ab9c6e71fad1ad49f444844e426bb97cdfddf1da30569bab13cc4983775a"
+    },
+    {
+      "path": "R/exp_series_c1_c2.R",
+      "sha256": "f2af0f362cb25cebccb7a07b53e7905e188f430a8d1e6cc1e1a56cb9a02dae9d"
+    },
+    {
+      "path": "R/exp_series_c1_c2_c3.R",
+      "sha256": "1936fa6409eb70277178758272f9987c80ac8d42f105c4c8a90a2a72d0240164"
+    },
+    {
+      "path": "R/exp_series_c1_c3.R",
+      "sha256": "c3875f559193048f8b04c9cdaa495decfe60417605c39ba7f24f44c82400552e"
+    },
+    {
+      "path": "R/exp_series_relaxed_c1.R",
+      "sha256": "32b677a6f4e78a41aebaadab5131c3d646ca6b2740116dc65d81cbe720348307"
+    },
+    {
+      "path": "R/mdrelax-package.R",
+      "sha256": "297b85dc5be552e7bda600b0a273ebf88c8a19e97d946a0f8bcc83783cefc317"
+    },
+    {
+      "path": "R/robustness_intervals.R",
+      "sha256": "674e478e56685c15de48f98707b9eebe70b993100032e7798ad281447f3e108d"
+    },
+    {
+      "path": "R/simulation_study.R",
+      "sha256": "0699acde96086a1c3f7d78c14eedc2c7ac981e805b0263c0898eeb48a1a91a2f"
+    },
+    {
+      "path": "R/wei_series.R",
+      "sha256": "81deb4bd0ca5104032ebc05d3e0f55b72a0a74c881c8f0ef6d686ee45a139811"
+    },
+    {
+      "path": "R/wei_series_c1_c2.R",
+      "sha256": "d0761c54168d98f4a89aa67bca4a0b7f8794313f5b8012545073da5181ab9cb5"
+    },
+    {
+      "path": "R/wei_series_c1_c2_c3.R",
+      "sha256": "1c270038f64ec01ca98a131df18161cd80763379a860b4cadc2de47aee4a886d"
+    },
+    {
+      "path": "R/wei_series_c1_c3.R",
+      "sha256": "018fac7992314a44254d085765f641e5078b4fc0c459ff7df6a7f46f8ede2f0d"
+    },
+    {
+      "path": "paper/reproduction/exponential-total-rate/negative-control.R",
+      "sha256": "60a4c2fa381a3b9ce1e4256e79d07fe8894dbf0ad287857feaf55e58624a3381"
+    },
+    {
+      "path": "paper/reproduction/exponential-total-rate/reproduce.sh",
+      "sha256": "d26932c2222960767d21078874299c3d20a091cca2afb3129dcc356812613c54"
+    },
+    {
+      "path": "paper/reproduction/exponential-total-rate/verify.R",
+      "sha256": "1fb4ab9daf5e130831cc30a3146258407c300368909ee819b13e605349ac268c"
+    },
+    {
+      "path": "tests/testthat/test-total-rate-factorization.R",
+      "sha256": "e437eef485fdf7e09e4e4221ffc3e7fbd0133425208f53695836c941332f31a9"
+    }
+  ],
+  "review": {
+    "formal_proof": false,
+    "human_peer_review": false,
+    "independent_ai_review": "pending"
+  },
+  "license": "GPL-3.0-or-later",
+  "author": {
+    "name": "Alexander Richard Towell",
+    "orcid": "0000-0001-6443-9897"
+  },
+  "ai_assistance": "Substantial OpenAI Codex assistance in companion implementation, verification, documentation and review."
+}

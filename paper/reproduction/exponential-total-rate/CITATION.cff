@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+message: "Cite this companion by its exact source commit. The referenced paper DOI identifies the prior result, not these supplementary checks."
+type: software
+title: "What masked failures can still tell you: an exponential total-rate reproducibility companion"
+authors:
+  - family-names: Towell
+    given-names: Alexander Richard
+    orcid: "https://orcid.org/0000-0001-6443-9897"
+    email: lex@metafunctor.com
+version: "2026-11-15"
+date-released: 2026-11-15
+license: GPL-3.0-or-later
+repository-code: "https://github.com/queelius/mdrelax"
+references:
+  - type: article
+    title: "Sensitivity of series system reliability estimation to the non-informative masking assumption"
+    authors:
+      - family-names: Towell
+        given-names: Alexander Richard
+        orcid: "https://orcid.org/0000-0001-6443-9897"
+    doi: "10.5281/zenodo.20468529"
+    version: "v0.2.0"

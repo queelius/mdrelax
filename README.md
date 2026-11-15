@@ -2,7 +2,9 @@
 
 Relaxed Candidate Set Models for Masked Data in Series Systems
 
-> **Paper review status (2026-06-08, papermill multi-agent): minor-revision.** The manuscript in `paper/` is sound and reproduces; top remaining item: export and demonstrate the headline robustness-interval tool (`ri_first_order` / `ri_simulation` are currently unexported), and reconcile the paper title against the Zenodo record metadata.
+Start with [what masked failures can still tell you](paper/reproduction/exponential-total-rate/README.md): a short argument and executable checks for the existing exponential total-rate result. It distinguishes a stable system-rate estimate from uncertain component attribution, and shows how selective retention defeats the broader robustness inference.
+
+The November 2026 closeout verifies that worked path. It does not establish the correctness of every paper claim. The historical June 2026 “minor revision” label came from AI review, not a journal decision. Both `ri_first_order()` and `ri_simulation()` are exported, with an application in `paper/regenerate_application.R`; their outputs are exploratory sensitivity calculations, not certified global robustness intervals. See [maintenance scope](MAINTENANCE.md).
 
 ## Overview
 
@@ -103,8 +105,10 @@ See the [package website](https://queelius.github.io/mdrelax/) for full document
 
 ## Related Work
 
-- [wei.series.md.c1.c2.c3](https://github.com/queelius/wei.series.md.c1.c2.c3) - Weibull series systems under C1-C2-C3
-- [likelihood.model.series.md](https://github.com/queelius/likelihood.model.series.md) - General likelihood framework
+- [maskedcauses](https://github.com/queelius/maskedcauses) - Exponential and Weibull models under C1-C2-C3
+- [likelihood.model](https://github.com/queelius/likelihood.model) - General likelihood inference interfaces
+- [R ecosystem](https://github.com/queelius/queelius.r-universe.dev) - Related distribution, inference and reliability software
+- [Research record](https://github.com/queelius/research-records/tree/main/records/masked-exponential-total-rate) - Exact claim, source pin, evidence and archival citation
 
 ## License
 

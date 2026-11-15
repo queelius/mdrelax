@@ -1,0 +1,48 @@
+* installing *source* package ‘mdrelax’ ...
+** using staged installation
+** R
+** data
+*** moving datasets to lazyload DB
+** inst
+** byte-compile and prepare package for lazy loading
+** help
+*** installing help indices
+** building package indices
+** installing vignettes
+** testing if installed package can be loaded from temporary location
+** testing if installed package can be loaded from final location
+** testing if installed package keeps a record of temporary installation path
+* DONE (mdrelax)
+observation,rate_1,rate_2,rate_3,total,failures,exposure
+singletons,0.641025430546424,0.384616874834541,0.256410721491297,1.28205302687226,10,7.8
+relabelled,0.256410721491297,0.384616874834541,0.641025430546424,1.28205302687226,10,7.8
+fully_masked,0.427350427350428,0.427350427350428,0.427350427350428,1.28205128205128,10,7.8
+
+Selective-retention control: full 3.001040; selected 1.772574; population rate 3.0
+All factorization, fitting, identification and scope controls passed.
+R version 4.3.3 (2024-02-29)
+Platform: x86_64-pc-linux-gnu (64-bit)
+Running under: Ubuntu 24.04.5 LTS
+
+Matrix products: default
+BLAS:   /usr/lib/x86_64-linux-gnu/blas/libblas.so.3.12.0 
+LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.12.0
+
+locale:
+ [1] LC_CTYPE=C.UTF-8       LC_NUMERIC=C           LC_TIME=C.UTF-8       
+ [4] LC_COLLATE=C.UTF-8     LC_MONETARY=C.UTF-8    LC_MESSAGES=C.UTF-8   
+ [7] LC_PAPER=C.UTF-8       LC_NAME=C              LC_ADDRESS=C          
+[10] LC_TELEPHONE=C         LC_MEASUREMENT=C.UTF-8 LC_IDENTIFICATION=C   
+
+time zone: America/Chicago
+tzcode source: system (glibc)
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+[1] mdrelax_1.0.0
+
+loaded via a namespace (and not attached):
+[1] compiler_4.3.3
+Rejected the omitted-censored-exposure mutation at the independent likelihood check.

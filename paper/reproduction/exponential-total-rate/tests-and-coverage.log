@@ -1,0 +1,66 @@
+ℹ Testing mdrelax
+exp-series-c1-c2-c3: .........................................................................................................................................................
+exp-series-c1-c2: ....................................................................................................................................
+exp-series-c1-c3: ....................................................................................................................................................................................
+exp-series-relaxed-c1: ....................................................................................................................................................................................................................................
+simulations: WSSSSSSSSSSSSSSSSSS
+total-rate-factorization: ............................
+wei-series-c1-c2-c3: ................................................................................................................................................
+wei-series-c1-c2: .................................................................................................................................................................................
+wei-series-c1-c3: ..................................................................................................................................................................
+wei-series-relaxed-expectations: ............................
+wei-series: ...............................
+wei-simulations: .........................................
+
+══ Skipped ═════════════════════════════════════════════════════════════════════
+1. generate_component_times produces correct dimensions ('test-simulations.R:25:5') - Reason: RUN_SIM_TESTS is not TRUE
+
+2. generate_component_times has correct expected values ('test-simulations.R:35:5') - Reason: RUN_SIM_TESTS is not TRUE
+
+3. generate_masked_data creates correct structure ('test-simulations.R:58:5') - Reason: RUN_SIM_TESTS is not TRUE
+
+4. generate_masked_data respects right-censoring ('test-simulations.R:81:5') - Reason: RUN_SIM_TESTS is not TRUE
+
+5. generate_masked_data with informative masking works ('test-simulations.R:104:5') - Reason: RUN_SIM_TESTS is not TRUE
+
+6. compute_mle_exp_series returns correct structure ('test-simulations.R:131:5') - Reason: RUN_SIM_TESTS is not TRUE
+
+7. compute_mle_exp_series produces positive estimates ('test-simulations.R:153:5') - Reason: RUN_SIM_TESTS is not TRUE
+
+8. MLE is approximately unbiased with large sample ('test-simulations.R:170:5') - Reason: RUN_SIM_TESTS is not TRUE
+
+9. compute_mle_stats calculates correct bias ('test-simulations.R:199:5') - Reason: RUN_SIM_TESTS is not TRUE
+
+10. compute_mle_stats handles NA values ('test-simulations.R:214:5') - Reason: RUN_SIM_TESTS is not TRUE
+
+11. relative_efficiency computes correct ratio ('test-simulations.R:228:5') - Reason: RUN_SIM_TESTS is not TRUE
+
+12. run_scenario completes successfully ('test-simulations.R:240:5') - Reason: RUN_SIM_TESTS is not TRUE
+
+13. informative_masking_by_rank_internal returns valid probabilities ('test-simulations.R:264:5') - Reason: RUN_SIM_TESTS is not TRUE
+
+14. informative_masking_by_rank_internal respects alpha=0 (uniform) ('test-simulations.R:279:5') - Reason: RUN_SIM_TESTS is not TRUE
+
+15. fim_eigenvalue_analysis identifies near-singular matrices ('test-simulations.R:297:5') - Reason: RUN_SIM_TESTS is not TRUE
+
+16. results_to_dataframe produces valid output ('test-simulations.R:317:5') - Reason: RUN_SIM_TESTS is not TRUE
+
+17. compute_tau_for_censoring produces valid censoring times ('test-simulations.R:353:5') - Reason: RUN_SIM_TESTS is not TRUE
+
+18. full simulation workflow runs without error ('test-simulations.R:376:5') - Reason: RUN_SIM_TESTS is not TRUE
+
+══ Warnings ════════════════════════════════════════════════════════════════════
+1. (code run outside of `test_that()`) ('test-simulations.R:17:5') - Simulation files not found, skipping simulation tests
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+mdrelax Coverage: 69.08%
+R/robustness_intervals.R: 0.00%
+R/simulation_study.R: 26.08%
+R/exp_series_c1_c2.R: 85.88%
+R/wei_series_c1_c3.R: 86.87%
+R/exp_series_c1_c3.R: 87.23%
+R/exp_series_c1_c2_c3.R: 87.25%
+R/exp_series_relaxed_c1.R: 88.59%
+R/wei_series_c1_c2.R: 89.71%
+R/wei_series.R: 90.00%
+R/wei_series_c1_c2_c3.R: 90.70%
