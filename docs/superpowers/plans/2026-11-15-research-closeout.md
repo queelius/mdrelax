@@ -42,18 +42,20 @@ Files: paper/reproduction/exponential-total-rate/README.md and evidence.json; RE
 - [x] Verify existing archive metadata and PDF checksum; record exact DOI and version.
 - [x] Correct stale export status and distinguish AI review from external peer review.
 - [x] Obtain one independent whole-change review, resolve important findings, rerun relevant checks.
-- [ ] Commit and publish scoped source changes; verify public source.
+- [x] Commit and publish scoped source changes; verify public source.
 
 ### Task 3: Connect the ecosystem
 
 Files: research-records/records/masked-exponential-total-rate/{record.json,README.md}; catalog.json; registry README.md.
 
-- [ ] Add one stable central record with exact source pins, evidence and archive scope.
-- [ ] Make the verified research result the ecosystem's entry point; retain the latency example as an example.
-- [ ] Validate JSON, links, hashes and diff, publish, and verify public content.
+- [x] Add one stable central record with exact source pins, evidence and archive scope.
+- [x] Make the verified research result the ecosystem's entry point; retain the latency example as an example.
+- [x] Validate JSON, links, hashes and diff, publish, and verify public content.
 
 ## Execution ledger
 
 2026-11-15: User authorized bounded completion and publication under standing research instructions. Execute inline; no further design/permission round is needed. Isolated source worktree /tmp/mdrelax-closeout-20261115 preserves the original checkout. Existing archive verified via public API; v0.2.0 contains the exact factorization. New checks will be identified separately from that archive.
 
 2026-11-15: Tasks 1 and source documentation complete. Independent AI review of 2932b16 reran the reproduction, suite and coverage and found no critical, important or reportable minor issues. Ruling: broader Weibull/relaxed-model and historical manuscript correctness, cross-platform verification and legacy simulation-loader repairs remain outside this bounded result; those limitations are public. Raw sessionInfo whitespace is retained as evidence. Publication will reuse the paper family for a supplemental reproducibility edition, preserving its PDF byte-for-byte; no new concept DOI.
+
+2026-11-15: Publication complete. Source pin d6b1ad09c70f03c9f18e1e8992e6c4ec656cecdb, archive DOI 10.5281/zenodo.24250929 (same concept family 20414727), original PDF unchanged. All three public downloads byte-verified; extracted 147-file source packet reproduces CSVs exactly. Central record committed in research-records (a31d686), registry entry point in 58a3eef. No unresolved review findings. Main branches published with normal fast-forward pushes; preexisting unrelated local branches preserved.

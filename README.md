@@ -4,6 +4,8 @@ Relaxed Candidate Set Models for Masked Data in Series Systems
 
 Start with [what masked failures can still tell you](paper/reproduction/exponential-total-rate/README.md): a short argument and executable checks for the existing exponential total-rate result. It distinguishes a stable system-rate estimate from uncertain component attribution, and shows how selective retention defeats the broader robustness inference.
 
+The [paper and reproducibility companion, archival edition v0.2.1](https://doi.org/10.5281/zenodo.24250929), preserve the original PDF and the exact checked source. The [publication receipt](paper/reproduction/exponential-total-rate/publication.json) records source pins and verified download hashes.
+
 The November 2026 closeout verifies that worked path. It does not establish the correctness of every paper claim. The historical June 2026 “minor revision” label came from AI review, not a journal decision. Both `ri_first_order()` and `ri_simulation()` are exported, with an application in `paper/regenerate_application.R`; their outputs are exploratory sensitivity calculations, not certified global robustness intervals. See [maintenance scope](MAINTENANCE.md).
 
 ## Overview

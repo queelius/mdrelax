@@ -1,0 +1,39 @@
+{
+  "state": "published",
+  "version": "v0.2.1",
+  "version_doi": "10.5281/zenodo.24250929",
+  "concept_doi": "10.5281/zenodo.20414727",
+  "url": "https://zenodo.org/records/24250929",
+  "publication_date": "2026-11-15",
+  "record_created": "2026-11-15T16:53:19.330769+00:00",
+  "record_updated": "2026-11-15T16:53:19.878708+00:00",
+  "verified_at": "2026-11-15T16:53:46.096173+00:00",
+  "files": [
+    {
+      "filename": "ARCHIVE-NOTE.md",
+      "bytes": 2339,
+      "sha256": "1e250729198e5978ff0d69438d13882b7c84724796b42da48c6619f501e1ea25",
+      "url": "https://zenodo.org/api/records/24250929/files/ARCHIVE-NOTE.md/content",
+      "public_download_verified": true
+    },
+    {
+      "filename": "mdrelax.pdf",
+      "bytes": 556092,
+      "sha256": "eaffb6da55026800f72eab883ca76a719a6a7387e53b8e3c33f755b3a12b3c59",
+      "url": "https://zenodo.org/api/records/24250929/files/mdrelax.pdf/content",
+      "public_download_verified": true
+    },
+    {
+      "filename": "mdrelax-exponential-total-rate-20261115.zip",
+      "bytes": 191900,
+      "sha256": "b262da22319a2a8a759e09e76ee0d21f2e3143df860322b6040c44a0b8cd8a22",
+      "url": "https://zenodo.org/api/records/24250929/files/mdrelax-exponential-total-rate-20261115.zip/content",
+      "public_download_verified": true
+    }
+  ],
+  "original_pdf_unchanged": true,
+  "archived_source_commit": "d6b1ad09c70f03c9f18e1e8992e6c4ec656cecdb",
+  "source_files_verified": 147,
+  "archive_reproduction": "passed; regenerated CSV files matched stored output byte-for-byte",
+  "license_note": "Original PDF and archive note CC-BY-4.0; software/source evidence GPL-3.0-or-later."
+}
