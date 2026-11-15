@@ -29,19 +29,19 @@
 
 Files: tests/testthat/test-total-rate-factorization.R; paper/reproduction/exponential-total-rate/verify.R and reproduce.sh.
 
-- [ ] Run existing package suite and inspect coverage.
-- [ ] Add independent factorization, derivative and numerical fit checks, including censoring and full masking.
-- [ ] Add executable finite examples and rejecting controls for changed component rankings, rate bounds, zero failures, and selective retention.
-- [ ] Run against a clean installed source package, with no user R profile or preloaded workspace.
+- [x] Run existing package suite and inspect coverage.
+- [x] Add independent factorization, derivative and numerical fit checks, including censoring and full masking.
+- [x] Add executable finite examples and rejecting controls for changed component rankings, rate bounds, zero failures, and selective retention.
+- [x] Run against a clean installed source package, with no user R profile or preloaded workspace.
 
 ### Task 2: Explain and preserve
 
 Files: paper/reproduction/exponential-total-rate/README.md and evidence.json; README.md; MAINTENANCE.md.
 
-- [ ] Explain claim, proof, assumptions, limitations, reproduction, citation and credit.
-- [ ] Verify existing archive metadata and PDF checksum; record exact DOI and version.
-- [ ] Correct stale export status and distinguish AI review from external peer review.
-- [ ] Obtain one independent whole-change review, resolve important findings, rerun relevant checks.
+- [x] Explain claim, proof, assumptions, limitations, reproduction, citation and credit.
+- [x] Verify existing archive metadata and PDF checksum; record exact DOI and version.
+- [x] Correct stale export status and distinguish AI review from external peer review.
+- [x] Obtain one independent whole-change review, resolve important findings, rerun relevant checks.
 - [ ] Commit and publish scoped source changes; verify public source.
 
 ### Task 3: Connect the ecosystem
@@ -55,3 +55,5 @@ Files: research-records/records/masked-exponential-total-rate/{record.json,READM
 ## Execution ledger
 
 2026-11-15: User authorized bounded completion and publication under standing research instructions. Execute inline; no further design/permission round is needed. Isolated source worktree /tmp/mdrelax-closeout-20261115 preserves the original checkout. Existing archive verified via public API; v0.2.0 contains the exact factorization. New checks will be identified separately from that archive.
+
+2026-11-15: Tasks 1 and source documentation complete. Independent AI review of 2932b16 reran the reproduction, suite and coverage and found no critical, important or reportable minor issues. Ruling: broader Weibull/relaxed-model and historical manuscript correctness, cross-platform verification and legacy simulation-loader repairs remain outside this bounded result; those limitations are public. Raw sessionInfo whitespace is retained as evidence. Publication will reuse the paper family for a supplemental reproducibility edition, preserving its PDF byte-for-byte; no new concept DOI.

@@ -48,38 +48,38 @@
     "fits": [
       {
         "observation": "singletons",
-        "rate_1": "0.641025430546424",
-        "rate_2": "0.384616874834541",
-        "rate_3": "0.256410721491297",
-        "total": "1.28205302687226",
-        "failures": "10",
-        "exposure": "7.8"
+        "rate_1": 0.641025430546424,
+        "rate_2": 0.384616874834541,
+        "rate_3": 0.256410721491297,
+        "total": 1.28205302687226,
+        "failures": 10.0,
+        "exposure": 7.8
       },
       {
         "observation": "relabelled",
-        "rate_1": "0.256410721491297",
-        "rate_2": "0.384616874834541",
-        "rate_3": "0.641025430546424",
-        "total": "1.28205302687226",
-        "failures": "10",
-        "exposure": "7.8"
+        "rate_1": 0.256410721491297,
+        "rate_2": 0.384616874834541,
+        "rate_3": 0.641025430546424,
+        "total": 1.28205302687226,
+        "failures": 10.0,
+        "exposure": 7.8
       },
       {
         "observation": "fully_masked",
-        "rate_1": "0.427350427350428",
-        "rate_2": "0.427350427350428",
-        "rate_3": "0.427350427350428",
-        "total": "1.28205128205128",
-        "failures": "10",
-        "exposure": "7.8"
+        "rate_1": 0.427350427350428,
+        "rate_2": 0.427350427350428,
+        "rate_3": 0.427350427350428,
+        "total": 1.28205128205128,
+        "failures": 10.0,
+        "exposure": 7.8
       }
     ],
     "selection": [
       {
-        "population_rate": "3",
-        "full_sample_fit": "3.00103995614885",
-        "selected_sample_fit": "1.77257381612952",
-        "selected_population_limit": "1.77184832744892"
+        "population_rate": 3.0,
+        "full_sample_fit": 3.00103995614885,
+        "selected_sample_fit": 1.77257381612952,
+        "selected_population_limit": 1.77184832744892
       }
     ]
   },
@@ -169,7 +169,16 @@
   "review": {
     "formal_proof": false,
     "human_peer_review": false,
-    "independent_ai_review": "pending"
+    "independent_ai_review": {
+      "reviewed_commit": "2932b16219df6437672e6a197aa83bf1da4b77b2",
+      "result": "No critical, important or reportable minor findings",
+      "reproduction_rerun": true,
+      "suite_rerun": true,
+      "coverage_rerun": true,
+      "source_hashes_verified": 16,
+      "paper_pdf_and_public_metadata_verified": true,
+      "scope": "Changed companion, tests, scope statements and evidence; Linux/R environment only. Not full-paper or human peer review."
+    }
   },
   "license": "GPL-3.0-or-later",
   "author": {
